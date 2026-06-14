@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock & ETF Opportunity Screener</title>
+<style>
+:root{
+  --bg:#0d1117;--paper:#161b22;--accent:#3fb950;--accent-light:#56d364;
+  --text:#e6edf3;--text-dim:#8b949e;--line:#30363d;--card:#1c2128;--card-b:#30363d;
+  --red:#f85149;--yellow:#d29922;--blue:#58a6ff;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:1.2rem;}
+header{margin-bottom:1.2rem;}
+h1{font-size:1.4rem;font-weight:600;margin-bottom:.2rem;}
+.sub{color:var(--text-dim);font-size:.85rem;}
+
+.controls{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin:1rem 0;}
+select,input[type="text"]{background:var(--card);border:1px solid var(--card-b);color:var(--text);padding:.4rem .6rem;border-radius:6px;font-size:.85rem;}
+.btn{background:var(--card);border:1px solid var(--card-b);color:var(--text);padding:.4rem .8rem;border-radius:6px;font-size:.8rem;cursor:pointer;transition:all .15s;}
+.btn:hover{border-color:var(--accent);color:var(--accent-light);}
+.btn.primary{background:rgba(63,185,80,.15);border-color:var(--accent);color:var(--accent-light);}
+.spacer{flex:1;}
+
+table{width:100%;border-collapse:collapse;background:var(--paper);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:.85rem;}
+th,td{padding:.55rem .6rem;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap;}
+th{background:var(--card);font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;color:var(--text-dim);cursor:pointer;user-select:none;position:sticky;top:0;}
+th:hover{color:var(--accent-light);}
+tr:hover td{background:rgba(255,255,255,.02);}
+tr.hidden{display:none;}
+
+.ticker{font-weight:700;color:var(--blue);}
+.tag{display:inline-block;font-size:.65rem;padding:.1rem .45rem;border-radius:10px;border:1px solid var(--card-b);color:var(--text-dim);margin-right:.2rem;}
+.tag.theme-AI{border-color:var(--blue);color:var(--blue);}
+.tag.theme-Semis{border-color:#a371f7;color:#a371f7;}
+.tag.theme-Energy{border-color:var(--yellow);color:var(--yellow);}
+.tag.theme-Renewables{border-color:var(--accent);color:var(--accent-light);}
+
+.score{font-weight:700;font-size:.95rem;border-radius:5px;padding:.15rem .5rem;text-align:center;display:inline-block;min-width:2.2rem;}
+.score.high{background:rgba(63,185,80,.18);color:var(--accent-light);}
+.score.mid{background:rgba(210,153,34,.18);color:var(--yellow);}
+.score.low{background:rgba(248,81,73,.15);color:var(--red);}
+
+input.editable{background:transparent;border:1px solid transparent;color:var(--text);width:100%;padding:.2rem .3rem;border-radius:4px;font-size:.85rem;font-family:inherit;}
+input.editable:hover{border-color:var(--card-b);}
+input.editable:focus{border-color:var(--accent);outline:none;background:var(--card);}
+input.num{width:4.5rem;text-align:right;}
+textarea.notes{background:transparent;border:1px solid transparent;color:var(--text-dim);width:220px;resize:vertical;font-family:inherit;font-size:.8rem;padding:.25rem .35rem;border-radius:4px;min-height:1.6rem;}
+textarea.notes:hover{border-color:var(--card-b);}
+textarea.notes:focus{border-color:var(--accent);outline:none;background:var(--card);color:var(--text);}
+
+.del-btn{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:.9rem;}
+.del-btn:hover{color:var(--red);}
+
+.legend{margin-top:.8rem;color:var(--text-dim);font-size:.75rem;line-height:1.6;}
+.legend b{color:var(--text);}
+footer{margin-top:1.5rem;color:var(--text-dim);font-size:.72rem;border-top:1px solid var(--line);padding-top:.8rem;}
+</style>
+</head>
+<body>
+<header>
+  <h1>Stock & ETF Opportunity Screener</h1>
+  <div class="sub">AI &middot; Semiconductors &middot; Energy &middot; Renewables — manual screening dashboard. Edit prices/scores/notes; data persists locally in your browser.</div>
+</header>
+
+<div class="controls">
+  <select id="themeFilter">
+    <option value="">All Themes</option>
+    <option value="AI">AI</option>
+    <option value="Semis">Semiconductors</option>
+    <option value="Energy">Energy</option>
+    <option value="Renewables">Renewables</option>
+  </select>
+  <select id="typeFilter">
+    <option value="">All Types</option>
+    <option value="Stock">Stock</option>
+    <option value="ETF">ETF</option>
+  </select>
+  <input type="text" id="searchBox" placeholder="Search ticker or name...">
+  <div class="spacer"></div>
+  <button class="btn" id="addRowBtn">+ Add Row</button>
+  <button class="btn primary" id="resetBtn">Reset to Defaults</button>
+</div>
+
+<table id="screenerTable">
+  <thead>
+    <tr>
+      <th data-key="ticker">Ticker</th>
+      <th data-key="name">Name</th>
+      <th data-key="theme">Theme</th>
+      <th data-key="type">Type</th>
+      <th data-key="price">Price</th>
+      <th data-key="target">Target</th>
+      <th data-key="upside">Upside %</th>
+      <th data-key="score">Score (1-10)</th>
+      <th data-key="horizon">Horizon</th>
+      <th data-key="notes">Notes / Thesis</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody id="tbody"></tbody>
+</table>
+
+<div class="legend">
+  <div><b>Upside %</b> = (Target − Price) / Price × 100, calculated automatically when both Price and Target are filled in.</div>
+  <div><b>Score</b>: your own conviction rating 1-10 (color-coded: green ≥7, yellow 4-6, red ≤3). Click column headers to sort.</div>
+  <div><b>Horizon</b>: suggested holding period for the opportunity (e.g. "1-4 wks", "long-term").</div>
+</div>
+
+<footer>
+  Data entered here is illustrative/manual — not live market data. Verify current prices, fundamentals, and news before trading.
+  Edits are saved automatically to this browser's local storage (per device/browser).
+</footer>
+
+<script>
+const DEFAULT_DATA = [
+  {ticker:"NVDA", name:"Nvidia", theme:"AI/Semis", themes:["AI","Semis"], type:"Stock", price:"", target:"", score:8, horizon:"long-term", notes:"Dominant AI GPU/data center player; bellwether for sector sentiment and bounce-back leader."},
+  {ticker:"AVGO", name:"Broadcom", theme:"AI/Semis", themes:["AI","Semis"], type:"Stock", price:"", target:"", score:7, horizon:"1-4 wks", notes:"Hit -12.6% on Jun 5 2026 earnings miss (AI networking rev guidance). Custom AI ASIC pipeline still strong - potential mean-reversion bounce."},
+  {ticker:"TSM", name:"Taiwan Semiconductor", theme:"Semis", themes:["Semis"], type:"Stock", price:"", target:"", score:8, horizon:"long-term", notes:"Manufactures for nearly all AI chip designers; 13 buy/2 hold/0 sell - lower-risk picks-and-shovels exposure."},
+  {ticker:"AMD", name:"Advanced Micro Devices", theme:"AI/Semis", themes:["AI","Semis"], type:"Stock", price:"", target:"", score:7, horizon:"1-4 wks", notes:"Caught in Jun 2026 selloff; cited as a buy-the-dip alongside NVDA/AVGO. Second major AI GPU supplier gaining share."},
+  {ticker:"MRVL", name:"Marvell Technology", theme:"AI/Semis", themes:["AI","Semis"], type:"Stock", price:"", target:"", score:7, horizon:"1-4 wks", notes:"-17% on Jun 5 2026 selloff, hardest hit large semis name. PEG ~0.6x - looks cheap if rebound continues. Data center rev >70% of sales, growing 50% YoY."},
+  {ticker:"ARM", name:"Arm Holdings", theme:"AI/Semis", themes:["AI","Semis"], type:"Stock", price:"", target:"", score:6, horizon:"long-term", notes:"Core IP in mobile/edge AI chips and low-power processors; strong momentum reading."},
+  {ticker:"MU", name:"Micron Technology", theme:"AI/Semis", themes:["AI","Semis"], type:"Stock", price:"", target:"", score:6, horizon:"1-4 wks", notes:"Hit hardest among memory names in Jun 2026 selloff (glut concerns + reallocation story). High-bandwidth memory demand from AI buildout favorable long term - high-risk/high-reward bounce candidate."},
+  {ticker:"SOXX", name:"iShares Semiconductor ETF", theme:"Semis", themes:["Semis"], type:"ETF", price:"", target:"", score:7, horizon:"1-4 wks", notes:"Broad semis exposure - lower-risk way to play a sector-wide rebound after the Jun 2026 selloff vs single names."},
+  {ticker:"SMH", name:"VanEck Semiconductor ETF", theme:"Semis", themes:["Semis"], type:"ETF", price:"", target:"", score:7, horizon:"1-4 wks", notes:"Alternative broad semiconductor ETF, similar rebound thesis to SOXX."},
+  {ticker:"VDE", name:"Vanguard Energy ETF", theme:"Energy", themes:["Energy"], type:"ETF", price:"", target:"", score:5, horizon:"long-term", notes:"Broad US energy sector exposure, very low 0.09% expense ratio."},
+  {ticker:"XLE", name:"Energy Select Sector SPDR", theme:"Energy", themes:["Energy"], type:"ETF", price:"", target:"", score:5, horizon:"long-term", notes:"Large-cap weighted alternative broad energy ETF."},
+  {ticker:"CCJ", name:"Cameco", theme:"Energy", themes:["Energy","AI"], type:"Stock", price:"", target:"", score:7, horizon:"long-term", notes:"Trading ~85% below highs, PEG ~1.3. Uranium/nuclear power tie-in to AI data center power demand."},
+  {ticker:"GEV", name:"GE Vernova", theme:"Energy", themes:["Energy","AI"], type:"Stock", price:"", target:"", score:7, horizon:"long-term", notes:"Power generation buildout for AI data centers; projected EPS growth +31% FY25, +82% FY26."},
+  {ticker:"ICLN", name:"iShares Global Clean Energy ETF", theme:"Renewables", themes:["Renewables"], type:"ETF", price:"", target:"", score:5, horizon:"long-term", notes:"103 holdings (Bloom Energy, First Solar, Sunrun top weights). +59% over past year - check valuation after the run-up."},
+  {ticker:"PBW", name:"Invesco WilderHill Clean Energy ETF", theme:"Renewables", themes:["Renewables"], type:"ETF", price:"", target:"", score:5, horizon:"long-term", notes:"Holdings incl. Bloom Energy, SolarEdge, Ormat. +56% over past year - similar valuation caution as ICLN."},
+  {ticker:"NEE", name:"NextEra Energy", theme:"Renewables", themes:["Renewables","Energy"], type:"Stock", price:"", target:"", score:6, horizon:"long-term", notes:"Largest wind/solar utility-scale operator; strong shareholder value track record."},
+  {ticker:"FSLR", name:"First Solar", theme:"Renewables", themes:["Renewables"], type:"Stock", price:"", target:"", score:6, horizon:"long-term", notes:"Leading US solar manufacturer; top holding in major clean energy ETFs."},
+];
+
+const STORAGE_KEY = "investorScreenerData_v1";
+
+function loadData(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(raw){
+    try{ return JSON.parse(raw); }catch(e){ /* fall through */ }
+  }
+  return JSON.parse(JSON.stringify(DEFAULT_DATA));
+}
+
+function saveData(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+let data = loadData();
+let sortKey = null, sortAsc = true;
+
+function computeUpside(row){
+  const p = parseFloat(row.price), t = parseFloat(row.target);
+  if(!isNaN(p) && !isNaN(t) && p > 0){
+    return ((t - p) / p * 100);
+  }
+  return null;
+}
+
+function scoreClass(score){
+  const s = parseFloat(score);
+  if(isNaN(s)) return "";
+  if(s >= 7) return "high";
+  if(s >= 4) return "mid";
+  return "low";
+}
+
+function themeTagsHtml(row){
+  const themes = row.themes && row.themes.length ? row.themes : [row.theme];
+  return themes.map(t => `<span class="tag theme-${t}">${t}</span>`).join("");
+}
+
+function render(){
+  const tbody = document.getElementById("tbody");
+  const themeFilter = document.getElementById("themeFilter").value;
+  const typeFilter = document.getElementById("typeFilter").value;
+  const search = document.getElementById("searchBox").value.trim().toLowerCase();
+
+  let rows = data.map((row, idx) => ({...row, _idx: idx}));
+
+  if(sortKey){
+    rows.sort((a,b) => {
+      let av, bv;
+      if(sortKey === "upside"){
+        av = computeUpside(a); bv = computeUpside(b);
+        av = av === null ? -Infinity : av;
+        bv = bv === null ? -Infinity : bv;
+      } else if(sortKey === "price" || sortKey === "target" || sortKey === "score"){
+        av = parseFloat(a[sortKey]); bv = parseFloat(b[sortKey]);
+        av = isNaN(av) ? -Infinity : av;
+        bv = isNaN(bv) ? -Infinity : bv;
+      } else {
+        av = (a[sortKey]||"").toString().toLowerCase();
+        bv = (b[sortKey]||"").toString().toLowerCase();
+      }
+      if(av < bv) return sortAsc ? -1 : 1;
+      if(av > bv) return sortAsc ? 1 : -1;
+      return 0;
+    });
+  }
+
+  tbody.innerHTML = "";
+  rows.forEach(row => {
+    const idx = row._idx;
+    const themes = row.themes && row.themes.length ? row.themes : [row.theme];
+    const matchesTheme = !themeFilter || themes.includes(themeFilter);
+    const matchesType = !typeFilter || row.type === typeFilter;
+    const matchesSearch = !search || row.ticker.toLowerCase().includes(search) || row.name.toLowerCase().includes(search);
+
+    const tr = document.createElement("tr");
+    if(!(matchesTheme && matchesType && matchesSearch)) tr.classList.add("hidden");
+
+    const upside = computeUpside(row);
+    const upsideStr = upside === null ? "" : upside.toFixed(1) + "%";
+
+    tr.innerHTML = `
+      <td class="ticker">${row.ticker}</td>
+      <td><input class="editable" data-idx="${idx}" data-field="name" value="${escapeAttr(row.name)}"></td>
+      <td>${themeTagsHtml(row)}</td>
+      <td>${row.type}</td>
+      <td><input class="editable num" type="number" step="0.01" data-idx="${idx}" data-field="price" value="${row.price}" placeholder="-"></td>
+      <td><input class="editable num" type="number" step="0.01" data-idx="${idx}" data-field="target" value="${row.target}" placeholder="-"></td>
+      <td>${upsideStr}</td>
+      <td><input class="editable num" type="number" min="1" max="10" step="1" data-idx="${idx}" data-field="score" value="${row.score}"> <span class="score ${scoreClass(row.score)}">${isNaN(parseFloat(row.score)) ? "" : row.score}</span></td>
+      <td><input class="editable" data-idx="${idx}" data-field="horizon" value="${escapeAttr(row.horizon)}"></td>
+      <td><textarea class="notes" data-idx="${idx}" data-field="notes" rows="2">${escapeHtml(row.notes)}</textarea></td>
+      <td><button class="del-btn" data-idx="${idx}" title="Remove row">&times;</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  tbody.querySelectorAll("input.editable, textarea.notes").forEach(el => {
+    el.addEventListener("change", onFieldChange);
+    el.addEventListener("input", onFieldInput);
+  });
+  tbody.querySelectorAll(".del-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const idx = parseInt(btn.dataset.idx);
+      data.splice(idx, 1);
+      saveData();
+      render();
+    });
+  });
+}
+
+function onFieldInput(e){
+  const idx = parseInt(e.target.dataset.idx);
+  const field = e.target.dataset.field;
+  data[idx][field] = e.target.value;
+  if(field === "price" || field === "target"){
+    // live-update upside cell without full re-render to preserve focus
+    const tr = e.target.closest("tr");
+    const upside = computeUpside(data[idx]);
+    tr.children[6].textContent = upside === null ? "" : upside.toFixed(1) + "%";
+  }
+  if(field === "score"){
+    const tr = e.target.closest("tr");
+    const badge = tr.querySelector(".score");
+    badge.className = "score " + scoreClass(e.target.value);
+    badge.textContent = e.target.value;
+  }
+}
+
+function onFieldChange(e){
+  saveData();
+}
+
+function escapeHtml(str){
+  return (str||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function escapeAttr(str){
+  return escapeHtml(str);
+}
+
+document.querySelectorAll("th[data-key]").forEach(th => {
+  th.addEventListener("click", () => {
+    const key = th.dataset.key;
+    if(sortKey === key) sortAsc = !sortAsc;
+    else { sortKey = key; sortAsc = true; }
+    render();
+  });
+});
+
+document.getElementById("themeFilter").addEventListener("change", render);
+document.getElementById("typeFilter").addEventListener("change", render);
+document.getElementById("searchBox").addEventListener("input", render);
+
+document.getElementById("addRowBtn").addEventListener("click", () => {
+  data.push({ticker:"NEW", name:"New Ticker", theme:"", themes:[], type:"Stock", price:"", target:"", score:5, horizon:"", notes:""});
+  saveData();
+  render();
+});
+
+document.getElementById("resetBtn").addEventListener("click", () => {
+  if(confirm("Reset all rows and edits back to the default curated list? This cannot be undone.")){
+    data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+    saveData();
+    render();
+  }
+});
+
+render();
+</script>
+</body>
+</html>
