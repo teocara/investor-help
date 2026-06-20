@@ -4,64 +4,106 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Stock & ETF Opportunity Screener</title>
+<script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
 <style>
 :root{
   --bg:#0d1117;--paper:#161b22;--accent:#3fb950;--accent-light:#56d364;
   --text:#e6edf3;--text-dim:#8b949e;--line:#30363d;--card:#1c2128;--card-b:#30363d;
-  --red:#f85149;--yellow:#d29922;--blue:#58a6ff;
+  --red:#f85149;--yellow:#d29922;--blue:#58a6ff;--purple:#a371f7;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:1.2rem;}
-header{margin-bottom:1.2rem;}
+header{margin-bottom:1rem;}
 h1{font-size:1.4rem;font-weight:600;margin-bottom:.2rem;}
 .sub{color:var(--text-dim);font-size:.85rem;}
 
-.controls{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin:1rem 0;}
+.controls{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin:.8rem 0;}
 select,input[type="text"]{background:var(--card);border:1px solid var(--card-b);color:var(--text);padding:.4rem .6rem;border-radius:6px;font-size:.85rem;}
 .btn{background:var(--card);border:1px solid var(--card-b);color:var(--text);padding:.4rem .8rem;border-radius:6px;font-size:.8rem;cursor:pointer;transition:all .15s;}
 .btn:hover{border-color:var(--accent);color:var(--accent-light);}
 .btn.primary{background:rgba(63,185,80,.15);border-color:var(--accent);color:var(--accent-light);}
 .spacer{flex:1;}
 
-table{width:100%;border-collapse:collapse;background:var(--paper);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:.85rem;}
-th,td{padding:.55rem .6rem;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap;}
-th{background:var(--card);font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;color:var(--text-dim);cursor:pointer;user-select:none;position:sticky;top:0;}
+/* Table */
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;background:var(--paper);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:.85rem;min-width:900px;}
+th,td{padding:.5rem .55rem;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap;}
+th{background:var(--card);font-size:.68rem;letter-spacing:.05em;text-transform:uppercase;color:var(--text-dim);cursor:pointer;user-select:none;position:sticky;top:0;z-index:2;}
 th:hover{color:var(--accent-light);}
-tr:hover td{background:rgba(255,255,255,.02);}
+tbody tr{cursor:pointer;}
+tbody tr:hover td{background:rgba(88,166,255,.05);}
+tbody tr.active td{background:rgba(88,166,255,.1);border-left:2px solid var(--blue);}
 tr.hidden{display:none;}
 
-.ticker{font-weight:700;color:var(--blue);}
-.tag{display:inline-block;font-size:.65rem;padding:.1rem .45rem;border-radius:10px;border:1px solid var(--card-b);color:var(--text-dim);margin-right:.2rem;}
+.ticker-cell{font-weight:700;color:var(--blue);font-size:.9rem;}
+.chart-btn{font-size:.7rem;padding:.1rem .35rem;background:rgba(88,166,255,.15);border:1px solid var(--blue);color:var(--blue);border-radius:4px;cursor:pointer;margin-left:.3rem;}
+.tag{display:inline-block;font-size:.62rem;padding:.08rem .4rem;border-radius:10px;border:1px solid var(--card-b);color:var(--text-dim);margin-right:.15rem;}
 .tag.theme-AI{border-color:var(--blue);color:var(--blue);}
-.tag.theme-Semis{border-color:#a371f7;color:#a371f7;}
+.tag.theme-Semis{border-color:var(--purple);color:var(--purple);}
 .tag.theme-Energy{border-color:var(--yellow);color:var(--yellow);}
 .tag.theme-Renewables{border-color:var(--accent);color:var(--accent-light);}
 
-.score{font-weight:700;font-size:.95rem;border-radius:5px;padding:.15rem .5rem;text-align:center;display:inline-block;min-width:2.2rem;}
+.score{font-weight:700;font-size:.9rem;border-radius:5px;padding:.12rem .45rem;text-align:center;display:inline-block;min-width:2rem;}
 .score.high{background:rgba(63,185,80,.18);color:var(--accent-light);}
 .score.mid{background:rgba(210,153,34,.18);color:var(--yellow);}
 .score.low{background:rgba(248,81,73,.15);color:var(--red);}
 
-input.editable{background:transparent;border:1px solid transparent;color:var(--text);width:100%;padding:.2rem .3rem;border-radius:4px;font-size:.85rem;font-family:inherit;}
+input.editable{background:transparent;border:1px solid transparent;color:var(--text);width:100%;padding:.18rem .28rem;border-radius:4px;font-size:.85rem;font-family:inherit;}
 input.editable:hover{border-color:var(--card-b);}
 input.editable:focus{border-color:var(--accent);outline:none;background:var(--card);}
-input.num{width:4.5rem;text-align:right;}
-textarea.notes{background:transparent;border:1px solid transparent;color:var(--text-dim);width:220px;resize:vertical;font-family:inherit;font-size:.8rem;padding:.25rem .35rem;border-radius:4px;min-height:1.6rem;}
+input.num{width:4.2rem;text-align:right;}
+textarea.notes{background:transparent;border:1px solid transparent;color:var(--text-dim);width:200px;resize:vertical;font-family:inherit;font-size:.78rem;padding:.22rem .3rem;border-radius:4px;min-height:1.5rem;}
 textarea.notes:hover{border-color:var(--card-b);}
 textarea.notes:focus{border-color:var(--accent);outline:none;background:var(--card);color:var(--text);}
-
-.del-btn{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:.9rem;}
+.del-btn{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:.9rem;padding:0 .2rem;}
 .del-btn:hover{color:var(--red);}
 
-.legend{margin-top:.8rem;color:var(--text-dim);font-size:.75rem;line-height:1.6;}
-.legend b{color:var(--text);}
-footer{margin-top:1.5rem;color:var(--text-dim);font-size:.72rem;border-top:1px solid var(--line);padding-top:.8rem;}
+/* Chart panel */
+#chartPanel{display:none;background:var(--paper);border:1px solid var(--line);border-radius:8px;margin-top:1rem;overflow:hidden;}
+#chartPanel.open{display:block;}
+.chart-header{display:flex;align-items:center;gap:.8rem;padding:.7rem 1rem;border-bottom:1px solid var(--line);flex-wrap:wrap;}
+.chart-title{font-size:1.1rem;font-weight:700;color:var(--blue);}
+.chart-subtitle{color:var(--text-dim);font-size:.85rem;}
+.chart-badges{display:flex;gap:.4rem;flex-wrap:wrap;margin-left:.5rem;}
+.badge{font-size:.72rem;padding:.15rem .5rem;border-radius:4px;font-weight:600;}
+.badge.up{background:rgba(63,185,80,.18);color:var(--accent-light);}
+.badge.down{background:rgba(248,81,73,.15);color:var(--red);}
+.badge.neutral{background:rgba(139,148,158,.15);color:var(--text-dim);}
+.spacer-flex{flex:1;}
+.range-btns{display:flex;gap:.3rem;}
+.range-btn{font-size:.72rem;padding:.22rem .55rem;background:transparent;border:1px solid var(--card-b);color:var(--text-dim);border-radius:4px;cursor:pointer;}
+.range-btn.active{background:rgba(88,166,255,.15);border-color:var(--blue);color:var(--blue);}
+#closeChart{background:none;border:none;color:var(--text-dim);font-size:1.1rem;cursor:pointer;padding:0 .2rem;}
+#closeChart:hover{color:var(--text);}
+
+/* TA summary strip */
+.ta-strip{display:flex;gap:.5rem;flex-wrap:wrap;padding:.5rem 1rem;border-bottom:1px solid var(--line);background:rgba(0,0,0,.2);}
+.ta-pill{font-size:.72rem;padding:.18rem .55rem;border-radius:12px;border:1px solid var(--card-b);}
+.ta-pill.bull{border-color:var(--accent);color:var(--accent-light);background:rgba(63,185,80,.1);}
+.ta-pill.bear{border-color:var(--red);color:var(--red);background:rgba(248,81,73,.08);}
+.ta-pill.neut{border-color:var(--card-b);color:var(--text-dim);}
+
+.charts-grid{padding:.8rem;}
+.chart-row{margin-bottom:.6rem;}
+.chart-label{font-size:.7rem;color:var(--text-dim);margin-bottom:.25rem;letter-spacing:.06em;text-transform:uppercase;}
+.chart-box{border-radius:6px;overflow:hidden;border:1px solid var(--line);}
+
+.chart-loading{text-align:center;padding:2.5rem;color:var(--text-dim);font-size:.9rem;}
+.chart-error{text-align:center;padding:2rem;color:var(--red);font-size:.85rem;}
+
+.legend-strip{margin-top:.5rem;display:flex;gap:1rem;flex-wrap:wrap;}
+.legend-item{display:flex;align-items:center;gap:.3rem;font-size:.72rem;color:var(--text-dim);}
+.legend-dot{width:10px;height:3px;border-radius:2px;}
+
+.info-footer{margin-top:.8rem;color:var(--text-dim);font-size:.72rem;line-height:1.6;}
+.info-footer b{color:var(--text);}
+footer{margin-top:1.2rem;color:var(--text-dim);font-size:.72rem;border-top:1px solid var(--line);padding-top:.7rem;}
 </style>
 </head>
 <body>
 <header>
   <h1>Stock & ETF Opportunity Screener</h1>
-  <div class="sub">AI &middot; Semiconductors &middot; Energy &middot; Renewables — manual screening dashboard. Edit prices/scores/notes; data persists locally in your browser.</div>
+  <div class="sub">AI · Semiconductors · Energy · Renewables &mdash; click any row to open live chart with technical analysis.</div>
 </header>
 
 <div class="controls">
@@ -83,6 +125,7 @@ footer{margin-top:1.5rem;color:var(--text-dim);font-size:.72rem;border-top:1px s
   <button class="btn primary" id="resetBtn">Reset to Defaults</button>
 </div>
 
+<div class="table-wrap">
 <table id="screenerTable">
   <thead>
     <tr>
@@ -90,10 +133,10 @@ footer{margin-top:1.5rem;color:var(--text-dim);font-size:.72rem;border-top:1px s
       <th data-key="name">Name</th>
       <th data-key="theme">Theme</th>
       <th data-key="type">Type</th>
-      <th data-key="price">Price</th>
-      <th data-key="target">Target</th>
+      <th data-key="price">Price $</th>
+      <th data-key="target">Target $</th>
       <th data-key="upside">Upside %</th>
-      <th data-key="score">Score (1-10)</th>
+      <th data-key="score">Score</th>
       <th data-key="horizon">Horizon</th>
       <th data-key="notes">Notes / Thesis</th>
       <th></th>
@@ -101,205 +144,428 @@ footer{margin-top:1.5rem;color:var(--text-dim);font-size:.72rem;border-top:1px s
   </thead>
   <tbody id="tbody"></tbody>
 </table>
+</div>
 
-<div class="legend">
-  <div><b>Upside %</b> = (Target − Price) / Price × 100, calculated automatically when both Price and Target are filled in.</div>
-  <div><b>Score</b>: your own conviction rating 1-10 (color-coded: green ≥7, yellow 4-6, red ≤3). Click column headers to sort.</div>
-  <div><b>Horizon</b>: suggested holding period for the opportunity (e.g. "1-4 wks", "long-term").</div>
+<!-- Chart Panel -->
+<div id="chartPanel">
+  <div class="chart-header">
+    <div>
+      <div style="display:flex;align-items:center;gap:.5rem;">
+        <span class="chart-title" id="ct-ticker"></span>
+        <span class="chart-subtitle" id="ct-name"></span>
+      </div>
+      <div style="margin-top:.2rem;display:flex;align-items:center;gap:.5rem;">
+        <span id="ct-price" style="font-size:1.3rem;font-weight:700;"></span>
+        <span class="badge" id="ct-change"></span>
+      </div>
+    </div>
+    <div class="chart-badges" id="ct-badges"></div>
+    <div class="spacer-flex"></div>
+    <div class="range-btns" id="rangeBtns">
+      <button class="range-btn" data-range="1mo">1M</button>
+      <button class="range-btn active" data-range="3mo">3M</button>
+      <button class="range-btn" data-range="6mo">6M</button>
+      <button class="range-btn" data-range="1y">1Y</button>
+      <button class="range-btn" data-range="2y">2Y</button>
+    </div>
+    <button id="closeChart" title="Close chart">&times;</button>
+  </div>
+  <div class="ta-strip" id="taStrip"></div>
+  <div class="charts-grid" id="chartsGrid">
+    <div class="chart-loading">Click a ticker row to load chart data…</div>
+  </div>
+</div>
+
+<div class="info-footer">
+  <b>Upside %</b> = (Target − Price) / Price × 100, auto-calculated. &nbsp;|&nbsp;
+  <b>Score</b> 1-10: green ≥7, yellow 4-6, red ≤3. Click headers to sort. Click any row to open technical analysis chart.
 </div>
 
 <footer>
-  Data entered here is illustrative/manual — not live market data. Verify current prices, fundamentals, and news before trading.
-  Edits are saved automatically to this browser's local storage (per device/browser).
+  Chart data via Yahoo Finance (delayed). Technical indicators are informational only — not financial advice. Edits saved to browser local storage.
 </footer>
 
 <script>
+/* ── Default dataset ─────────────────────────────────────── */
 const DEFAULT_DATA = [
-  {ticker:"NVDA", name:"Nvidia", theme:"AI/Semis", themes:["AI","Semis"], type:"Stock", price:"", target:"", score:8, horizon:"long-term", notes:"Dominant AI GPU/data center player; bellwether for sector sentiment and bounce-back leader."},
-  {ticker:"AVGO", name:"Broadcom", theme:"AI/Semis", themes:["AI","Semis"], type:"Stock", price:"", target:"", score:7, horizon:"1-4 wks", notes:"Hit -12.6% on Jun 5 2026 earnings miss (AI networking rev guidance). Custom AI ASIC pipeline still strong - potential mean-reversion bounce."},
-  {ticker:"TSM", name:"Taiwan Semiconductor", theme:"Semis", themes:["Semis"], type:"Stock", price:"", target:"", score:8, horizon:"long-term", notes:"Manufactures for nearly all AI chip designers; 13 buy/2 hold/0 sell - lower-risk picks-and-shovels exposure."},
-  {ticker:"AMD", name:"Advanced Micro Devices", theme:"AI/Semis", themes:["AI","Semis"], type:"Stock", price:"", target:"", score:7, horizon:"1-4 wks", notes:"Caught in Jun 2026 selloff; cited as a buy-the-dip alongside NVDA/AVGO. Second major AI GPU supplier gaining share."},
-  {ticker:"MRVL", name:"Marvell Technology", theme:"AI/Semis", themes:["AI","Semis"], type:"Stock", price:"", target:"", score:7, horizon:"1-4 wks", notes:"-17% on Jun 5 2026 selloff, hardest hit large semis name. PEG ~0.6x - looks cheap if rebound continues. Data center rev >70% of sales, growing 50% YoY."},
-  {ticker:"ARM", name:"Arm Holdings", theme:"AI/Semis", themes:["AI","Semis"], type:"Stock", price:"", target:"", score:6, horizon:"long-term", notes:"Core IP in mobile/edge AI chips and low-power processors; strong momentum reading."},
-  {ticker:"MU", name:"Micron Technology", theme:"AI/Semis", themes:["AI","Semis"], type:"Stock", price:"", target:"", score:6, horizon:"1-4 wks", notes:"Hit hardest among memory names in Jun 2026 selloff (glut concerns + reallocation story). High-bandwidth memory demand from AI buildout favorable long term - high-risk/high-reward bounce candidate."},
-  {ticker:"SOXX", name:"iShares Semiconductor ETF", theme:"Semis", themes:["Semis"], type:"ETF", price:"", target:"", score:7, horizon:"1-4 wks", notes:"Broad semis exposure - lower-risk way to play a sector-wide rebound after the Jun 2026 selloff vs single names."},
-  {ticker:"SMH", name:"VanEck Semiconductor ETF", theme:"Semis", themes:["Semis"], type:"ETF", price:"", target:"", score:7, horizon:"1-4 wks", notes:"Alternative broad semiconductor ETF, similar rebound thesis to SOXX."},
-  {ticker:"VDE", name:"Vanguard Energy ETF", theme:"Energy", themes:["Energy"], type:"ETF", price:"", target:"", score:5, horizon:"long-term", notes:"Broad US energy sector exposure, very low 0.09% expense ratio."},
-  {ticker:"XLE", name:"Energy Select Sector SPDR", theme:"Energy", themes:["Energy"], type:"ETF", price:"", target:"", score:5, horizon:"long-term", notes:"Large-cap weighted alternative broad energy ETF."},
-  {ticker:"CCJ", name:"Cameco", theme:"Energy", themes:["Energy","AI"], type:"Stock", price:"", target:"", score:7, horizon:"long-term", notes:"Trading ~85% below highs, PEG ~1.3. Uranium/nuclear power tie-in to AI data center power demand."},
-  {ticker:"GEV", name:"GE Vernova", theme:"Energy", themes:["Energy","AI"], type:"Stock", price:"", target:"", score:7, horizon:"long-term", notes:"Power generation buildout for AI data centers; projected EPS growth +31% FY25, +82% FY26."},
-  {ticker:"ICLN", name:"iShares Global Clean Energy ETF", theme:"Renewables", themes:["Renewables"], type:"ETF", price:"", target:"", score:5, horizon:"long-term", notes:"103 holdings (Bloom Energy, First Solar, Sunrun top weights). +59% over past year - check valuation after the run-up."},
-  {ticker:"PBW", name:"Invesco WilderHill Clean Energy ETF", theme:"Renewables", themes:["Renewables"], type:"ETF", price:"", target:"", score:5, horizon:"long-term", notes:"Holdings incl. Bloom Energy, SolarEdge, Ormat. +56% over past year - similar valuation caution as ICLN."},
-  {ticker:"NEE", name:"NextEra Energy", theme:"Renewables", themes:["Renewables","Energy"], type:"Stock", price:"", target:"", score:6, horizon:"long-term", notes:"Largest wind/solar utility-scale operator; strong shareholder value track record."},
-  {ticker:"FSLR", name:"First Solar", theme:"Renewables", themes:["Renewables"], type:"Stock", price:"", target:"", score:6, horizon:"long-term", notes:"Leading US solar manufacturer; top holding in major clean energy ETFs."},
+  {ticker:"NVDA", name:"Nvidia", theme:"AI/Semis", themes:["AI","Semis"], type:"Stock", price:"", target:"", score:8, horizon:"long-term", notes:"Dominant AI GPU/data center; bellwether for sector bounces."},
+  {ticker:"AVGO", name:"Broadcom", theme:"AI/Semis", themes:["AI","Semis"], type:"Stock", price:"", target:"", score:7, horizon:"1-4 wks", notes:"-12.6% on Jun 5 2026 earnings miss. Custom AI ASIC pipeline still strong — mean-reversion bounce candidate."},
+  {ticker:"TSM", name:"Taiwan Semiconductor", theme:"Semis", themes:["Semis"], type:"Stock", price:"", target:"", score:8, horizon:"long-term", notes:"Manufactures for all AI chip designers. 13 buy / 2 hold / 0 sell. Lower-risk picks-and-shovels."},
+  {ticker:"AMD", name:"Advanced Micro Devices", theme:"AI/Semis", themes:["AI","Semis"], type:"Stock", price:"", target:"", score:7, horizon:"1-4 wks", notes:"Caught in Jun 2026 selloff; gaining share as second major AI GPU supplier."},
+  {ticker:"MRVL", name:"Marvell Technology", theme:"AI/Semis", themes:["AI","Semis"], type:"Stock", price:"", target:"", score:7, horizon:"1-4 wks", notes:"-17% Jun 5 2026. PEG ~0.6x. Data center rev >70% of sales, +50% YoY."},
+  {ticker:"ARM", name:"Arm Holdings", theme:"AI/Semis", themes:["AI","Semis"], type:"Stock", price:"", target:"", score:6, horizon:"long-term", notes:"Core IP in mobile/edge AI chips and low-power processors."},
+  {ticker:"MU",  name:"Micron Technology", theme:"AI/Semis", themes:["AI","Semis"], type:"Stock", price:"", target:"", score:6, horizon:"1-4 wks", notes:"High-bandwidth memory for AI. Hardest-hit in selloff — high-risk/high-reward bounce."},
+  {ticker:"SOXX",name:"iShares Semiconductor ETF", theme:"Semis", themes:["Semis"], type:"ETF", price:"", target:"", score:7, horizon:"1-4 wks", notes:"Broad semis ETF — lower-risk rebound play vs single names."},
+  {ticker:"SMH", name:"VanEck Semiconductor ETF", theme:"Semis", themes:["Semis"], type:"ETF", price:"", target:"", score:7, horizon:"1-4 wks", notes:"Alternative broad semis ETF, similar thesis to SOXX."},
+  {ticker:"VDE", name:"Vanguard Energy ETF", theme:"Energy", themes:["Energy"], type:"ETF", price:"", target:"", score:5, horizon:"long-term", notes:"Broad US energy exposure. 0.09% expense ratio."},
+  {ticker:"XLE", name:"Energy Select Sector SPDR", theme:"Energy", themes:["Energy"], type:"ETF", price:"", target:"", score:5, horizon:"long-term", notes:"Large-cap weighted energy sector ETF."},
+  {ticker:"CCJ", name:"Cameco", theme:"Energy", themes:["Energy","AI"], type:"Stock", price:"", target:"", score:7, horizon:"long-term", notes:"Uranium/nuclear AI power play. ~85% below highs, PEG ~1.3."},
+  {ticker:"GEV", name:"GE Vernova", theme:"Energy", themes:["Energy","AI"], type:"Stock", price:"", target:"", score:7, horizon:"long-term", notes:"Power for AI data centers. EPS growth +31% FY25, +82% FY26."},
+  {ticker:"ICLN",name:"iShares Global Clean Energy ETF", theme:"Renewables", themes:["Renewables"], type:"ETF", price:"", target:"", score:5, horizon:"long-term", notes:"103 holdings. +59% past year — check valuation after run-up."},
+  {ticker:"PBW", name:"Invesco WilderHill Clean Energy", theme:"Renewables", themes:["Renewables"], type:"ETF", price:"", target:"", score:5, horizon:"long-term", notes:"+56% past year. SolarEdge, Bloom Energy, Ormat top weights."},
+  {ticker:"NEE", name:"NextEra Energy", theme:"Renewables", themes:["Renewables","Energy"], type:"Stock", price:"", target:"", score:6, horizon:"long-term", notes:"World's largest wind/solar utility operator."},
+  {ticker:"FSLR",name:"First Solar", theme:"Renewables", themes:["Renewables"], type:"Stock", price:"", target:"", score:6, horizon:"long-term", notes:"Leading US solar manufacturer; top holding in clean energy ETFs."},
 ];
 
-const STORAGE_KEY = "investorScreenerData_v1";
-
-function loadData(){
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if(raw){
-    try{ return JSON.parse(raw); }catch(e){ /* fall through */ }
-  }
+const STORAGE_KEY = "investorScreenerData_v2";
+let data = (() => {
+  try{ const r = localStorage.getItem(STORAGE_KEY); if(r) return JSON.parse(r); }catch(e){}
   return JSON.parse(JSON.stringify(DEFAULT_DATA));
-}
+})();
+let sortKey=null, sortAsc=true, activeIdx=null, activeRange="3mo";
 
-function saveData(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-}
-
-let data = loadData();
-let sortKey = null, sortAsc = true;
+function saveData(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
 
 function computeUpside(row){
-  const p = parseFloat(row.price), t = parseFloat(row.target);
-  if(!isNaN(p) && !isNaN(t) && p > 0){
-    return ((t - p) / p * 100);
-  }
-  return null;
+  const p=parseFloat(row.price), t=parseFloat(row.target);
+  return (!isNaN(p)&&!isNaN(t)&&p>0) ? (t-p)/p*100 : null;
 }
-
-function scoreClass(score){
-  const s = parseFloat(score);
-  if(isNaN(s)) return "";
-  if(s >= 7) return "high";
-  if(s >= 4) return "mid";
-  return "low";
-}
-
+function scoreClass(s){ const v=parseFloat(s); return isNaN(v)?"":v>=7?"high":v>=4?"mid":"low"; }
 function themeTagsHtml(row){
-  const themes = row.themes && row.themes.length ? row.themes : [row.theme];
-  return themes.map(t => `<span class="tag theme-${t}">${t}</span>`).join("");
+  const ts=row.themes&&row.themes.length?row.themes:[row.theme];
+  return ts.map(t=>`<span class="tag theme-${t}">${t}</span>`).join("");
 }
+function esc(s){ return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
+/* ── Table rendering ─────────────────────────────────────── */
 function render(){
-  const tbody = document.getElementById("tbody");
-  const themeFilter = document.getElementById("themeFilter").value;
-  const typeFilter = document.getElementById("typeFilter").value;
-  const search = document.getElementById("searchBox").value.trim().toLowerCase();
+  const tbody=document.getElementById("tbody");
+  const themeF=document.getElementById("themeFilter").value;
+  const typeF=document.getElementById("typeFilter").value;
+  const q=document.getElementById("searchBox").value.trim().toLowerCase();
 
-  let rows = data.map((row, idx) => ({...row, _idx: idx}));
-
+  let rows=data.map((r,i)=>({...r,_idx:i}));
   if(sortKey){
-    rows.sort((a,b) => {
-      let av, bv;
-      if(sortKey === "upside"){
-        av = computeUpside(a); bv = computeUpside(b);
-        av = av === null ? -Infinity : av;
-        bv = bv === null ? -Infinity : bv;
-      } else if(sortKey === "price" || sortKey === "target" || sortKey === "score"){
-        av = parseFloat(a[sortKey]); bv = parseFloat(b[sortKey]);
-        av = isNaN(av) ? -Infinity : av;
-        bv = isNaN(bv) ? -Infinity : bv;
-      } else {
-        av = (a[sortKey]||"").toString().toLowerCase();
-        bv = (b[sortKey]||"").toString().toLowerCase();
-      }
-      if(av < bv) return sortAsc ? -1 : 1;
-      if(av > bv) return sortAsc ? 1 : -1;
-      return 0;
+    rows.sort((a,b)=>{
+      let av,bv;
+      if(["upside"].includes(sortKey)){ av=computeUpside(a)??-Infinity; bv=computeUpside(b)??-Infinity; }
+      else if(["price","target","score"].includes(sortKey)){ av=parseFloat(a[sortKey])||0; bv=parseFloat(b[sortKey])||0; }
+      else{ av=(a[sortKey]||"").toLowerCase(); bv=(b[sortKey]||"").toLowerCase(); }
+      return sortAsc?(av<bv?-1:av>bv?1:0):(av>bv?-1:av<bv?1:0);
     });
   }
 
-  tbody.innerHTML = "";
-  rows.forEach(row => {
-    const idx = row._idx;
-    const themes = row.themes && row.themes.length ? row.themes : [row.theme];
-    const matchesTheme = !themeFilter || themes.includes(themeFilter);
-    const matchesType = !typeFilter || row.type === typeFilter;
-    const matchesSearch = !search || row.ticker.toLowerCase().includes(search) || row.name.toLowerCase().includes(search);
-
-    const tr = document.createElement("tr");
-    if(!(matchesTheme && matchesType && matchesSearch)) tr.classList.add("hidden");
-
-    const upside = computeUpside(row);
-    const upsideStr = upside === null ? "" : upside.toFixed(1) + "%";
-
-    tr.innerHTML = `
-      <td class="ticker">${row.ticker}</td>
-      <td><input class="editable" data-idx="${idx}" data-field="name" value="${escapeAttr(row.name)}"></td>
+  tbody.innerHTML="";
+  rows.forEach(row=>{
+    const idx=row._idx;
+    const ts=row.themes&&row.themes.length?row.themes:[row.theme];
+    const vis=(!themeF||ts.includes(themeF))&&(!typeF||row.type===typeF)&&(!q||row.ticker.toLowerCase().includes(q)||row.name.toLowerCase().includes(q));
+    const upside=computeUpside(row);
+    const uStr=upside===null?"":upside.toFixed(1)+"%";
+    const tr=document.createElement("tr");
+    if(!vis) tr.classList.add("hidden");
+    if(idx===activeIdx) tr.classList.add("active");
+    tr.dataset.idx=idx;
+    tr.innerHTML=`
+      <td><span class="ticker-cell">${row.ticker}</span></td>
+      <td><input class="editable" data-idx="${idx}" data-field="name" value="${esc(row.name)}" style="width:130px"></td>
       <td>${themeTagsHtml(row)}</td>
       <td>${row.type}</td>
-      <td><input class="editable num" type="number" step="0.01" data-idx="${idx}" data-field="price" value="${row.price}" placeholder="-"></td>
-      <td><input class="editable num" type="number" step="0.01" data-idx="${idx}" data-field="target" value="${row.target}" placeholder="-"></td>
-      <td>${upsideStr}</td>
-      <td><input class="editable num" type="number" min="1" max="10" step="1" data-idx="${idx}" data-field="score" value="${row.score}"> <span class="score ${scoreClass(row.score)}">${isNaN(parseFloat(row.score)) ? "" : row.score}</span></td>
-      <td><input class="editable" data-idx="${idx}" data-field="horizon" value="${escapeAttr(row.horizon)}"></td>
-      <td><textarea class="notes" data-idx="${idx}" data-field="notes" rows="2">${escapeHtml(row.notes)}</textarea></td>
-      <td><button class="del-btn" data-idx="${idx}" title="Remove row">&times;</button></td>
+      <td><input class="editable num" type="number" step="0.01" data-idx="${idx}" data-field="price" value="${row.price}" placeholder="–"></td>
+      <td><input class="editable num" type="number" step="0.01" data-idx="${idx}" data-field="target" value="${row.target}" placeholder="–"></td>
+      <td style="color:${upside===null?"var(--text-dim)":upside>0?"var(--accent-light)":"var(--red)"}">${uStr}</td>
+      <td><input class="editable num" type="number" min="1" max="10" step="1" data-idx="${idx}" data-field="score" value="${row.score}" style="width:2.5rem"> <span class="score ${scoreClass(row.score)}">${isNaN(parseFloat(row.score))?"":row.score}</span></td>
+      <td><input class="editable" data-idx="${idx}" data-field="horizon" value="${esc(row.horizon)}" style="width:5rem"></td>
+      <td><textarea class="notes" data-idx="${idx}" data-field="notes" rows="2">${esc(row.notes)}</textarea></td>
+      <td><button class="del-btn" data-idx="${idx}">&times;</button></td>
     `;
     tbody.appendChild(tr);
   });
 
-  tbody.querySelectorAll("input.editable, textarea.notes").forEach(el => {
-    el.addEventListener("change", onFieldChange);
-    el.addEventListener("input", onFieldInput);
+  tbody.querySelectorAll("input.editable,textarea.notes").forEach(el=>{
+    el.addEventListener("input", e=>{
+      const i=parseInt(e.target.dataset.idx), f=e.target.dataset.field;
+      data[i][f]=e.target.value;
+      if(f==="price"||f==="target"){
+        const tr=e.target.closest("tr"); const up=computeUpside(data[i]);
+        const cell=tr.children[6]; cell.textContent=up===null?"":up.toFixed(1)+"%";
+        cell.style.color=up===null?"var(--text-dim)":up>0?"var(--accent-light)":"var(--red)";
+      }
+      if(f==="score"){
+        const badge=e.target.closest("tr").querySelector(".score");
+        badge.className="score "+scoreClass(e.target.value); badge.textContent=e.target.value;
+      }
+    });
+    el.addEventListener("change", ()=>saveData());
   });
-  tbody.querySelectorAll(".del-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const idx = parseInt(btn.dataset.idx);
-      data.splice(idx, 1);
-      saveData();
-      render();
+
+  tbody.querySelectorAll(".del-btn").forEach(btn=>{
+    btn.addEventListener("click", e=>{ e.stopPropagation(); const i=parseInt(btn.dataset.idx); data.splice(i,1); if(activeIdx===i){activeIdx=null;closeChart();} saveData(); render(); });
+  });
+
+  tbody.querySelectorAll("tr[data-idx]").forEach(tr=>{
+    tr.addEventListener("click", e=>{
+      if(e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA"||e.target.tagName==="BUTTON") return;
+      openChart(parseInt(tr.dataset.idx));
     });
   });
 }
 
-function onFieldInput(e){
-  const idx = parseInt(e.target.dataset.idx);
-  const field = e.target.dataset.field;
-  data[idx][field] = e.target.value;
-  if(field === "price" || field === "target"){
-    // live-update upside cell without full re-render to preserve focus
-    const tr = e.target.closest("tr");
-    const upside = computeUpside(data[idx]);
-    tr.children[6].textContent = upside === null ? "" : upside.toFixed(1) + "%";
+document.querySelectorAll("th[data-key]").forEach(th=>{
+  th.addEventListener("click",()=>{ const k=th.dataset.key; sortKey=k===sortKey?(sortAsc=!sortAsc,k):((sortAsc=true),k); render(); });
+});
+document.getElementById("themeFilter").addEventListener("change",render);
+document.getElementById("typeFilter").addEventListener("change",render);
+document.getElementById("searchBox").addEventListener("input",render);
+document.getElementById("addRowBtn").addEventListener("click",()=>{
+  data.push({ticker:"NEW",name:"New Ticker",theme:"",themes:[],type:"Stock",price:"",target:"",score:5,horizon:"",notes:""});
+  saveData(); render();
+});
+document.getElementById("resetBtn").addEventListener("click",()=>{
+  if(confirm("Reset all rows to defaults? This cannot be undone.")){ data=JSON.parse(JSON.stringify(DEFAULT_DATA)); saveData(); activeIdx=null; closeChart(); render(); }
+});
+
+/* ── Chart panel ─────────────────────────────────────────── */
+let chartInstances=[];
+
+function closeChart(){
+  document.getElementById("chartPanel").classList.remove("open");
+  chartInstances.forEach(c=>c.remove()); chartInstances=[];
+  activeIdx=null; render();
+}
+document.getElementById("closeChart").addEventListener("click",closeChart);
+
+document.getElementById("rangeBtns").addEventListener("click",e=>{
+  const btn=e.target.closest(".range-btn"); if(!btn) return;
+  document.querySelectorAll(".range-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active"); activeRange=btn.dataset.range;
+  if(activeIdx!==null) openChart(activeIdx);
+});
+
+async function openChart(idx){
+  activeIdx=idx; render();
+  const row=data[idx];
+  const panel=document.getElementById("chartPanel");
+  panel.classList.add("open");
+  panel.scrollIntoView({behavior:"smooth",block:"start"});
+
+  document.getElementById("ct-ticker").textContent=row.ticker;
+  document.getElementById("ct-name").textContent=row.name;
+  document.getElementById("ct-price").textContent="Loading…";
+  document.getElementById("ct-change").textContent="";
+  document.getElementById("ct-change").className="badge";
+  document.getElementById("ct-badges").innerHTML="";
+  document.getElementById("taStrip").innerHTML="";
+
+  const grid=document.getElementById("chartsGrid");
+  grid.innerHTML='<div class="chart-loading">Fetching chart data…</div>';
+  chartInstances.forEach(c=>c.remove()); chartInstances=[];
+
+  try{
+    const ohlcv = await fetchYahoo(row.ticker, activeRange);
+    if(!ohlcv||ohlcv.length<5) throw new Error("No data returned");
+    drawCharts(row, ohlcv);
+  }catch(err){
+    grid.innerHTML=`<div class="chart-error">Could not load chart data for <b>${row.ticker}</b>.<br>
+    ${err.message.includes("No data")?err.message:"Try a different range, or the ticker may not be supported by the data proxy."}<br><br>
+    <small>This dashboard uses Yahoo Finance via a free CORS proxy. Occasionally rate-limited.</small></div>`;
   }
-  if(field === "score"){
-    const tr = e.target.closest("tr");
-    const badge = tr.querySelector(".score");
-    badge.className = "score " + scoreClass(e.target.value);
-    badge.textContent = e.target.value;
+}
+
+async function fetchYahoo(ticker, range){
+  const interval = range==="1mo"?"1d":range==="3mo"?"1d":range==="6mo"?"1d":range==="1y"?"1d":"1wk";
+  const url=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?range=${range}&interval=${interval}&includePrePost=false`;
+  const proxy=`https://corsproxy.io/?${encodeURIComponent(url)}`;
+  const res=await fetch(proxy);
+  if(!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json=await res.json();
+  const result=json?.chart?.result?.[0];
+  if(!result) throw new Error("No data returned from Yahoo Finance");
+  const ts=result.timestamp;
+  const q=result.indicators.quote[0];
+  const out=[];
+  for(let i=0;i<ts.length;i++){
+    if(q.open[i]==null||q.close[i]==null) continue;
+    out.push({ time: ts[i], open:+q.open[i].toFixed(4), high:+q.high[i].toFixed(4), low:+q.low[i].toFixed(4), close:+q.close[i].toFixed(4), volume:q.volume[i]||0 });
   }
+  return out;
 }
 
-function onFieldChange(e){
-  saveData();
-}
-
-function escapeHtml(str){
-  return (str||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-}
-function escapeAttr(str){
-  return escapeHtml(str);
-}
-
-document.querySelectorAll("th[data-key]").forEach(th => {
-  th.addEventListener("click", () => {
-    const key = th.dataset.key;
-    if(sortKey === key) sortAsc = !sortAsc;
-    else { sortKey = key; sortAsc = true; }
-    render();
+/* ── Technical indicators ────────────────────────────────── */
+function sma(arr, n){
+  return arr.map((_,i)=>{
+    if(i<n-1) return null;
+    const s=arr.slice(i-n+1,i+1).reduce((a,b)=>a+b,0)/n;
+    return +s.toFixed(4);
   });
-});
+}
 
-document.getElementById("themeFilter").addEventListener("change", render);
-document.getElementById("typeFilter").addEventListener("change", render);
-document.getElementById("searchBox").addEventListener("input", render);
+function ema(arr, n){
+  const k=2/(n+1); let result=[]; let e=null;
+  arr.forEach(v=>{
+    if(e===null){ e=v; } else { e=v*k+e*(1-k); }
+    result.push(+e.toFixed(4));
+  });
+  return result;
+}
 
-document.getElementById("addRowBtn").addEventListener("click", () => {
-  data.push({ticker:"NEW", name:"New Ticker", theme:"", themes:[], type:"Stock", price:"", target:"", score:5, horizon:"", notes:""});
-  saveData();
-  render();
-});
-
-document.getElementById("resetBtn").addEventListener("click", () => {
-  if(confirm("Reset all rows and edits back to the default curated list? This cannot be undone.")){
-    data = JSON.parse(JSON.stringify(DEFAULT_DATA));
-    saveData();
-    render();
+function computeRSI(closes, period=14){
+  let gains=[], losses=[];
+  for(let i=1;i<closes.length;i++){
+    const d=closes[i]-closes[i-1];
+    gains.push(d>0?d:0); losses.push(d<0?-d:0);
   }
-});
+  const rsi=[]; let avgG=0,avgL=0;
+  for(let i=0;i<gains.length;i++){
+    if(i<period){ avgG+=gains[i]/period; avgL+=losses[i]/period; }
+    else{
+      avgG=(avgG*(period-1)+gains[i])/period;
+      avgL=(avgL*(period-1)+losses[i])/period;
+      const rs=avgL===0?100:avgG/avgL;
+      rsi.push(+(100-(100/(1+rs))).toFixed(2));
+    }
+  }
+  return rsi;
+}
+
+function computeMACD(closes){
+  const e12=ema(closes,12), e26=ema(closes,26);
+  const macd=e12.map((v,i)=>+(v-e26[i]).toFixed(4));
+  const signal=ema(macd.slice(25),9);
+  const hist=signal.map((v,i)=>+(macd[i+25+9-1]-v).toFixed(4));
+  return {macd:macd.slice(25), signal, hist, offset:25};
+}
+
+/* ── Draw everything ─────────────────────────────────────── */
+function drawCharts(row, ohlcv){
+  const closes=ohlcv.map(d=>d.close);
+  const times=ohlcv.map(d=>d.time);
+
+  // Price info
+  const last=ohlcv[ohlcv.length-1]; const prev=ohlcv[ohlcv.length-2];
+  const chg=prev?(last.close-prev.close):0;
+  const chgPct=prev?chg/prev.close*100:0;
+  document.getElementById("ct-price").textContent="$"+last.close.toFixed(2);
+  const cb=document.getElementById("ct-change");
+  cb.textContent=(chg>=0?"+":"")+chg.toFixed(2)+" ("+(chgPct>=0?"+":"")+chgPct.toFixed(2)+"%)";
+  cb.className="badge "+(chg>=0?"up":"down");
+
+  // SMA20, SMA50
+  const s20=sma(closes,20), s50=sma(closes,50);
+  const e20=ema(closes,20);
+
+  // RSI
+  const rsiVals=computeRSI(closes,14);
+  const lastRSI=rsiVals[rsiVals.length-1];
+
+  // MACD
+  const {macd,signal,hist,offset}=computeMACD(closes);
+  const lastMACD=macd[macd.length-1], lastSignal=signal[signal.length-1];
+
+  // TA signals
+  const price=last.close;
+  const sma20last=s20[s20.length-1], sma50last=s50[s50.length-1];
+  const signals=[];
+  if(sma20last&&price>sma20last) signals.push({label:"Price > SMA20",bull:true});
+  else if(sma20last) signals.push({label:"Price < SMA20",bull:false});
+  if(sma50last&&price>sma50last) signals.push({label:"Price > SMA50",bull:true});
+  else if(sma50last) signals.push({label:"Price < SMA50",bull:false});
+  if(sma20last&&sma50last) signals.push({label:"SMA20 "+(sma20last>sma50last?">" :"<")+" SMA50 ("+(sma20last>sma50last?"Golden":"Death")+" Cross)",bull:sma20last>sma50last});
+  if(!isNaN(lastRSI)){
+    if(lastRSI>70) signals.push({label:"RSI "+lastRSI.toFixed(0)+" Overbought",bull:false});
+    else if(lastRSI<30) signals.push({label:"RSI "+lastRSI.toFixed(0)+" Oversold",bull:true});
+    else signals.push({label:"RSI "+lastRSI.toFixed(0)+" Neutral",bull:null});
+  }
+  if(lastMACD&&lastSignal){
+    signals.push({label:"MACD "+(lastMACD>lastSignal?"Bullish":"Bearish")+" crossover",bull:lastMACD>lastSignal});
+  }
+
+  // Overall signal
+  const bullCount=signals.filter(s=>s.bull===true).length;
+  const bearCount=signals.filter(s=>s.bull===false).length;
+  const overall=bullCount>bearCount?"BULLISH":bearCount>bullCount?"BEARISH":"NEUTRAL";
+  document.getElementById("ct-badges").innerHTML=`<span class="badge ${overall==="BULLISH"?"up":overall==="BEARISH"?"down":"neutral"}">${overall}</span>`;
+
+  // TA strip
+  document.getElementById("taStrip").innerHTML=signals.map(s=>
+    `<span class="ta-pill ${s.bull===true?"bull":s.bull===false?"bear":"neut"}">${s.label}</span>`
+  ).join("");
+
+  // Build charts grid
+  const grid=document.getElementById("chartsGrid");
+  grid.innerHTML=`
+    <div class="chart-row">
+      <div class="chart-label">Price — Candlestick with SMA 20 / SMA 50</div>
+      <div class="chart-box" id="c-price"></div>
+      <div class="legend-strip">
+        <div class="legend-item"><div class="legend-dot" style="background:#f0b429"></div> SMA 20</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#a371f7"></div> SMA 50</div>
+      </div>
+    </div>
+    <div class="chart-row">
+      <div class="chart-label">Volume</div>
+      <div class="chart-box" id="c-vol"></div>
+    </div>
+    <div class="chart-row">
+      <div class="chart-label">RSI (14) — overbought &gt;70, oversold &lt;30</div>
+      <div class="chart-box" id="c-rsi"></div>
+    </div>
+    <div class="chart-row">
+      <div class="chart-label">MACD (12, 26, 9)</div>
+      <div class="chart-box" id="c-macd"></div>
+      <div class="legend-strip">
+        <div class="legend-item"><div class="legend-dot" style="background:#58a6ff"></div> MACD</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f85149"></div> Signal</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#3fb950"></div> Histogram</div>
+      </div>
+    </div>
+  `;
+
+  const chartOpts={
+    layout:{background:{color:"#0d1117"},textColor:"#8b949e"},
+    grid:{vertLines:{color:"#21262d"},horzLines:{color:"#21262d"}},
+    timeScale:{borderColor:"#30363d",timeVisible:true},
+    rightPriceScale:{borderColor:"#30363d"},
+    crosshair:{mode:1},
+  };
+
+  // Price chart
+  const pc=LightweightCharts.createChart(document.getElementById("c-price"),{...chartOpts,height:260});
+  chartInstances.push(pc);
+  const candle=pc.addCandlestickSeries({upColor:"#3fb950",downColor:"#f85149",borderUpColor:"#3fb950",borderDownColor:"#f85149",wickUpColor:"#3fb950",wickDownColor:"#f85149"});
+  candle.setData(ohlcv);
+  const sma20line=pc.addLineSeries({color:"#f0b429",lineWidth:1,title:"SMA20",priceLineVisible:false,lastValueVisible:false});
+  sma20line.setData(times.map((t,i)=>s20[i]!==null?{time:t,value:s20[i]}:null).filter(Boolean));
+  const sma50line=pc.addLineSeries({color:"#a371f7",lineWidth:1,title:"SMA50",priceLineVisible:false,lastValueVisible:false});
+  sma50line.setData(times.map((t,i)=>s50[i]!==null?{time:t,value:s50[i]}:null).filter(Boolean));
+  pc.timeScale().fitContent();
+
+  // Volume chart
+  const vc=LightweightCharts.createChart(document.getElementById("c-vol"),{...chartOpts,height:90});
+  chartInstances.push(vc);
+  const volS=vc.addHistogramSeries({color:"#58a6ff",priceFormat:{type:"volume"},priceScaleId:"",scaleMargins:{top:0,bottom:0}});
+  volS.setData(ohlcv.map(d=>({time:d.time,value:d.volume,color:d.close>=d.open?"#3fb950":"#f85149"})));
+  vc.timeScale().fitContent();
+
+  // RSI chart
+  const rc=LightweightCharts.createChart(document.getElementById("c-rsi"),{...chartOpts,height:110});
+  chartInstances.push(rc);
+  const rsiS=rc.addLineSeries({color:"#58a6ff",lineWidth:1,priceLineVisible:false,lastValueVisible:true});
+  const rsiOffset=closes.length-rsiVals.length;
+  rsiS.setData(rsiVals.map((v,i)=>({time:times[i+rsiOffset+1],value:v})));
+  rc.addLineSeries({color:"#f85149",lineWidth:1,lineStyle:2,priceLineVisible:false,lastValueVisible:false}).setData(times.map(t=>({time:t,value:70})));
+  rc.addLineSeries({color:"#3fb950",lineWidth:1,lineStyle:2,priceLineVisible:false,lastValueVisible:false}).setData(times.map(t=>({time:t,value:30})));
+  rc.timeScale().fitContent();
+
+  // MACD chart
+  const mc=LightweightCharts.createChart(document.getElementById("c-macd"),{...chartOpts,height:110});
+  chartInstances.push(mc);
+  const macdS=mc.addLineSeries({color:"#58a6ff",lineWidth:1,priceLineVisible:false,lastValueVisible:false,title:"MACD"});
+  const signalS=mc.addLineSeries({color:"#f85149",lineWidth:1,priceLineVisible:false,lastValueVisible:false,title:"Signal"});
+  const histS=mc.addHistogramSeries({priceLineVisible:false,lastValueVisible:false,title:"Hist"});
+  const macdOffset2=offset+9-1;
+  macdS.setData(macd.map((v,i)=>({time:times[i+macdOffset2],value:v})));
+  signalS.setData(signal.map((v,i)=>({time:times[i+macdOffset2],value:v})));
+  histS.setData(hist.map((v,i)=>({time:times[i+macdOffset2],value:v,color:v>=0?"#3fb950":"#f85149"})));
+  mc.timeScale().fitContent();
+
+  // Sync timescales
+  [vc,rc,mc].forEach(ch=>{
+    pc.timeScale().subscribeVisibleLogicalRangeChange(range=>{
+      if(range) ch.timeScale().setVisibleLogicalRange(range);
+    });
+  });
+}
 
 render();
 </script>
