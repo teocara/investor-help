@@ -81,8 +81,10 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
 .pg-info{font-size:.72rem;color:var(--dim);margin-right:.5rem;}
 
 /* Drawer */
-#drawer{position:fixed;top:0;right:-520px;width:510px;height:100vh;background:var(--paper);border-left:1px solid var(--line);z-index:100;transition:right .25s ease;display:flex;flex-direction:column;}
+#drawer{position:fixed;top:0;right:-520px;width:510px;height:100vh;background:var(--paper);border-left:1px solid var(--line);z-index:100;transition:right .25s ease,width .25s ease;display:flex;flex-direction:column;}
 #drawer.open{right:0;}
+#drawer.wide{width:min(1100px,92vw);}
+#drawer.wide.open{right:0;}
 .dr-head{padding:.75rem 1rem;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;gap:.5rem;flex-shrink:0;}
 .dr-close{background:none;border:none;color:var(--dim);font-size:1.1rem;cursor:pointer;padding:.1rem .2rem;margin-left:auto;}
 .dr-close:hover{color:var(--text);}
@@ -123,17 +125,21 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
 .chart-toolbar{display:flex;gap:.3rem;margin-bottom:.5rem;flex-wrap:wrap;}
 .ct-btn{font-size:.65rem;padding:.2rem .45rem;border-radius:4px;border:1px solid var(--card-b);background:transparent;color:var(--dim);cursor:pointer;}
 .ct-btn.on,.ct-btn:hover{border-color:var(--blue);color:var(--blue);background:rgba(88,166,255,.08);}
-.chart-box{background:var(--card);border:1px solid var(--card-b);border-radius:6px;margin-bottom:.5rem;position:relative;}
-.chart-ttl{font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);padding:.35rem .6rem .0rem;}
-#priceChart{height:200px;}
-#rsiChart{height:80px;}
-#macdChart{height:80px;}
-#volChart{height:60px;}
+.chart-box{background:var(--card);border:1px solid var(--card-b);border-radius:6px;margin-bottom:.6rem;position:relative;}
+.chart-ttl{font-size:.66rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);padding:.4rem .7rem .0rem;}
+#priceChart{height:440px;}
+#rsiChart{height:140px;}
+#macdChart{height:140px;}
+#volChart{height:110px;}
+#drawer.wide #priceChart{height:520px;}
+#drawer.wide #rsiChart{height:160px;}
+#drawer.wide #macdChart{height:160px;}
+#drawer.wide #volChart{height:130px;}
 .ind-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem;margin-top:.5rem;}
 .ind-box{background:var(--card);border:1px solid var(--card-b);border-radius:5px;padding:.4rem .55rem;}
 .ind-lbl{font-size:.58rem;text-transform:uppercase;letter-spacing:.04em;color:var(--dim);}
 .ind-val{font-size:.88rem;font-weight:600;margin-top:.05rem;}
-.chart-loading{display:flex;align-items:center;justify-content:center;height:200px;color:var(--dim);font-size:.8rem;}
+.chart-loading{display:flex;align-items:center;justify-content:center;height:440px;color:var(--dim);font-size:.8rem;}
 
 /* News pane */
 .news-item{background:var(--card);border:1px solid var(--card-b);border-radius:6px;padding:.6rem .75rem;margin-bottom:.4rem;}
@@ -326,10 +332,14 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
   <!-- TA Charts pane -->
   <div class="dr-pane" id="pane-ta">
     <div class="chart-toolbar">
-      <button class="ct-btn on" data-range="3mo">3M</button>
+      <button class="ct-btn" data-range="1mo">1M</button>
+      <button class="ct-btn" data-range="3mo">3M</button>
       <button class="ct-btn" data-range="6mo">6M</button>
-      <button class="ct-btn" data-range="1y">1Y</button>
+      <button class="ct-btn on" data-range="1y">1Y</button>
       <button class="ct-btn" data-range="2y">2Y</button>
+      <button class="ct-btn" data-range="5y">5Y</button>
+      <button class="ct-btn" data-range="10y">10Y</button>
+      <button class="ct-btn" data-range="max">Max</button>
       <span style="flex:1"></span>
       <button class="ct-btn on" data-ind="sma">SMA</button>
       <button class="ct-btn on" data-ind="bb">BB</button>
@@ -377,6 +387,8 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
         <option value="1y">1 Year</option>
         <option value="2y">2 Years</option>
         <option value="5y">5 Years</option>
+        <option value="10y">10 Years</option>
+        <option value="max">Max History</option>
       </select>
       <button class="bt-run" id="bt-run-btn">▶ Run Backtest</button>
     </div>
@@ -850,7 +862,8 @@ document.querySelectorAll(".dr-tab").forEach(tab=>{
     const t=tab.dataset.tab;
     document.getElementById("pane-"+t).classList.add("on");
     activeTab=t;
-    if(t==="ta"&&drawerTicker)loadTACharts(drawerTicker);
+    document.getElementById("drawer").classList.toggle("wide",t==="ta"||t==="backtest");
+    if(t==="ta"&&drawerTicker){ensureLWC().then(()=>{setTimeout(()=>loadTACharts(drawerTicker),260);});}
     if(t==="news"&&drawerTicker)loadNews(drawerTicker);
     if(t==="backtest"&&drawerTicker)resetBacktest();
   });
@@ -868,6 +881,7 @@ function openDrawer(ticker){
   document.querySelector('.dr-tab[data-tab="overview"]').classList.add("on");
   document.getElementById("pane-overview").classList.add("on");
   activeTab="overview";
+  document.getElementById("drawer").classList.remove("wide");
 
   document.getElementById("dr-ticker").textContent=d.ticker;
   document.getElementById("dr-name").textContent=`${d.name} · ${d.type} · ${d.sector}`;
@@ -917,7 +931,7 @@ function drawGauge(rsi){
 /* ══════════════════════════════════════════════════════
    TAB 2 — TECHNICAL ANALYSIS CHARTS (lightweight-charts)
    ══════════════════════════════════════════════════════ */
-let taRange="3mo";
+let taRange="1y";
 let taInds=new Set(["sma","bb","vol"]);
 let taOHLCV=null;
 
@@ -939,7 +953,7 @@ document.querySelectorAll(".ct-btn[data-ind]").forEach(b=>{
 function tsToDate(ts){const d=new Date(ts*1000);return`${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,"0")}-${String(d.getUTCDate()).padStart(2,"0")}`;}
 
 async function fetchOHLCV(ticker,range){
-  const interval=range==="2y"?"1wk":"1d";
+  const interval=(range==="5y"||range==="10y"||range==="max")?"1wk":range==="2y"?"1wk":"1d";
   const yUrl=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?range=${range}&interval=${interval}&includePrePost=false`;
   const res=await fetch(`https://corsproxy.io/?${encodeURIComponent(yUrl)}`);
   const json=await res.json();
@@ -1142,12 +1156,6 @@ function ensureLWC(){
     s.onload=res;document.head.appendChild(s);
   });
 }
-document.querySelector('.dr-tab[data-tab="ta"]').addEventListener("click",async()=>{
-  await ensureLWC();
-  if(drawerTicker&&activeTab==="ta")loadTACharts(drawerTicker);
-},{once:false});
-/* patch: re-check after tab switch sets activeTab */
-const _origTabSwitch=document.querySelectorAll(".dr-tab");
 
 /* ══════════════════════════════════════════════════════
    TAB 3 — NEWS IMPACT
@@ -1446,7 +1454,7 @@ function closeDrawer(){
   drawerTicker=null;activeRow=null;renderTable();
   Object.values(chartInstances).forEach(c=>{try{c.remove();}catch(e){}});
   chartInstances={};
-  document.getElementById("drawer").classList.remove("open");
+  document.getElementById("drawer").classList.remove("open","wide");
   document.getElementById("overlay").classList.remove("on");
 }
 document.getElementById("drClose").addEventListener("click",closeDrawer);
