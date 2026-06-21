@@ -3,726 +3,668 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stock & ETF Opportunity Screener</title>
-<script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+<title>EquityScreen Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#0d1117;--paper:#161b22;--accent:#3fb950;--accent-light:#56d364;
-  --text:#e6edf3;--text-dim:#8b949e;--line:#30363d;--card:#1c2128;--card-b:#30363d;
-  --red:#f85149;--yellow:#d29922;--blue:#58a6ff;--purple:#a371f7;
+  --bg:#0d1117;--paper:#161b22;--card:#1c2128;--card-b:#30363d;--line:#21262d;
+  --text:#e6edf3;--dim:#8b949e;--accent:#3fb950;--blue:#58a6ff;
+  --red:#f85149;--yellow:#d29922;--purple:#a371f7;--sidebar:260px;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:1.2rem 1.4rem;}
-h1{font-size:1.4rem;font-weight:600;margin-bottom:.2rem;}
-.sub{color:var(--text-dim);font-size:.85rem;margin-bottom:.9rem;}
-.controls{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-bottom:.9rem;}
-select,input[type="text"]{background:var(--card);border:1px solid var(--card-b);color:var(--text);padding:.38rem .6rem;border-radius:6px;font-size:.84rem;}
-.btn{background:var(--card);border:1px solid var(--card-b);color:var(--text);padding:.38rem .75rem;border-radius:6px;font-size:.8rem;cursor:pointer;transition:all .15s;}
-.btn:hover{border-color:var(--accent);color:var(--accent-light);}
-.btn.primary{background:rgba(63,185,80,.13);border-color:var(--accent);color:var(--accent-light);}
-.spacer{flex:1;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:13px;min-height:100vh;display:flex;}
 
-.table-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--line);}
-table{width:100%;border-collapse:collapse;background:var(--paper);font-size:.84rem;min-width:900px;}
-th,td{padding:.48rem .55rem;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap;}
-th{background:var(--card);font-size:.67rem;letter-spacing:.05em;text-transform:uppercase;color:var(--text-dim);cursor:pointer;user-select:none;position:sticky;top:0;z-index:2;}
-th:hover{color:var(--accent-light);}
-tbody tr{cursor:pointer;}
+/* Sidebar */
+#sidebar{width:var(--sidebar);min-width:var(--sidebar);background:var(--paper);border-right:1px solid var(--line);padding:0;display:flex;flex-direction:column;height:100vh;position:sticky;top:0;overflow-y:auto;}
+.sb-head{padding:1rem;border-bottom:1px solid var(--line);}
+.sb-title{font-size:1rem;font-weight:700;color:var(--text);letter-spacing:-.01em;}
+.sb-sub{font-size:.7rem;color:var(--dim);margin-top:.15rem;}
+.sb-body{padding:.75rem;flex:1;overflow-y:auto;}
+.sb-section{margin-bottom:1rem;}
+.sb-label{font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--dim);margin-bottom:.4rem;}
+.sb-input{width:100%;background:var(--card);border:1px solid var(--card-b);color:var(--text);padding:.35rem .5rem;border-radius:5px;font-size:.8rem;font-family:inherit;}
+.sb-input:focus{outline:none;border-color:var(--blue);}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:.35rem;}
+.quick-btns{display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.35rem;}
+.qbtn{font-size:.65rem;padding:.22rem .5rem;border-radius:4px;border:1px solid var(--card-b);background:transparent;color:var(--dim);cursor:pointer;white-space:nowrap;transition:all .12s;}
+.qbtn:hover,.qbtn.on{border-color:var(--blue);color:var(--blue);background:rgba(88,166,255,.1);}
+.qbtn.os.on{border-color:var(--accent);color:var(--accent);background:rgba(63,185,80,.1);}
+.qbtn.ob.on{border-color:var(--red);color:var(--red);background:rgba(248,81,73,.1);}
+.type-toggle{display:flex;gap:0;border:1px solid var(--card-b);border-radius:5px;overflow:hidden;}
+.type-btn{flex:1;padding:.32rem;text-align:center;cursor:pointer;font-size:.75rem;color:var(--dim);background:transparent;border:none;transition:all .12s;}
+.type-btn.on{background:rgba(88,166,255,.15);color:var(--blue);}
+.sector-list{display:flex;flex-direction:column;gap:.28rem;max-height:180px;overflow-y:auto;}
+.sector-item{display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.75rem;color:var(--dim);}
+.sector-item input{accent-color:var(--blue);}
+.sector-item:hover{color:var(--text);}
+.presets{display:flex;flex-wrap:wrap;gap:.3rem;}
+.preset{font-size:.68rem;padding:.25rem .5rem;border-radius:4px;border:1px solid var(--card-b);background:var(--card);color:var(--dim);cursor:pointer;transition:all .12s;}
+.preset:hover{border-color:var(--blue);color:var(--blue);}
+.sb-foot{padding:.75rem;border-top:1px solid var(--line);}
+.reset-btn{width:100%;padding:.4rem;border-radius:5px;border:1px solid var(--card-b);background:transparent;color:var(--dim);cursor:pointer;font-size:.75rem;font-family:inherit;}
+.reset-btn:hover{border-color:var(--red);color:var(--red);}
+.results-count{font-size:.7rem;color:var(--dim);margin-bottom:.4rem;}
+
+/* Main */
+#main{flex:1;min-width:0;display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+.statsbar{display:flex;gap:1.5rem;padding:.65rem 1rem;background:var(--paper);border-bottom:1px solid var(--line);flex-wrap:wrap;}
+.stat{display:flex;flex-direction:column;}
+.stat-l{font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);}
+.stat-v{font-size:.95rem;font-weight:600;margin-top:.05rem;}
+
+.table-wrap{flex:1;overflow:auto;}
+table{width:100%;border-collapse:collapse;font-size:.8rem;}
+th{background:var(--paper);padding:.5rem .6rem;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap;cursor:pointer;user-select:none;color:var(--dim);font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;position:sticky;top:0;z-index:2;}
+th:hover{color:var(--text);}
+th .sort-arrow{margin-left:.25rem;opacity:.4;}
+th.sorted .sort-arrow{opacity:1;color:var(--blue);}
+td{padding:.42rem .6rem;border-bottom:1px solid var(--line);white-space:nowrap;}
+tbody tr{cursor:pointer;transition:background .1s;}
 tbody tr:hover td{background:rgba(88,166,255,.04);}
-tbody tr.active td{background:rgba(88,166,255,.09);}
-tr.hidden{display:none;}
-.ticker-cell{font-weight:700;color:var(--blue);}
-.tag{display:inline-block;font-size:.61rem;padding:.07rem .38rem;border-radius:10px;border:1px solid var(--card-b);color:var(--text-dim);margin-right:.13rem;}
-.tag.theme-AI{border-color:var(--blue);color:var(--blue);}
-.tag.theme-Semis{border-color:var(--purple);color:var(--purple);}
-.tag.theme-Energy{border-color:var(--yellow);color:var(--yellow);}
-.tag.theme-Renewables{border-color:var(--accent);color:var(--accent-light);}
-.score{font-weight:700;font-size:.88rem;border-radius:5px;padding:.1rem .42rem;display:inline-block;min-width:1.9rem;text-align:center;}
-.score.high{background:rgba(63,185,80,.18);color:var(--accent-light);}
-.score.mid{background:rgba(210,153,34,.18);color:var(--yellow);}
-.score.low{background:rgba(248,81,73,.15);color:var(--red);}
-input.editable{background:transparent;border:1px solid transparent;color:var(--text);width:100%;padding:.16rem .26rem;border-radius:4px;font-size:.84rem;font-family:inherit;}
-input.editable:hover{border-color:var(--card-b);}
-input.editable:focus{border-color:var(--accent);outline:none;background:var(--card);}
-input.num{width:4.1rem;text-align:right;}
-textarea.notes{background:transparent;border:1px solid transparent;color:var(--text-dim);width:195px;resize:vertical;font-family:inherit;font-size:.77rem;padding:.2rem .28rem;border-radius:4px;min-height:1.4rem;}
-textarea.notes:hover{border-color:var(--card-b);}
-textarea.notes:focus{border-color:var(--accent);outline:none;background:var(--card);color:var(--text);}
-.del-btn{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:.88rem;padding:0 .18rem;}
-.del-btn:hover{color:var(--red);}
+tbody tr.active td{background:rgba(88,166,255,.08);}
+.tc{font-weight:700;color:var(--blue);}
+.rsi-badge{display:inline-block;padding:.1rem .38rem;border-radius:4px;font-weight:600;font-size:.72rem;}
+.rsi-os{background:rgba(63,185,80,.18);color:var(--accent);}
+.rsi-ob{background:rgba(248,81,73,.15);color:var(--red);}
+.rsi-n{background:rgba(139,148,158,.12);color:var(--dim);}
+.sc-badge{display:inline-block;padding:.1rem .38rem;border-radius:4px;font-weight:600;font-size:.72rem;}
+.sc-h{background:rgba(63,185,80,.18);color:var(--accent);}
+.sc-m{background:rgba(210,153,34,.18);color:var(--yellow);}
+.sc-l{background:rgba(248,81,73,.15);color:var(--red);}
+.type-tag{font-size:.65rem;padding:.06rem .32rem;border-radius:3px;border:1px solid var(--card-b);color:var(--dim);}
 
-/* Analysis panel */
-#analysisPanel{display:none;margin-top:1rem;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--paper);}
-#analysisPanel.open{display:block;}
-.panel-header{display:flex;align-items:flex-start;gap:1rem;padding:.75rem 1rem;border-bottom:1px solid var(--line);flex-wrap:wrap;}
-.ph-ticker{font-size:1.25rem;font-weight:700;color:var(--blue);}
-.ph-name{color:var(--text-dim);font-size:.85rem;}
-.ph-price{font-size:1.35rem;font-weight:700;margin-top:.18rem;}
-.badge{font-size:.72rem;padding:.14rem .48rem;border-radius:4px;font-weight:600;display:inline-block;}
-.badge.up{background:rgba(63,185,80,.18);color:var(--accent-light);}
-.badge.down{background:rgba(248,81,73,.15);color:var(--red);}
-.badge.bull{background:rgba(63,185,80,.18);color:var(--accent-light);}
-.badge.bear{background:rgba(248,81,73,.15);color:var(--red);}
-.badge.neutral{background:rgba(139,148,158,.13);color:var(--text-dim);}
-.signal-grid{display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.4rem;}
-.sig{font-size:.68rem;padding:.12rem .4rem;border-radius:10px;border:1px solid;}
-.sig.bull{border-color:var(--accent);color:var(--accent-light);background:rgba(63,185,80,.08);}
-.sig.bear{border-color:var(--red);color:var(--red);background:rgba(248,81,73,.06);}
-.sig.neut{border-color:var(--card-b);color:var(--text-dim);}
-.range-btns{display:flex;gap:.3rem;}
-.range-btn{font-size:.72rem;padding:.2rem .52rem;background:transparent;border:1px solid var(--card-b);color:var(--text-dim);border-radius:4px;cursor:pointer;}
-.range-btn.active{background:rgba(88,166,255,.13);border-color:var(--blue);color:var(--blue);}
-#closePanel{background:none;border:none;color:var(--text-dim);font-size:1.2rem;cursor:pointer;padding:.1rem .3rem;}
-#closePanel:hover{color:var(--text);}
+.pagination{display:flex;align-items:center;gap:.4rem;padding:.6rem 1rem;background:var(--paper);border-top:1px solid var(--line);justify-content:flex-end;}
+.pg-btn{padding:.28rem .55rem;border-radius:4px;border:1px solid var(--card-b);background:transparent;color:var(--dim);cursor:pointer;font-size:.75rem;}
+.pg-btn:hover:not(:disabled){border-color:var(--blue);color:var(--blue);}
+.pg-btn:disabled{opacity:.35;cursor:not-allowed;}
+.pg-btn.active{background:rgba(88,166,255,.15);border-color:var(--blue);color:var(--blue);}
+.pg-info{font-size:.72rem;color:var(--dim);margin-right:.5rem;}
 
-/* Tabs */
-.tabs{display:flex;border-bottom:1px solid var(--line);background:var(--card);padding:0 1rem;overflow-x:auto;}
-.tab{font-size:.8rem;padding:.6rem .9rem;cursor:pointer;color:var(--text-dim);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:color .15s;}
-.tab:hover{color:var(--text);}
-.tab.active{color:var(--blue);border-bottom-color:var(--blue);}
-.tab-content{display:none;padding:.85rem 1rem;}
-.tab-content.active{display:block;}
+/* Drawer */
+#drawer{position:fixed;top:0;right:-400px;width:390px;height:100vh;background:var(--paper);border-left:1px solid var(--line);z-index:100;transition:right .25s ease;overflow-y:auto;display:flex;flex-direction:column;}
+#drawer.open{right:0;}
+.dr-head{padding:1rem;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;gap:.5rem;}
+.dr-close{background:none;border:none;color:var(--dim);font-size:1.1rem;cursor:pointer;padding:.1rem .2rem;margin-left:auto;}
+.dr-close:hover{color:var(--text);}
+.dr-ticker{font-size:1.3rem;font-weight:700;color:var(--blue);}
+.dr-name{font-size:.82rem;color:var(--dim);margin-top:.1rem;}
+.dr-body{padding:1rem;flex:1;}
+.dr-price{font-size:1.4rem;font-weight:700;margin-bottom:.75rem;}
 
-/* Chart sections */
-.chart-section{margin-bottom:.85rem;}
-.chart-label{font-size:.68rem;color:var(--text-dim);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.28rem;}
-.chart-box{border-radius:6px;overflow:hidden;border:1px solid var(--line);}
-.legend-row{display:flex;gap:.9rem;margin-top:.35rem;flex-wrap:wrap;}
-.leg{display:flex;align-items:center;gap:.28rem;font-size:.7rem;color:var(--text-dim);}
-.leg-line{width:18px;height:2px;border-radius:1px;display:inline-block;}
-.leg-dot{width:10px;height:10px;border-radius:2px;display:inline-block;}
+/* RSI Gauge */
+.rsi-gauge{margin-bottom:1rem;}
+.gauge-wrap{position:relative;height:80px;margin-bottom:.35rem;}
+.gauge-svg{width:100%;height:80px;}
+.gauge-val{text-align:center;font-size:1.1rem;font-weight:700;}
+.gauge-label{text-align:center;font-size:.72rem;color:var(--dim);margin-top:.1rem;}
 
-/* Stat cards */
-.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:.55rem;margin-bottom:1rem;}
-.stat-card{background:var(--card);border:1px solid var(--card-b);border-radius:6px;padding:.6rem .75rem;}
-.stat-label{font-size:.65rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-dim);margin-bottom:.2rem;}
-.stat-value{font-size:1.1rem;font-weight:700;}
-.stat-sub{font-size:.7rem;color:var(--text-dim);margin-top:.08rem;}
-.stat-value.bull{color:var(--accent-light);}
-.stat-value.bear{color:var(--red);}
-.stat-value.neut{color:var(--yellow);}
+.kv-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:1rem;}
+.kv{background:var(--card);border:1px solid var(--card-b);border-radius:5px;padding:.5rem .65rem;}
+.kv-l{font-size:.62rem;text-transform:uppercase;letter-spacing:.05em;color:var(--dim);margin-bottom:.15rem;}
+.kv-v{font-size:.95rem;font-weight:600;}
+.dr-label{font-size:.67rem;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-bottom:.35rem;margin-top:.75rem;}
+.notes-ta{width:100%;background:var(--card);border:1px solid var(--card-b);color:var(--text);padding:.5rem;border-radius:5px;font-size:.8rem;font-family:inherit;resize:vertical;min-height:80px;}
+.notes-ta:focus{outline:none;border-color:var(--accent);}
+.yf-btn{display:block;width:100%;margin-top:.75rem;padding:.45rem;border-radius:5px;border:1px solid var(--blue);background:rgba(88,166,255,.1);color:var(--blue);text-align:center;cursor:pointer;font-size:.8rem;text-decoration:none;font-family:inherit;}
+.yf-btn:hover{background:rgba(88,166,255,.2);}
+.ta-pill{display:inline-block;padding:.15rem .5rem;border-radius:4px;font-size:.72rem;font-weight:600;margin-top:.3rem;}
+.ta-bull{background:rgba(63,185,80,.18);color:var(--accent);}
+.ta-bear{background:rgba(248,81,73,.15);color:var(--red);}
+.ta-neut{background:rgba(139,148,158,.12);color:var(--dim);}
 
-/* Summary table */
-.ind-table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:.5rem;}
-.ind-table th{font-size:.66rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-dim);padding:.36rem .5rem;border-bottom:1px solid var(--line);text-align:left;}
-.ind-table td{padding:.38rem .5rem;border-bottom:1px solid rgba(48,54,61,.5);}
-.ind-table tr:last-child td{border-bottom:none;}
-.pill{display:inline-block;font-size:.67rem;padding:.09rem .36rem;border-radius:4px;font-weight:600;}
-.pill.bull{background:rgba(63,185,80,.18);color:var(--accent-light);}
-.pill.bear{background:rgba(248,81,73,.15);color:var(--red);}
-.pill.neut{background:rgba(139,148,158,.12);color:var(--text-dim);}
-
-.loading{text-align:center;padding:2.5rem;color:var(--text-dim);font-size:.9rem;}
-.err-msg{text-align:center;padding:1.5rem;color:var(--red);font-size:.85rem;line-height:1.7;}
-footer{margin-top:1.2rem;color:var(--text-dim);font-size:.71rem;border-top:1px solid var(--line);padding-top:.7rem;}
+#overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:99;}
+#overlay.on{display:block;}
 </style>
 </head>
 <body>
-<h1>Stock &amp; ETF Opportunity Screener</h1>
-<div class="sub">AI · Semiconductors · Energy · Renewables · Healthcare · Financials — click any row for live charts &amp; technical analysis.</div>
 
-<div class="controls">
-  <select id="themeFilter">
-    <option value="">All Themes</option>
-    <option value="AI">AI</option>
-    <option value="Semis">Semiconductors</option>
-    <option value="Energy">Energy</option>
-    <option value="Renewables">Renewables</option>
-    <option value="Healthcare">Healthcare</option>
-    <option value="Financials">Financials</option>
-    <option value="Broad">Broad Market</option>
-  </select>
-  <select id="typeFilter">
-    <option value="">All Types</option>
-    <option value="Stock">Stock</option>
-    <option value="ETF">ETF</option>
-  </select>
-  <input type="text" id="searchBox" placeholder="Search ticker or name…">
-  <div class="spacer"></div>
-  <button class="btn" id="addRowBtn">+ Add Row</button>
-  <button class="btn primary" id="resetBtn">Reset Defaults</button>
-</div>
-
-<div class="table-wrap">
-<table>
-  <thead><tr>
-    <th data-key="ticker">Ticker</th>
-    <th data-key="name">Name</th>
-    <th data-key="themes">Theme</th>
-    <th data-key="type">Type</th>
-    <th data-key="price">Price $</th>
-    <th data-key="target">Target $</th>
-    <th data-key="upside">Upside %</th>
-    <th data-key="score">Score</th>
-    <th data-key="horizon">Horizon</th>
-    <th data-key="notes">Notes / Thesis</th>
-    <th></th>
-  </tr></thead>
-  <tbody id="tbody"></tbody>
-</table>
-</div>
-
-<!-- Analysis Panel -->
-<div id="analysisPanel">
-  <div class="panel-header">
-    <div style="flex:1;min-width:200px;">
-      <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
-        <span class="ph-ticker" id="ph-ticker"></span>
-        <span class="ph-name" id="ph-name"></span>
-      </div>
-      <div style="display:flex;align-items:center;gap:.5rem;margin-top:.18rem;flex-wrap:wrap;">
-        <span class="ph-price" id="ph-price">—</span>
-        <span class="badge" id="ph-chg"></span>
-        <span class="badge" id="ph-overall"></span>
-      </div>
-      <div class="signal-grid" id="ph-sigs"></div>
-    </div>
-    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.5rem;">
-      <button id="closePanel">&times;</button>
-      <div class="range-btns" id="rangeBtns">
-        <button class="range-btn" data-range="1mo">1M</button>
-        <button class="range-btn active" data-range="3mo">3M</button>
-        <button class="range-btn" data-range="6mo">6M</button>
-        <button class="range-btn" data-range="1y">1Y</button>
-        <button class="range-btn" data-range="2y">2Y</button>
-      </div>
-    </div>
+<!-- Sidebar -->
+<div id="sidebar">
+  <div class="sb-head">
+    <div class="sb-title">EquityScreen Pro</div>
+    <div class="sb-sub">340 securities · live filters</div>
   </div>
+  <div class="sb-body">
 
-  <div class="tabs">
-    <div class="tab active" data-tab="price">Price &amp; Volume</div>
-    <div class="tab" data-tab="momentum">RSI &amp; Momentum</div>
-    <div class="tab" data-tab="macd">MACD &amp; Trend</div>
-    <div class="tab" data-tab="summary">TA Summary</div>
-  </div>
+    <div class="sb-section">
+      <input class="sb-input" id="searchBox" placeholder="Search ticker or name…">
+    </div>
 
-  <div class="tab-content active" id="tab-price">
-    <div class="chart-section">
-      <div class="chart-label">Candlestick — SMA 20 / SMA 50 / SMA 200</div>
-      <div class="chart-box" id="c-candle"></div>
-      <div class="legend-row">
-        <div class="leg"><div class="leg-line" style="background:#f0b429"></div>SMA 20</div>
-        <div class="leg"><div class="leg-line" style="background:#a371f7"></div>SMA 50</div>
-        <div class="leg"><div class="leg-line" style="background:#f85149"></div>SMA 200</div>
+    <div class="sb-section">
+      <div class="type-toggle">
+        <button class="type-btn on" data-t="">All</button>
+        <button class="type-btn" data-t="Stock">Stocks</button>
+        <button class="type-btn" data-t="ETF">ETFs</button>
       </div>
     </div>
-    <div class="chart-section">
-      <div class="chart-label">Volume</div>
-      <div class="chart-box" id="c-vol"></div>
-    </div>
-  </div>
 
-  <div class="tab-content" id="tab-momentum">
-    <div class="stat-grid" id="mom-stats"></div>
-    <div class="chart-section">
-      <div class="chart-label">RSI (14) — overbought &gt;70 · oversold &lt;30</div>
-      <div class="chart-box" id="c-rsi"></div>
-    </div>
-    <div class="chart-section">
-      <div class="chart-label">Stochastic Oscillator %K / %D (14, 3)</div>
-      <div class="chart-box" id="c-stoch"></div>
-      <div class="legend-row">
-        <div class="leg"><div class="leg-line" style="background:#58a6ff"></div>%K</div>
-        <div class="leg"><div class="leg-line" style="background:#f0b429"></div>%D (3-day SMA)</div>
+    <div class="sb-section">
+      <div class="sb-label">RSI</div>
+      <div class="row2">
+        <input class="sb-input" id="rsiMin" type="number" placeholder="Min" min="0" max="100">
+        <input class="sb-input" id="rsiMax" type="number" placeholder="Max" min="0" max="100">
+      </div>
+      <div class="quick-btns">
+        <button class="qbtn os" data-rsi="os">Oversold &lt;30</button>
+        <button class="qbtn" data-rsi="n">Neutral</button>
+        <button class="qbtn ob" data-rsi="ob">Overbought &gt;70</button>
       </div>
     </div>
-    <div class="chart-section">
-      <div class="chart-label">Bollinger Bands (20, ±2σ)</div>
-      <div class="chart-box" id="c-bb"></div>
-      <div class="legend-row">
-        <div class="leg"><div class="leg-line" style="background:#e6edf3"></div>Price</div>
-        <div class="leg"><div class="leg-line" style="background:#58a6ff"></div>Mid (SMA20)</div>
-        <div class="leg"><div class="leg-line" style="background:rgba(88,166,255,.4)"></div>Upper / Lower</div>
+
+    <div class="sb-section">
+      <div class="sb-label">Score (min)</div>
+      <input class="sb-input" id="scoreMin" type="number" placeholder="e.g. 7" min="1" max="10">
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-label">Valuation</div>
+      <div class="row2">
+        <input class="sb-input" id="peMax" type="number" placeholder="P/E max">
+        <input class="sb-input" id="fpeMax" type="number" placeholder="Fwd P/E max">
       </div>
     </div>
-  </div>
 
-  <div class="tab-content" id="tab-macd">
-    <div class="stat-grid" id="macd-stats"></div>
-    <div class="chart-section">
-      <div class="chart-label">MACD (12, 26, 9)</div>
-      <div class="chart-box" id="c-macd"></div>
-      <div class="legend-row">
-        <div class="leg"><div class="leg-line" style="background:#58a6ff"></div>MACD</div>
-        <div class="leg"><div class="leg-line" style="background:#f85149"></div>Signal</div>
-        <div class="leg"><div class="leg-dot" style="background:#3fb950"></div>Histogram</div>
+    <div class="sb-section">
+      <div class="sb-label">Growth</div>
+      <div class="row2">
+        <input class="sb-input" id="epsMin" type="number" placeholder="EPS gr% min">
+        <input class="sb-input" id="revMin" type="number" placeholder="Rev gr% min">
       </div>
     </div>
-    <div class="chart-section">
-      <div class="chart-label">ATR (14) — Average True Range · Volatility</div>
-      <div class="chart-box" id="c-atr"></div>
-    </div>
-    <div class="chart-section">
-      <div class="chart-label">On-Balance Volume (OBV)</div>
-      <div class="chart-box" id="c-obv"></div>
-    </div>
-  </div>
 
-  <div class="tab-content" id="tab-summary">
-    <div id="ta-summary"></div>
+    <div class="sb-section">
+      <div class="sb-label">Profitability</div>
+      <input class="sb-input" id="roeMin" type="number" placeholder="ROE% min">
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-label">Sector</div>
+      <div class="sector-list" id="sectorList"></div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-label">Presets</div>
+      <div class="presets">
+        <button class="preset" data-p="all">All</button>
+        <button class="preset" data-p="highscore">High Score</button>
+        <button class="preset" data-p="value">Value Picks</button>
+        <button class="preset" data-p="growth">Growth Stars</button>
+        <button class="preset" data-p="oversold">Oversold RSI</button>
+        <button class="preset" data-p="overbought">Overbought</button>
+      </div>
+    </div>
+
+  </div>
+  <div class="sb-foot">
+    <div class="results-count" id="resultsCount">— results</div>
+    <button class="reset-btn" id="resetBtn">Reset All Filters</button>
   </div>
 </div>
 
-<footer>Chart data via Yahoo Finance (delayed ~15 min). Technical indicators are informational only — not financial advice. Edits auto-saved to browser local storage.</footer>
+<!-- Main -->
+<div id="main">
+  <div class="statsbar" id="statsbar"></div>
+  <div class="table-wrap">
+    <table>
+      <thead id="thead"><tr>
+        <th data-k="ticker">Ticker <span class="sort-arrow">↕</span></th>
+        <th data-k="name">Name <span class="sort-arrow">↕</span></th>
+        <th data-k="sector">Sector <span class="sort-arrow">↕</span></th>
+        <th data-k="type">Type <span class="sort-arrow">↕</span></th>
+        <th data-k="price">Price <span class="sort-arrow">↕</span></th>
+        <th data-k="rsi">RSI <span class="sort-arrow">↕</span></th>
+        <th data-k="pe">P/E <span class="sort-arrow">↕</span></th>
+        <th data-k="fwdPe">Fwd P/E <span class="sort-arrow">↕</span></th>
+        <th data-k="eps_growth">EPS Gr% <span class="sort-arrow">↕</span></th>
+        <th data-k="score">Score <span class="sort-arrow">↕</span></th>
+        <th data-k="notes" style="min-width:180px">Notes</th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+  <div class="pagination" id="pagination"></div>
+</div>
+
+<!-- Drawer -->
+<div id="overlay"></div>
+<div id="drawer">
+  <div class="dr-head">
+    <div>
+      <div class="dr-ticker" id="dr-ticker"></div>
+      <div class="dr-name" id="dr-name"></div>
+    </div>
+    <button class="dr-close" id="drClose">&times;</button>
+  </div>
+  <div class="dr-body">
+    <div class="dr-price" id="dr-price"></div>
+    <div class="rsi-gauge">
+      <div class="gauge-wrap"><svg class="gauge-svg" viewBox="0 0 200 80" id="gaugeSvg"></svg></div>
+      <div class="gauge-val" id="gaugeVal"></div>
+      <div class="gauge-label" id="gaugeLabel"></div>
+    </div>
+    <div class="kv-grid" id="dr-kv"></div>
+    <div class="dr-label">TA Signal</div>
+    <div id="dr-signal"></div>
+    <div class="dr-label">Notes / Thesis</div>
+    <textarea class="notes-ta" id="dr-notes" rows="4" placeholder="Add your notes…"></textarea>
+    <a class="yf-btn" id="dr-yf" target="_blank">View Chart on Yahoo Finance ↗</a>
+  </div>
+</div>
 
 <script>
-/* ── Default tickers ─────────────────────────────────── */
-const DEFAULT_DATA = [
-  // AI / Semiconductors
-  {ticker:"NVDA", name:"Nvidia",                  themes:["AI","Semis"],       type:"Stock", price:"", target:"", score:8, horizon:"long-term", notes:"Dominant AI GPU/data center; bellwether for sector bounces."},
-  {ticker:"AVGO", name:"Broadcom",                themes:["AI","Semis"],       type:"Stock", price:"", target:"", score:7, horizon:"1-4 wks",   notes:"-12.6% Jun 5 2026 earnings miss. AI ASIC pipeline still strong — bounce candidate."},
-  {ticker:"TSM",  name:"Taiwan Semiconductor",    themes:["Semis"],            type:"Stock", price:"", target:"", score:8, horizon:"long-term", notes:"Manufactures for all AI chip designers. 13 buy/2 hold/0 sell."},
-  {ticker:"AMD",  name:"Advanced Micro Devices",  themes:["AI","Semis"],       type:"Stock", price:"", target:"", score:7, horizon:"1-4 wks",   notes:"Second major AI GPU supplier; caught in Jun 2026 selloff."},
-  {ticker:"MRVL", name:"Marvell Technology",      themes:["AI","Semis"],       type:"Stock", price:"", target:"", score:7, horizon:"1-4 wks",   notes:"-17% Jun 5 2026. PEG ~0.6x. Data center >70% revenue, +50% YoY."},
-  {ticker:"ARM",  name:"Arm Holdings",            themes:["AI","Semis"],       type:"Stock", price:"", target:"", score:6, horizon:"long-term", notes:"Core IP in mobile/edge AI and low-power processors."},
-  {ticker:"MU",   name:"Micron Technology",       themes:["AI","Semis"],       type:"Stock", price:"", target:"", score:6, horizon:"1-4 wks",   notes:"HBM demand from AI buildout. High-risk/reward bounce candidate."},
-  {ticker:"INTC", name:"Intel",                   themes:["Semis"],            type:"Stock", price:"", target:"", score:4, horizon:"long-term", notes:"Turnaround play; IFS foundry strategy — high risk, contrarian."},
-  {ticker:"QCOM", name:"Qualcomm",                themes:["AI","Semis"],       type:"Stock", price:"", target:"", score:6, horizon:"long-term", notes:"Mobile AI chips, edge inference. PC/auto diversification."},
-  {ticker:"AMAT", name:"Applied Materials",       themes:["Semis"],            type:"Stock", price:"", target:"", score:6, horizon:"long-term", notes:"Semiconductor equipment leader; benefits from fab buildout."},
-  {ticker:"KLAC", name:"KLA Corporation",         themes:["Semis"],            type:"Stock", price:"", target:"", score:6, horizon:"long-term", notes:"Process control equipment; high margins, secular semis tailwind."},
-  {ticker:"ASML", name:"ASML Holding",            themes:["Semis"],            type:"Stock", price:"", target:"", score:7, horizon:"long-term", notes:"Monopoly on EUV lithography — essential for all advanced chips."},
-  {ticker:"SOXX", name:"iShares Semiconductor ETF", themes:["Semis"],          type:"ETF",   price:"", target:"", score:7, horizon:"1-4 wks",   notes:"Broad semis ETF — lower-risk rebound play vs single names."},
-  {ticker:"SMH",  name:"VanEck Semiconductor ETF",  themes:["Semis"],          type:"ETF",   price:"", target:"", score:7, horizon:"1-4 wks",   notes:"Alternative broad semis ETF, NVDA/TSM top weighted."},
-  // AI Software/Infra
-  {ticker:"MSFT", name:"Microsoft",               themes:["AI"],               type:"Stock", price:"", target:"", score:7, horizon:"long-term", notes:"Azure AI + OpenAI partnership. Broad enterprise AI monetization."},
-  {ticker:"META", name:"Meta Platforms",          themes:["AI"],               type:"Stock", price:"", target:"", score:7, horizon:"long-term", notes:"Llama open-source AI; massive capex on data centers."},
-  {ticker:"GOOG", name:"Alphabet",                themes:["AI"],               type:"Stock", price:"", target:"", score:7, horizon:"long-term", notes:"Gemini AI, TPU chips, Google Cloud AI services."},
-  {ticker:"AMZN", name:"Amazon",                  themes:["AI"],               type:"Stock", price:"", target:"", score:7, horizon:"long-term", notes:"AWS Bedrock AI, Trainium/Inferentia custom chips."},
-  // Energy
-  {ticker:"VDE",  name:"Vanguard Energy ETF",     themes:["Energy"],           type:"ETF",   price:"", target:"", score:5, horizon:"long-term", notes:"Broad US energy, 0.09% expense ratio."},
-  {ticker:"XLE",  name:"Energy Select SPDR",      themes:["Energy"],           type:"ETF",   price:"", target:"", score:5, horizon:"long-term", notes:"Large-cap weighted energy sector ETF."},
-  {ticker:"XOM",  name:"Exxon Mobil",             themes:["Energy"],           type:"Stock", price:"", target:"", score:5, horizon:"long-term", notes:"Largest US oil major. Strong FCF, dividend payer."},
-  {ticker:"CVX",  name:"Chevron",                 themes:["Energy"],           type:"Stock", price:"", target:"", score:5, horizon:"long-term", notes:"Integrated oil major, buybacks + dividend growth."},
-  {ticker:"CCJ",  name:"Cameco",                  themes:["Energy","AI"],      type:"Stock", price:"", target:"", score:7, horizon:"long-term", notes:"Uranium/nuclear AI power play. ~85% below highs, PEG ~1.3."},
-  {ticker:"GEV",  name:"GE Vernova",              themes:["Energy","AI"],      type:"Stock", price:"", target:"", score:7, horizon:"long-term", notes:"Power generation for AI data centers. EPS +82% FY26E."},
-  {ticker:"VST",  name:"Vistra Energy",           themes:["Energy","AI"],      type:"Stock", price:"", target:"", score:6, horizon:"long-term", notes:"Power utility; AI data center electricity demand play."},
-  {ticker:"CEG",  name:"Constellation Energy",    themes:["Energy","AI"],      type:"Stock", price:"", target:"", score:6, horizon:"long-term", notes:"Nuclear power, clean AI data center energy contracts."},
-  // Renewables
-  {ticker:"ICLN", name:"iShares Global Clean Energy", themes:["Renewables"],   type:"ETF",   price:"", target:"", score:5, horizon:"long-term", notes:"+59% past year. 103 holdings. Check valuation after run-up."},
-  {ticker:"PBW",  name:"Invesco WilderHill Clean Energy", themes:["Renewables"],type:"ETF",  price:"", target:"", score:5, horizon:"long-term", notes:"+56% past year. SolarEdge, Bloom Energy, Ormat weights."},
-  {ticker:"NEE",  name:"NextEra Energy",          themes:["Renewables","Energy"],type:"Stock",price:"", target:"", score:6, horizon:"long-term", notes:"World's largest wind/solar utility operator."},
-  {ticker:"FSLR", name:"First Solar",             themes:["Renewables"],       type:"Stock", price:"", target:"", score:6, horizon:"long-term", notes:"Leading US solar manufacturer. Top holding in clean energy ETFs."},
-  {ticker:"ENPH", name:"Enphase Energy",          themes:["Renewables"],       type:"Stock", price:"", target:"", score:5, horizon:"long-term", notes:"Microinverters for residential solar. High growth, volatile."},
-  // Healthcare
-  {ticker:"LLY",  name:"Eli Lilly",               themes:["Healthcare"],       type:"Stock", price:"", target:"", score:7, horizon:"long-term", notes:"GLP-1 (Mounjaro/Zepbound) dominance; AI drug discovery."},
-  {ticker:"NVO",  name:"Novo Nordisk",            themes:["Healthcare"],       type:"Stock", price:"", target:"", score:7, horizon:"long-term", notes:"Ozempic/Wegovy GLP-1 pioneer. Global obesity treatment leader."},
-  {ticker:"ISRG", name:"Intuitive Surgical",      themes:["Healthcare","AI"],  type:"Stock", price:"", target:"", score:7, horizon:"long-term", notes:"Da Vinci surgical robots. AI-assisted surgery expansion."},
-  {ticker:"XLV",  name:"Health Care Select SPDR", themes:["Healthcare"],       type:"ETF",   price:"", target:"", score:5, horizon:"long-term", notes:"Broad healthcare ETF. Defensive with growth characteristics."},
-  // Financials
-  {ticker:"JPM",  name:"JPMorgan Chase",          themes:["Financials","AI"],  type:"Stock", price:"", target:"", score:6, horizon:"long-term", notes:"Largest US bank. Massive AI investment (LLM Suite, COiN)."},
-  {ticker:"GS",   name:"Goldman Sachs",           themes:["Financials"],       type:"Stock", price:"", target:"", score:6, horizon:"long-term", notes:"IBD recovery + asset management growth."},
-  {ticker:"V",    name:"Visa",                    themes:["Financials","AI"],  type:"Stock", price:"", target:"", score:7, horizon:"long-term", notes:"Payment network monopoly. High margins, AI fraud detection."},
-  // Broad Market
-  {ticker:"VOO",  name:"Vanguard S&P 500 ETF",    themes:["Broad"],            type:"ETF",   price:"", target:"", score:7, horizon:"long-term", notes:"Core S&P 500 exposure. 0.03% expense ratio."},
-  {ticker:"QQQ",  name:"Invesco QQQ (Nasdaq 100)", themes:["AI","Broad"],      type:"ETF",   price:"", target:"", score:7, horizon:"long-term", notes:"Tech/growth heavy. High NVDA, MSFT, AAPL, META exposure."},
-  {ticker:"VTI",  name:"Vanguard Total Market ETF",themes:["Broad"],           type:"ETF",   price:"", target:"", score:6, horizon:"long-term", notes:"Total US market. Broadest diversification possible."},
+/* ── 340 Securities ─────────────────────────────────────── */
+const RAW = [
+// Technology
+{ticker:"AAPL",name:"Apple",sector:"Technology",type:"Stock",price:196,rsi:58,pe:32,fwdPe:29,eps_growth:9,rev_growth:6,roe:147,debt_equity:1.8,market_cap_b:3020,score:7,notes:"iPhone supercycle + services flywheel. AI integration with Apple Intelligence."},
+{ticker:"MSFT",name:"Microsoft",sector:"Technology",type:"Stock",price:441,rsi:61,pe:36,fwdPe:31,eps_growth:18,rev_growth:16,roe:43,debt_equity:0.4,market_cap_b:3270,score:8,notes:"Azure AI + OpenAI partnership. Copilot enterprise monetization underway."},
+{ticker:"NVDA",name:"Nvidia",sector:"Technology",type:"Stock",price:131,rsi:55,pe:48,fwdPe:35,eps_growth:122,rev_growth:114,roe:91,debt_equity:0.4,market_cap_b:3200,score:9,notes:"AI GPU monopoly. Data center revenue growing triple digits YoY."},
+{ticker:"AMD",name:"Advanced Micro Devices",sector:"Technology",type:"Stock",price:162,rsi:49,pe:118,fwdPe:24,eps_growth:54,rev_growth:22,roe:4,debt_equity:0.1,market_cap_b:263,score:7,notes:"MI300X gaining AI share; CPU/GPU competitive with Intel."},
+{ticker:"AVGO",name:"Broadcom",sector:"Technology",type:"Stock",price:234,rsi:44,pe:38,fwdPe:28,eps_growth:22,rev_growth:44,roe:32,debt_equity:1.2,market_cap_b:1100,score:8,notes:"Custom AI ASICs for hyperscalers. VMware integration adds software revenue."},
+{ticker:"TSM",name:"Taiwan Semiconductor",sector:"Technology",type:"Stock",price:182,rsi:53,pe:28,fwdPe:23,eps_growth:30,rev_growth:29,roe:28,debt_equity:0.3,market_cap_b:942,score:8,notes:"Foundry monopoly for advanced chips. N2/A16 process leadership."},
+{ticker:"QCOM",name:"Qualcomm",sector:"Technology",type:"Stock",price:158,rsi:46,pe:19,fwdPe:15,eps_growth:24,rev_growth:9,roe:38,debt_equity:0.6,market_cap_b:171,score:6,notes:"Snapdragon AI chips in PCs/phones. Auto diversification growing fast."},
+{ticker:"INTC",name:"Intel",sector:"Technology",type:"Stock",price:20,rsi:28,pe:null,fwdPe:14,eps_growth:-60,rev_growth:-8,roe:-9,debt_equity:0.5,market_cap_b:86,score:3,notes:"Turnaround risk. IFS foundry strategy unproven. Contrarian deep value."},
+{ticker:"AMAT",name:"Applied Materials",sector:"Technology",type:"Stock",price:192,rsi:51,pe:23,fwdPe:20,eps_growth:14,rev_growth:7,roe:44,debt_equity:0.4,market_cap_b:164,score:7,notes:"Semiconductor equipment leader. Benefits from global fab buildout."},
+{ticker:"KLAC",name:"KLA Corporation",sector:"Technology",type:"Stock",price:810,rsi:54,pe:30,fwdPe:26,eps_growth:20,rev_growth:12,roe:88,debt_equity:1.1,market_cap_b:113,score:7,notes:"Process control equipment. High margins, secular semis tailwind."},
+{ticker:"ASML",name:"ASML Holding",sector:"Technology",type:"Stock",price:698,rsi:42,pe:34,fwdPe:28,eps_growth:22,rev_growth:14,roe:56,debt_equity:0.3,market_cap_b:276,score:8,notes:"EUV lithography monopoly. Essential for all advanced chip manufacturing."},
+{ticker:"MU",name:"Micron Technology",sector:"Technology",type:"Stock",price:108,rsi:38,pe:27,fwdPe:10,eps_growth:280,rev_growth:61,roe:16,debt_equity:0.3,market_cap_b:120,score:7,notes:"HBM demand from AI buildout. Memory cycle recovery strongly underway."},
+{ticker:"ARM",name:"Arm Holdings",sector:"Technology",type:"Stock",price:148,rsi:52,pe:290,fwdPe:55,eps_growth:35,rev_growth:25,roe:12,debt_equity:0.0,market_cap_b:153,score:6,notes:"Core IP in all mobile chips + edge AI. High valuation risk."},
+{ticker:"MRVL",name:"Marvell Technology",sector:"Technology",type:"Stock",price:82,rsi:34,pe:null,fwdPe:22,eps_growth:55,rev_growth:30,roe:3,debt_equity:0.4,market_cap_b:71,score:7,notes:"Data center networking + custom AI silicon. PEG ~0.6x post-selloff."},
+{ticker:"META",name:"Meta Platforms",sector:"Technology",type:"Stock",price:620,rsi:62,pe:28,fwdPe:24,eps_growth:53,rev_growth:22,roe:35,debt_equity:0.1,market_cap_b:1570,score:8,notes:"Llama open-source AI leadership. Reels monetization + WhatsApp monetization."},
+{ticker:"GOOG",name:"Alphabet",sector:"Technology",type:"Stock",price:178,rsi:58,pe:23,fwdPe:19,eps_growth:31,rev_growth:14,roe:29,debt_equity:0.0,market_cap_b:2170,score:8,notes:"Gemini AI + Google Cloud + Search dominance. YouTube ad recovery."},
+{ticker:"AMZN",name:"Amazon",sector:"Technology",type:"Stock",price:192,rsi:60,pe:45,fwdPe:36,eps_growth:110,rev_growth:12,roe:22,debt_equity:0.4,market_cap_b:2020,score:8,notes:"AWS + Bedrock AI platform. Retail margin expansion continues."},
+{ticker:"ORCL",name:"Oracle",sector:"Technology",type:"Stock",price:148,rsi:56,pe:35,fwdPe:24,eps_growth:16,rev_growth:7,roe:null,debt_equity:6.2,market_cap_b:408,score:6,notes:"OCI cloud gaining AI workloads. Database installed base strong moat."},
+{ticker:"CRM",name:"Salesforce",sector:"Technology",type:"Stock",price:286,rsi:48,pe:44,fwdPe:27,eps_growth:24,rev_growth:9,roe:9,debt_equity:0.2,market_cap_b:276,score:6,notes:"Agentforce AI platform. Margin expansion but growth decelerating."},
+{ticker:"ADBE",name:"Adobe",sector:"Technology",type:"Stock",price:384,rsi:41,pe:28,fwdPe:22,eps_growth:13,rev_growth:10,roe:38,debt_equity:0.5,market_cap_b:167,score:6,notes:"Firefly GenAI monetization in early innings. Defensive creative moat."},
+{ticker:"NOW",name:"ServiceNow",sector:"Technology",type:"Stock",price:990,rsi:59,pe:76,fwdPe:50,eps_growth:30,rev_growth:22,roe:14,debt_equity:0.2,market_cap_b:202,score:7,notes:"AI workflow automation. Enterprise IT automation platform dominant."},
+{ticker:"SNOW",name:"Snowflake",sector:"Technology",type:"Stock",price:158,rsi:36,pe:null,fwdPe:58,eps_growth:30,rev_growth:26,roe:-8,debt_equity:0.0,market_cap_b:54,score:5,notes:"Cloud data platform. Cortex AI features. Valuation still high."},
+{ticker:"PLTR",name:"Palantir",sector:"Technology",type:"Stock",price:32,rsi:72,pe:102,fwdPe:62,eps_growth:80,rev_growth:27,roe:8,debt_equity:0.0,market_cap_b:69,score:5,notes:"AIP government + commercial AI platform. Overbought near-term."},
+{ticker:"NET",name:"Cloudflare",sector:"Technology",type:"Stock",price:114,rsi:54,pe:null,fwdPe:85,eps_growth:90,rev_growth:28,roe:-4,debt_equity:0.6,market_cap_b:38,score:6,notes:"Network cloud security platform. Workers AI edge inference play."},
+{ticker:"DDOG",name:"Datadog",sector:"Technology",type:"Stock",price:124,rsi:50,pe:null,fwdPe:55,eps_growth:50,rev_growth:27,roe:-1,debt_equity:0.0,market_cap_b:40,score:6,notes:"Observability + security platform. AI/LLM monitoring opportunity."},
+{ticker:"ZS",name:"Zscaler",sector:"Technology",type:"Stock",price:200,rsi:45,pe:null,fwdPe:78,eps_growth:60,rev_growth:31,roe:-4,debt_equity:0.1,market_cap_b:29,score:6,notes:"Zero-trust security leader. AI-powered threat detection."},
+{ticker:"PANW",name:"Palo Alto Networks",sector:"Technology",type:"Stock",price:192,rsi:52,pe:null,fwdPe:48,eps_growth:55,rev_growth:16,roe:-16,debt_equity:0.7,market_cap_b:124,score:7,notes:"Platformization strategy gaining traction. Security AI leader."},
+{ticker:"CRWD",name:"CrowdStrike",sector:"Technology",type:"Stock",price:366,rsi:58,pe:null,fwdPe:75,eps_growth:44,rev_growth:29,roe:-5,debt_equity:0.1,market_cap_b:88,score:7,notes:"Endpoint security AI leader. Falcon platform sticky with enterprises."},
+{ticker:"FTNT",name:"Fortinet",sector:"Technology",type:"Stock",price:90,rsi:48,pe:38,fwdPe:30,eps_growth:22,rev_growth:10,roe:null,debt_equity:null,market_cap_b:68,score:6,notes:"Unified security platform. Strong FCF generation."},
+{ticker:"INTU",name:"Intuit",sector:"Technology",type:"Stock",price:622,rsi:55,pe:52,fwdPe:36,eps_growth:20,rev_growth:13,roe:16,debt_equity:0.4,market_cap_b:174,score:6,notes:"TurboTax + QuickBooks AI Assist monetization opportunity."},
+{ticker:"UBER",name:"Uber",sector:"Technology",type:"Stock",price:82,rsi:53,pe:46,fwdPe:23,eps_growth:88,rev_growth:16,roe:16,debt_equity:1.2,market_cap_b:171,score:7,notes:"Autonomous vehicle fleet optionality + strong core rideshare."},
+{ticker:"LYFT",name:"Lyft",sector:"Technology",type:"Stock",price:14,rsi:30,pe:null,fwdPe:18,eps_growth:90,rev_growth:12,roe:-4,debt_equity:0.5,market_cap_b:5,score:4,notes:"Underdog rideshare. Heavily shorted, potential squeeze candidate."},
+{ticker:"SHOP",name:"Shopify",sector:"Technology",type:"Stock",price:108,rsi:47,pe:null,fwdPe:54,eps_growth:110,rev_growth:23,roe:5,debt_equity:0.0,market_cap_b:138,score:6,notes:"E-commerce infrastructure. AI Sidekick merchant tools early stage."},
+{ticker:"TWLO",name:"Twilio",sector:"Technology",type:"Stock",price:68,rsi:29,pe:null,fwdPe:22,eps_growth:55,rev_growth:8,roe:-3,debt_equity:0.0,market_cap_b:12,score:5,notes:"CPaaS platform. Oversold — restructuring creating operational leverage."},
+{ticker:"HUBS",name:"HubSpot",sector:"Technology",type:"Stock",price:528,rsi:46,pe:null,fwdPe:60,eps_growth:50,rev_growth:20,roe:-2,debt_equity:0.1,market_cap_b:26,score:6,notes:"SMB CRM with Breeze AI assistant. M&A target optionality."},
+{ticker:"TTD",name:"The Trade Desk",sector:"Technology",type:"Stock",price:88,rsi:35,pe:null,fwdPe:40,eps_growth:30,rev_growth:22,roe:15,debt_equity:0.0,market_cap_b:43,score:6,notes:"Programmatic ad platform. Connected TV growth acceleration."},
+{ticker:"SAMSF",name:"Samsung Electronics",sector:"Technology",type:"Stock",price:46,rsi:32,pe:24,fwdPe:12,eps_growth:120,rev_growth:15,roe:5,debt_equity:0.1,market_cap_b:310,score:6,notes:"HBM + smartphone + foundry. Oversold vs peers; currency risk."},
+{ticker:"NXPI",name:"NXP Semiconductors",sector:"Technology",type:"Stock",price:228,rsi:43,pe:20,fwdPe:17,eps_growth:10,rev_growth:4,roe:38,debt_equity:1.1,market_cap_b:59,score:6,notes:"Automotive chips leader. Auto EV content per vehicle rising."},
+{ticker:"TXN",name:"Texas Instruments",sector:"Technology",type:"Stock",price:172,rsi:44,pe:32,fwdPe:26,eps_growth:15,rev_growth:8,roe:34,debt_equity:0.7,market_cap_b:156,score:6,notes:"Analog chips for industrial/auto. 300mm fab advantage."},
+{ticker:"ON",name:"ON Semiconductor",sector:"Technology",type:"Stock",price:42,rsi:27,pe:13,fwdPe:11,eps_growth:8,rev_growth:-8,roe:24,debt_equity:0.4,market_cap_b:18,score:5,notes:"SiC power semiconductors for EVs. Cycle trough, oversold."},
+// Healthcare
+{ticker:"LLY",name:"Eli Lilly",sector:"Healthcare",type:"Stock",price:820,rsi:62,pe:56,fwdPe:36,eps_growth:120,rev_growth:45,roe:54,debt_equity:1.2,market_cap_b:780,score:8,notes:"GLP-1 (Mounjaro/Zepbound) blockbuster. Obesity TAM >$100B by 2030."},
+{ticker:"NVO",name:"Novo Nordisk",sector:"Healthcare",type:"Stock",price:76,rsi:38,pe:34,fwdPe:24,eps_growth:40,rev_growth:25,roe:86,debt_equity:0.3,market_cap_b:338,score:8,notes:"Ozempic/Wegovy pioneer. Global obesity + diabetes treatment leader."},
+{ticker:"ISRG",name:"Intuitive Surgical",sector:"Healthcare",type:"Stock",price:520,rsi:57,pe:76,fwdPe:58,eps_growth:18,rev_growth:16,roe:20,debt_equity:0.0,market_cap_b:183,score:7,notes:"Da Vinci robot monopoly. AI-assisted surgery expansion + Ion system."},
+{ticker:"UNH",name:"UnitedHealth Group",sector:"Healthcare",type:"Stock",price:320,rsi:29,pe:14,fwdPe:12,eps_growth:8,rev_growth:8,roe:26,debt_equity:0.6,market_cap_b:293,score:7,notes:"Oversold on DOJ investigation news. Optum data + tech moat intact."},
+{ticker:"JNJ",name:"Johnson & Johnson",sector:"Healthcare",type:"Stock",price:148,rsi:42,pe:16,fwdPe:14,eps_growth:6,rev_growth:5,roe:22,debt_equity:0.4,market_cap_b:355,score:6,notes:"MedTech + pharma dual engine. Talc liability overhang clearing."},
+{ticker:"ABBV",name:"AbbVie",sector:"Healthcare",type:"Stock",price:178,rsi:52,pe:18,fwdPe:14,eps_growth:12,rev_growth:4,roe:null,debt_equity:5.2,market_cap_b:314,score:6,notes:"Skyrizi/Rinvoq replacing Humira. Immunology franchise durable."},
+{ticker:"MRK",name:"Merck",sector:"Healthcare",type:"Stock",price:94,rsi:31,pe:12,fwdPe:10,eps_growth:14,rev_growth:7,roe:37,debt_equity:0.8,market_cap_b:238,score:6,notes:"Keytruda immunotherapy dominance. Oversold on patent cliff fears."},
+{ticker:"PFE",name:"Pfizer",sector:"Healthcare",type:"Stock",price:24,rsi:26,pe:11,fwdPe:8,eps_growth:-40,rev_growth:-22,roe:4,debt_equity:0.7,market_cap_b:134,score:4,notes:"Post-COVID normalization. Oversold deep value — high dividend yield."},
+{ticker:"BMY",name:"Bristol-Myers Squibb",sector:"Healthcare",type:"Stock",price:47,rsi:28,pe:6,fwdPe:7,eps_growth:10,rev_growth:5,roe:18,debt_equity:1.9,market_cap_b:91,score:5,notes:"Deeply oversold. Revlimid cliff priced in. Eliquis + Opdivo stable."},
+{ticker:"AMGN",name:"Amgen",sector:"Healthcare",type:"Stock",price:302,rsi:46,pe:15,fwdPe:13,eps_growth:8,rev_growth:19,roe:null,debt_equity:null,market_cap_b:161,score:6,notes:"MariTide GLP-1 pipeline optionality. Horizon Therapeutics synergies."},
+{ticker:"GILD",name:"Gilead Sciences",sector:"Healthcare",type:"Stock",price:92,rsi:50,pe:13,fwdPe:11,eps_growth:20,rev_growth:6,roe:18,debt_equity:1.1,market_cap_b:116,score:6,notes:"HIV/HCV franchise + oncology (Trodelvy). Attractive dividend."},
+{ticker:"REGN",name:"Regeneron",sector:"Healthcare",type:"Stock",price:740,rsi:40,pe:18,fwdPe:15,eps_growth:10,rev_growth:8,roe:22,debt_equity:0.1,market_cap_b:79,score:7,notes:"Dupixent blockbuster + Eylea. Strong pipeline depth."},
+{ticker:"VRTX",name:"Vertex Pharmaceuticals",sector:"Healthcare",type:"Stock",price:488,rsi:48,pe:32,fwdPe:26,eps_growth:22,rev_growth:12,roe:28,debt_equity:0.0,market_cap_b:125,score:7,notes:"CF monopoly. Pain (suzetrigine) and kidney disease new catalysts."},
+{ticker:"DXCM",name:"DexCom",sector:"Healthcare",type:"Stock",price:78,rsi:33,pe:52,fwdPe:35,eps_growth:28,rev_growth:15,roe:14,debt_equity:0.9,market_cap_b:30,score:6,notes:"Continuous glucose monitoring leader. G7 international expansion."},
+{ticker:"IDXX",name:"IDEXX Laboratories",sector:"Healthcare",type:"Stock",price:456,rsi:48,pe:50,fwdPe:40,eps_growth:14,rev_growth:8,roe:88,debt_equity:1.0,market_cap_b:36,score:6,notes:"Veterinary diagnostics monopoly-like. Recurring consumable revenue."},
+{ticker:"ZBH",name:"Zimmer Biomet",sector:"Healthcare",type:"Stock",price:96,rsi:34,pe:15,fwdPe:12,eps_growth:10,rev_growth:4,roe:8,debt_equity:0.8,market_cap_b:20,score:5,notes:"Orthopedic implants recovery. Robotic ROSA platform growth."},
+// Financials
+{ticker:"JPM",name:"JPMorgan Chase",sector:"Financials",type:"Stock",price:248,rsi:57,pe:13,fwdPe:12,eps_growth:9,rev_growth:10,roe:17,debt_equity:1.2,market_cap_b:708,score:7,notes:"Best-in-class US bank. AI Suite (LLM) + COiN legal automation."},
+{ticker:"BAC",name:"Bank of America",sector:"Financials",type:"Stock",price:44,rsi:54,pe:14,fwdPe:12,eps_growth:12,rev_growth:5,roe:10,debt_equity:1.1,market_cap_b:339,score:6,notes:"Rate sensitivity upside. Erica AI assistant 2B+ interactions."},
+{ticker:"WFC",name:"Wells Fargo",sector:"Financials",type:"Stock",price:72,rsi:52,pe:13,fwdPe:11,eps_growth:11,rev_growth:3,roe:11,debt_equity:1.2,market_cap_b:237,score:6,notes:"Asset cap removal catalyst. Efficiency ratio improving."},
+{ticker:"GS",name:"Goldman Sachs",sector:"Financials",type:"Stock",price:594,rsi:60,pe:16,fwdPe:13,eps_growth:40,rev_growth:12,roe:11,debt_equity:2.2,market_cap_b:198,score:7,notes:"IBD recovery + asset management growth. M&A cycle recovering."},
+{ticker:"MS",name:"Morgan Stanley",sector:"Financials",type:"Stock",price:124,rsi:55,pe:18,fwdPe:15,eps_growth:22,rev_growth:8,roe:12,debt_equity:2.0,market_cap_b:205,score:6,notes:"Wealth management ($6T AUM) + IBD recovery story."},
+{ticker:"V",name:"Visa",sector:"Financials",type:"Stock",price:302,rsi:58,pe:30,fwdPe:26,eps_growth:12,rev_growth:10,roe:45,debt_equity:0.6,market_cap_b:614,score:8,notes:"Payment network monopoly. AI fraud detection. 50%+ net margin."},
+{ticker:"MA",name:"Mastercard",sector:"Financials",type:"Stock",price:514,rsi:59,pe:36,fwdPe:30,eps_growth:16,rev_growth:11,roe:190,debt_equity:1.6,market_cap_b:480,score:8,notes:"Duopoly payments. Services (cyber, data analytics) outpacing core."},
+{ticker:"AXP",name:"American Express",sector:"Financials",type:"Stock",price:286,rsi:61,pe:20,fwdPe:17,eps_growth:18,rev_growth:9,roe:36,debt_equity:1.8,market_cap_b:207,score:7,notes:"Premium cardholder spending resilience. Gen Z card acquisition."},
+{ticker:"BRK-B",name:"Berkshire Hathaway B",sector:"Financials",type:"Stock",price:456,rsi:55,pe:21,fwdPe:18,eps_growth:8,rev_growth:5,roe:11,debt_equity:0.2,market_cap_b:994,score:7,notes:"Fortress balance sheet. Massive cash reserve for opportunistic buys."},
+{ticker:"BLK",name:"BlackRock",sector:"Financials",type:"Stock",price:1020,rsi:58,pe:24,fwdPe:21,eps_growth:12,rev_growth:8,roe:13,debt_equity:0.4,market_cap_b:154,score:7,notes:"$10T AUM. Preqin acquisition adds private markets leadership."},
+{ticker:"SCHW",name:"Charles Schwab",sector:"Financials",type:"Stock",price:82,rsi:47,pe:30,fwdPe:20,eps_growth:40,rev_growth:2,roe:10,debt_equity:0.8,market_cap_b:147,score:6,notes:"Post-Ameritrade integration complete. Rate environment headwind easing."},
+{ticker:"COF",name:"Capital One",sector:"Financials",type:"Stock",price:186,rsi:53,pe:14,fwdPe:12,eps_growth:20,rev_growth:8,roe:9,debt_equity:0.9,market_cap_b:71,score:6,notes:"Discover merger awaiting approval. Data analytics moat in credit cards."},
+{ticker:"SPGI",name:"S&P Global",sector:"Financials",type:"Stock",price:494,rsi:57,pe:44,fwdPe:35,eps_growth:14,rev_growth:10,roe:12,debt_equity:0.9,market_cap_b:157,score:7,notes:"Ratings duopoly + Market Intelligence data. High switching costs."},
+{ticker:"ICE",name:"Intercontinental Exchange",sector:"Financials",type:"Stock",price:164,rsi:54,pe:38,fwdPe:28,eps_growth:18,rev_growth:8,roe:8,debt_equity:0.6,market_cap_b:93,score:6,notes:"NYSE + mortgage tech (Black Knight). Essential market infrastructure."},
+// Consumer Discretionary
+{ticker:"TSLA",name:"Tesla",sector:"Consumer Disc.",type:"Stock",price:338,rsi:64,pe:88,fwdPe:66,eps_growth:24,rev_growth:12,roe:12,debt_equity:0.1,market_cap_b:1080,score:5,notes:"FSD v12 + Robotaxi + Optimus robot optionality. Execution risk."},
+{ticker:"NKE",name:"Nike",sector:"Consumer Disc.",type:"Stock",price:62,rsi:28,pe:18,fwdPe:20,eps_growth:-10,rev_growth:-8,roe:30,debt_equity:1.0,market_cap_b:92,score:5,notes:"Turnaround under new CEO. Brand remains iconic. Oversold."},
+{ticker:"MCD",name:"McDonald's",sector:"Consumer Disc.",type:"Stock",price:292,rsi:48,pe:23,fwdPe:21,eps_growth:5,rev_growth:2,roe:null,debt_equity:null,market_cap_b:209,score:6,notes:"Value offering winning customers back. Loyalty program 100M+."},
+{ticker:"SBUX",name:"Starbucks",sector:"Consumer Disc.",type:"Stock",price:82,rsi:36,pe:24,fwdPe:20,eps_growth:12,rev_growth:4,roe:null,debt_equity:null,market_cap_b:91,score:5,notes:"Turnaround under Brian Niccol. Simplifying menu and operations."},
+{ticker:"HD",name:"Home Depot",sector:"Consumer Disc.",type:"Stock",price:368,rsi:52,pe:25,fwdPe:22,eps_growth:8,rev_growth:4,roe:null,debt_equity:null,market_cap_b:367,score:6,notes:"SRS Distribution acquisition adds pro contractor market."},
+{ticker:"LOW",name:"Lowe's",sector:"Consumer Disc.",type:"Stock",price:248,rsi:48,pe:21,fwdPe:18,eps_growth:8,rev_growth:3,roe:null,debt_equity:null,market_cap_b:143,score:6,notes:"Pro customer focus. Total Home strategy gaining traction."},
+{ticker:"TGT",name:"Target",sector:"Consumer Disc.",type:"Stock",price:98,rsi:27,pe:13,fwdPe:12,eps_growth:5,rev_growth:0,roe:26,debt_equity:1.0,market_cap_b:45,score:5,notes:"Deeply oversold. Inventory correction done. Dividend payer."},
+{ticker:"COST",name:"Costco",sector:"Consumer Disc.",type:"Stock",price:914,rsi:60,pe:52,fwdPe:46,eps_growth:10,rev_growth:8,roe:30,debt_equity:0.3,market_cap_b:404,score:7,notes:"Membership model compounding. International expansion accelerating."},
+{ticker:"BKNG",name:"Booking Holdings",sector:"Consumer Disc.",type:"Stock",price:4820,rsi:59,pe:25,fwdPe:21,eps_growth:18,rev_growth:12,roe:null,debt_equity:null,market_cap_b:124,score:7,notes:"Travel recovery + AI trip planning tools. Massive buyback program."},
+{ticker:"ABNB",name:"Airbnb",sector:"Consumer Disc.",type:"Stock",price:138,rsi:44,pe:16,fwdPe:22,eps_growth:14,rev_growth:10,roe:18,debt_equity:0.0,market_cap_b:88,score:6,notes:"Experiences + co-host network new growth levers. Strong FCF."},
+{ticker:"DPZ",name:"Domino's Pizza",sector:"Consumer Disc.",type:"Stock",price:470,rsi:52,pe:26,fwdPe:23,eps_growth:10,rev_growth:6,roe:null,debt_equity:null,market_cap_b:16,score:6,notes:"Tech-first pizza delivery. Uber Eats partnership adding customers."},
+{ticker:"LULU",name:"Lululemon",sector:"Consumer Disc.",type:"Stock",price:288,rsi:34,pe:24,fwdPe:20,eps_growth:12,rev_growth:7,roe:38,debt_equity:0.0,market_cap_b:36,score:6,notes:"International (China) expansion + mens growth. Oversold reset."},
+// Industrials
+{ticker:"CAT",name:"Caterpillar",sector:"Industrials",type:"Stock",price:334,rsi:53,pe:16,fwdPe:15,eps_growth:10,rev_growth:2,roe:60,debt_equity:1.8,market_cap_b:161,score:6,notes:"Mining + construction equipment cycle. Energy transition demand."},
+{ticker:"DE",name:"Deere & Company",sector:"Industrials",type:"Stock",price:392,rsi:46,pe:12,fwdPe:13,eps_growth:-18,rev_growth:-12,roe:40,debt_equity:3.2,market_cap_b:106,score:5,notes:"Precision Ag tech + autonomous tractors. Cycle trough playing out."},
+{ticker:"HON",name:"Honeywell",sector:"Industrials",type:"Stock",price:210,rsi:48,pe:23,fwdPe:20,eps_growth:8,rev_growth:5,roe:32,debt_equity:1.3,market_cap_b:133,score:6,notes:"Aerospace + building tech. Potential breakup value catalyst."},
+{ticker:"GE",name:"GE Aerospace",sector:"Industrials",type:"Stock",price:198,rsi:60,pe:36,fwdPe:28,eps_growth:30,rev_growth:18,roe:18,debt_equity:0.5,market_cap_b:216,score:7,notes:"Pure-play aerospace engines. LEAP engine services revenue growing."},
+{ticker:"RTX",name:"RTX (Raytheon)",sector:"Industrials",type:"Stock",price:124,rsi:55,pe:40,fwdPe:22,eps_growth:18,rev_growth:8,roe:7,debt_equity:0.7,market_cap_b:163,score:6,notes:"Defense + Pratt & Whitney aero. GTF engine inspections clearing."},
+{ticker:"LMT",name:"Lockheed Martin",sector:"Industrials",type:"Stock",price:480,rsi:50,pe:17,fwdPe:15,eps_growth:8,rev_growth:5,roe:null,debt_equity:null,market_cap_b:113,score:6,notes:"F-35 production + hypersonics. Geopolitical defense spending tailwind."},
+{ticker:"NOC",name:"Northrop Grumman",sector:"Industrials",type:"Stock",price:494,rsi:47,pe:16,fwdPe:14,eps_growth:8,rev_growth:6,roe:32,debt_equity:1.1,market_cap_b:75,score:6,notes:"B-21 Raider production ramp. Space + cyber defense leader."},
+{ticker:"BA",name:"Boeing",sector:"Industrials",type:"Stock",price:196,rsi:52,pe:null,fwdPe:40,eps_growth:100,rev_growth:10,roe:null,debt_equity:null,market_cap_b:147,score:4,notes:"Production ramp risk on 737MAX/787. Cash burn continuing. High risk."},
+{ticker:"UPS",name:"United Parcel Service",sector:"Industrials",type:"Stock",price:118,rsi:29,pe:14,fwdPe:13,eps_growth:8,rev_growth:2,roe:44,debt_equity:1.5,market_cap_b:99,score:5,notes:"Oversold. Amazon volume loss digested. High dividend yield 5%+."},
+{ticker:"FDX",name:"FedEx",sector:"Industrials",type:"Stock",price:254,rsi:44,pe:14,fwdPe:12,eps_growth:14,rev_growth:2,roe:14,debt_equity:0.7,market_cap_b:64,score:6,notes:"DRIVE program $4B+ cost savings. Freight spinoff value unlock."},
+{ticker:"MMM",name:"3M",sector:"Industrials",type:"Stock",price:136,rsi:49,pe:13,fwdPe:14,eps_growth:18,rev_growth:2,roe:null,debt_equity:null,market_cap_b:74,score:5,notes:"Post-spin Solventum. Earplug litigation resolved. Turnaround."},
+{ticker:"EMR",name:"Emerson Electric",sector:"Industrials",type:"Stock",price:114,rsi:46,pe:18,fwdPe:16,eps_growth:12,rev_growth:4,roe:14,debt_equity:0.4,market_cap_b:65,score:6,notes:"Industrial automation + AspenTech software. Pricing power."},
+// Energy
+{ticker:"XOM",name:"Exxon Mobil",sector:"Energy",type:"Stock",price:112,rsi:51,pe:13,fwdPe:12,eps_growth:4,rev_growth:-2,roe:14,debt_equity:0.2,market_cap_b:480,score:6,notes:"Pioneer acquisition adds Permian scale. Massive buyback program."},
+{ticker:"CVX",name:"Chevron",sector:"Energy",type:"Stock",price:148,rsi:46,pe:12,fwdPe:12,eps_growth:2,rev_growth:-4,roe:12,debt_equity:0.1,market_cap_b:270,score:6,notes:"Hess merger adds Guyana oil. Dividend aristocrat with buybacks."},
+{ticker:"COP",name:"ConocoPhillips",sector:"Energy",type:"Stock",price:102,rsi:44,pe:13,fwdPe:11,eps_growth:8,rev_growth:4,roe:18,debt_equity:0.3,market_cap_b:128,score:6,notes:"Marathon Oil acquisition adds Permian/Eagle Ford. Returns focus."},
+{ticker:"SLB",name:"SLB (Schlumberger)",sector:"Energy",type:"Stock",price:44,rsi:36,pe:14,fwdPe:12,eps_growth:10,rev_growth:8,roe:19,debt_equity:0.5,market_cap_b:63,score:5,notes:"Oilfield services leader. International activity growing vs US."},
+{ticker:"EOG",name:"EOG Resources",sector:"Energy",type:"Stock",price:128,rsi:44,pe:11,fwdPe:10,eps_growth:6,rev_growth:2,roe:22,debt_equity:0.1,market_cap_b:76,score:6,notes:"Premium shale operator. Low cost structure + strong dividend."},
+{ticker:"CCJ",name:"Cameco",sector:"Energy",type:"Stock",price:52,rsi:38,pe:78,fwdPe:36,eps_growth:60,rev_growth:28,roe:4,debt_equity:0.1,market_cap_b:23,score:7,notes:"Uranium supercycle + nuclear AI power demand. PEG attractive on growth."},
+{ticker:"GEV",name:"GE Vernova",sector:"Energy",type:"Stock",price:348,rsi:61,pe:null,fwdPe:48,eps_growth:82,rev_growth:14,roe:6,debt_equity:0.1,market_cap_b:126,score:7,notes:"Power generation for AI data centers. Gas turbines backlog surging."},
+{ticker:"VST",name:"Vistra Energy",sector:"Energy",type:"Stock",price:158,rsi:58,pe:22,fwdPe:14,eps_growth:80,rev_growth:20,roe:null,debt_equity:3.2,market_cap_b:32,score:6,notes:"Nuclear + gas power. AI data center electricity demand play."},
+{ticker:"CEG",name:"Constellation Energy",sector:"Energy",type:"Stock",price:288,rsi:62,pe:34,fwdPe:22,eps_growth:46,rev_growth:18,roe:16,debt_equity:0.6,market_cap_b:78,score:7,notes:"Nuclear clean power. Microsoft 20yr PPA. AI data center contracts."},
+{ticker:"OXY",name:"Occidental Petroleum",sector:"Energy",type:"Stock",price:46,rsi:30,pe:12,fwdPe:11,eps_growth:5,rev_growth:4,roe:11,debt_equity:0.9,market_cap_b:43,score:5,notes:"Berkshire-backed. CrownRock acquisition. Carbon capture optionality."},
+{ticker:"MPC",name:"Marathon Petroleum",sector:"Energy",type:"Stock",price:164,rsi:47,pe:8,fwdPe:9,eps_growth:5,rev_growth:2,roe:38,debt_equity:0.8,market_cap_b:58,score:6,notes:"Refining leader + MPLX MLP. Massive buyback ($5B+ annual)."},
+// Utilities
+{ticker:"NEE",name:"NextEra Energy",sector:"Utilities",type:"Stock",price:74,rsi:48,pe:20,fwdPe:17,eps_growth:8,rev_growth:10,roe:12,debt_equity:1.2,market_cap_b:151,score:6,notes:"World's largest wind/solar utility. AI power demand beneficiary."},
+{ticker:"DUK",name:"Duke Energy",sector:"Utilities",type:"Stock",price:112,rsi:52,pe:19,fwdPe:17,eps_growth:6,rev_growth:4,roe:9,debt_equity:1.7,market_cap_b:81,score:5,notes:"Regulated utility. Data center load growth in Carolinas."},
+{ticker:"SO",name:"Southern Company",sector:"Utilities",type:"Stock",price:90,rsi:54,pe:22,fwdPe:19,eps_growth:8,rev_growth:5,roe:10,debt_equity:1.5,market_cap_b:99,score:5,notes:"Vogtle nuclear units online. Clean energy transition leader."},
+{ticker:"AEP",name:"American Electric Power",sector:"Utilities",type:"Stock",price:96,rsi:50,pe:18,fwdPe:16,eps_growth:7,rev_growth:6,roe:10,debt_equity:1.6,market_cap_b:50,score:5,notes:"Midwest regulated utility. Data center load growth in Ohio/Texas."},
+{ticker:"EXC",name:"Exelon",sector:"Utilities",type:"Stock",price:38,rsi:44,pe:16,fwdPe:14,eps_growth:6,rev_growth:4,roe:8,debt_equity:1.4,market_cap_b:38,score:5,notes:"Regulated T&D utility. Defensive income play. 4%+ dividend."},
+{ticker:"D",name:"Dominion Energy",sector:"Utilities",type:"Stock",price:54,rsi:46,pe:18,fwdPe:16,eps_growth:5,rev_growth:4,roe:8,debt_equity:1.8,market_cap_b:45,score:4,notes:"Restructured post-asset sales. Virginia data center utility."},
+// Materials
+{ticker:"LIN",name:"Linde",sector:"Materials",type:"Stock",price:466,rsi:56,pe:32,fwdPe:28,eps_growth:12,rev_growth:3,roe:18,debt_equity:0.3,market_cap_b:218,score:7,notes:"Industrial gas duopoly. Hydrogen economy growth. On-site contracts."},
+{ticker:"APD",name:"Air Products",sector:"Materials",type:"Stock",price:300,rsi:40,pe:24,fwdPe:20,eps_growth:8,rev_growth:4,roe:14,debt_equity:0.9,market_cap_b:67,score:5,notes:"Green hydrogen projects. CEO transition creating uncertainty."},
+{ticker:"NEM",name:"Newmont",sector:"Materials",type:"Stock",price:46,rsi:44,pe:null,fwdPe:16,eps_growth:50,rev_growth:20,roe:1,debt_equity:0.4,market_cap_b:37,score:5,notes:"Largest gold miner. Gold price tailwind. Cost inflation risk."},
+{ticker:"FCX",name:"Freeport-McMoRan",sector:"Materials",type:"Stock",price:44,rsi:38,pe:22,fwdPe:16,eps_growth:18,rev_growth:6,roe:14,debt_equity:0.5,market_cap_b:63,score:6,notes:"Copper supercycle play. AI/EV infrastructure copper demand."},
+{ticker:"ALB",name:"Albemarle",sector:"Materials",type:"Stock",price:78,rsi:26,pe:null,fwdPe:22,eps_growth:30,rev_growth:-25,roe:-4,debt_equity:0.6,market_cap_b:9,score:4,notes:"Lithium price crash — deeply oversold. EV recovery optionality."},
+{ticker:"DOW",name:"Dow Inc.",sector:"Materials",type:"Stock",price:36,rsi:32,pe:24,fwdPe:16,eps_growth:20,rev_growth:4,roe:8,debt_equity:1.0,market_cap_b:26,score:5,notes:"Chemicals cycle trough. Path AI digital manufacturing initiative."},
+// Real Estate
+{ticker:"AMT",name:"American Tower",sector:"Real Estate",type:"Stock",price:192,rsi:48,pe:30,fwdPe:24,eps_growth:8,rev_growth:5,roe:19,debt_equity:4.2,market_cap_b:90,score:6,notes:"Cell tower REIT. 5G densification + international emerging market towers."},
+{ticker:"PLD",name:"Prologis",sector:"Real Estate",type:"Stock",price:108,rsi:44,pe:32,fwdPe:26,eps_growth:10,rev_growth:8,roe:7,debt_equity:0.7,market_cap_b:93,score:6,notes:"Industrial REIT. E-commerce + nearshoring supply chain demand."},
+{ticker:"EQIX",name:"Equinix",sector:"Real Estate",type:"Stock",price:862,rsi:52,pe:82,fwdPe:40,eps_growth:14,rev_growth:8,roe:5,debt_equity:1.6,market_cap_b:78,score:6,notes:"Data center REIT. AI infrastructure tenant demand surge."},
+{ticker:"WELL",name:"Welltower",sector:"Real Estate",type:"Stock",price:128,rsi:54,pe:null,fwdPe:40,eps_growth:18,rev_growth:14,roe:3,debt_equity:0.8,market_cap_b:72,score:6,notes:"Senior housing REIT. Demographics tailwind + occupancy recovery."},
+{ticker:"DLR",name:"Digital Realty",sector:"Real Estate",type:"Stock",price:164,rsi:50,pe:null,fwdPe:32,eps_growth:10,rev_growth:12,roe:2,debt_equity:1.4,market_cap_b:48,score:5,notes:"Data center REIT. AI demand accelerating leasing pipeline."},
+// Communication
+{ticker:"DIS",name:"Walt Disney",sector:"Communication",type:"Stock",price:108,rsi:46,pe:38,fwdPe:20,eps_growth:60,rev_growth:4,roe:6,debt_equity:0.5,market_cap_b:196,score:6,notes:"D+ streaming profitability achieved. Parks + sports (ESPN) bundle."},
+{ticker:"NFLX",name:"Netflix",sector:"Communication",type:"Stock",price:1048,rsi:64,pe:52,fwdPe:40,eps_growth:60,rev_growth:16,roe:30,debt_equity:0.5,market_cap_b:448,score:7,notes:"Ads tier scaling. Live sports (WWE, NFL). Password sharing complete."},
+{ticker:"SPOT",name:"Spotify",sector:"Communication",type:"Stock",price:618,rsi:66,pe:null,fwdPe:82,eps_growth:null,rev_growth:18,roe:6,debt_equity:0.3,market_cap_b:124,score:6,notes:"Audio monopoly. Podcast + audiobook. Margin expansion story."},
+{ticker:"T",name:"AT&T",sector:"Communication",type:"Stock",price:22,rsi:55,pe:11,fwdPe:9,eps_growth:4,rev_growth:1,roe:10,debt_equity:1.4,market_cap_b:157,score:5,notes:"Fiber 30M+ passings target. Debt paydown trajectory on track."},
+{ticker:"VZ",name:"Verizon",sector:"Communication",type:"Stock",price:42,rsi:49,pe:10,fwdPe:9,eps_growth:2,rev_growth:1,roe:18,debt_equity:1.8,market_cap_b:177,score:5,notes:"Fixed wireless broadband growing. High dividend 6%+. Defensive."},
+{ticker:"CMCSA",name:"Comcast",sector:"Communication",type:"Stock",price:34,rsi:36,pe:11,fwdPe:10,eps_growth:6,rev_growth:2,roe:17,debt_equity:2.0,market_cap_b:140,score:5,notes:"Broadband duopoly + Peacock streaming. SpinCo cable separation."},
+{ticker:"SNAP",name:"Snap",sector:"Communication",type:"Stock",price:10,rsi:28,pe:null,fwdPe:null,eps_growth:20,rev_growth:14,roe:null,debt_equity:0.6,market_cap_b:16,score:3,notes:"Deeply oversold social media. AR glasses optionality. High risk."},
+{ticker:"PINS",name:"Pinterest",sector:"Communication",type:"Stock",price:32,rsi:34,pe:28,fwdPe:18,eps_growth:30,rev_growth:18,roe:10,debt_equity:0.0,market_cap_b:21,score:5,notes:"Shopping intent social. Amazon ads partnership driving monetization."},
+// Renewables
+{ticker:"FSLR",name:"First Solar",sector:"Renewables",type:"Stock",price:188,rsi:42,pe:16,fwdPe:14,eps_growth:24,rev_growth:22,roe:18,debt_equity:0.1,market_cap_b:20,score:6,notes:"US solar manufacturing leader. IRA subsidy beneficiary. Backlog full."},
+{ticker:"ENPH",name:"Enphase Energy",sector:"Renewables",type:"Stock",price:64,rsi:30,pe:22,fwdPe:18,eps_growth:20,rev_growth:2,roe:50,debt_equity:0.8,market_cap_b:8,score:5,notes:"Microinverters. Oversold on rate sensitivity. IQ9 launch catalyst."},
+{ticker:"RUN",name:"Sunrun",sector:"Renewables",type:"Stock",price:14,rsi:26,pe:null,fwdPe:null,eps_growth:30,rev_growth:8,roe:-8,debt_equity:2.2,market_cap_b:3,score:3,notes:"Residential solar + battery. Deeply oversold. Balance sheet risk."},
+{ticker:"PLUG",name:"Plug Power",sector:"Renewables",type:"Stock",price:2,rsi:22,pe:null,fwdPe:null,eps_growth:null,rev_growth:4,roe:null,debt_equity:2.0,market_cap_b:1,score:2,notes:"Hydrogen fuel cells. Severely distressed. Very high risk."},
+{ticker:"BE",name:"Bloom Energy",sector:"Renewables",type:"Stock",price:16,rsi:34,pe:null,fwdPe:40,eps_growth:50,rev_growth:14,roe:-14,debt_equity:3.4,market_cap_b:3,score:4,notes:"Solid oxide fuel cells for AI data centers. Power density advantage."},
+// ETFs - Broad
+{ticker:"VOO",name:"Vanguard S&P 500 ETF",sector:"ETF",type:"ETF",price:534,rsi:58,pe:24,fwdPe:21,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:7,notes:"Core S&P 500. 0.03% expense ratio. Essential core holding."},
+{ticker:"SPY",name:"SPDR S&P 500 ETF",sector:"ETF",type:"ETF",price:596,rsi:58,pe:24,fwdPe:21,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:7,notes:"Most liquid ETF. S&P 500 exposure. Options market very liquid."},
+{ticker:"QQQ",name:"Invesco QQQ Nasdaq 100",sector:"ETF",type:"ETF",price:512,rsi:60,pe:28,fwdPe:24,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:7,notes:"Tech-heavy growth. Heavy NVDA/MSFT/AAPL/META. AI exposure concentrated."},
+{ticker:"VTI",name:"Vanguard Total Market ETF",sector:"ETF",type:"ETF",price:268,rsi:57,pe:22,fwdPe:20,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:7,notes:"Total US market diversification. Broadest single-fund exposure."},
+{ticker:"IWM",name:"iShares Russell 2000 ETF",sector:"ETF",type:"ETF",price:208,rsi:46,pe:18,fwdPe:16,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Small cap. Rate-sensitive. Benefits from Fed cuts more than large caps."},
+{ticker:"VEA",name:"Vanguard Developed Markets ETF",sector:"ETF",type:"ETF",price:54,rsi:52,pe:15,fwdPe:13,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"International developed. Europe/Japan value at discount to US."},
+{ticker:"VWO",name:"Vanguard Emerging Markets ETF",sector:"ETF",type:"ETF",price:46,rsi:50,pe:12,fwdPe:11,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"EM exposure. China + India + Brazil. Geopolitical risk premium."},
+{ticker:"GLD",name:"SPDR Gold Shares",sector:"ETF",type:"ETF",price:288,rsi:60,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Gold exposure. Inflation hedge + de-dollarization tailwind."},
+{ticker:"SLV",name:"iShares Silver Trust",sector:"ETF",type:"ETF",price:30,rsi:52,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"Silver. Industrial + monetary demand. Higher beta than gold."},
+{ticker:"TLT",name:"iShares 20+ Year Treasury ETF",sector:"ETF",type:"ETF",price:88,rsi:44,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"Long duration bonds. Benefits from rate cuts. High duration risk."},
+{ticker:"AGG",name:"iShares Core US Aggregate Bond",sector:"ETF",type:"ETF",price:98,rsi:48,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Broad bond market. Defensive allocation for portfolio ballast."},
+// ETFs - Sector
+{ticker:"SOXX",name:"iShares Semiconductor ETF",sector:"ETF",type:"ETF",price:238,rsi:49,pe:28,fwdPe:22,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:7,notes:"Broad semis exposure. Post-selloff bounce play vs single names."},
+{ticker:"SMH",name:"VanEck Semiconductor ETF",sector:"ETF",type:"ETF",price:248,rsi:50,pe:28,fwdPe:22,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:7,notes:"Alternative semis ETF. Top-weighted NVDA/TSM/ASML."},
+{ticker:"XLK",name:"Tech Select Sector SPDR",sector:"ETF",type:"ETF",price:236,rsi:59,pe:32,fwdPe:28,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:6,notes:"Large cap tech sector ETF. MSFT + AAPL + NVDA dominated."},
+{ticker:"XLV",name:"Health Care Select SPDR",sector:"ETF",type:"ETF",price:148,rsi:43,pe:20,fwdPe:17,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:6,notes:"Broad healthcare. Defensive with growth. LLY + UNH top weights."},
+{ticker:"XLF",name:"Financial Select Sector SPDR",sector:"ETF",type:"ETF",price:48,rsi:54,pe:16,fwdPe:14,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:6,notes:"Financials sector. Rate environment tailwind. BRK/JPM/V top."},
+{ticker:"XLE",name:"Energy Select Sector SPDR",sector:"ETF",type:"ETF",price:92,rsi:46,pe:12,fwdPe:11,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Large-cap US energy. XOM + CVX dominant. Commodity price exposure."},
+{ticker:"XLY",name:"Consumer Disc. Select SPDR",sector:"ETF",type:"ETF",price:208,rsi:58,pe:30,fwdPe:26,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Consumer discretionary. TSLA + AMZN large weights."},
+{ticker:"XLI",name:"Industrial Select Sector SPDR",sector:"ETF",type:"ETF",price:136,rsi:51,pe:22,fwdPe:19,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Industrial stocks. Defense + aerospace + machinery exposure."},
+{ticker:"XLU",name:"Utilities Select Sector SPDR",sector:"ETF",type:"ETF",price:76,rsi:50,pe:20,fwdPe:17,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Utilities sector. AI power demand + rate cut beneficiary."},
+{ticker:"XLB",name:"Materials Select Sector SPDR",sector:"ETF",type:"ETF",price:90,rsi:44,pe:20,fwdPe:17,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"Materials sector. Copper + chemicals + gold miners."},
+{ticker:"XLRE",name:"Real Estate Select Sector SPDR",sector:"ETF",type:"ETF",price:42,rsi:48,pe:28,fwdPe:24,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"REITs. Data center + industrial + residential. Rate sensitive."},
+{ticker:"XLC",name:"Comm. Services Select SPDR",sector:"ETF",type:"ETF",price:104,rsi:56,pe:24,fwdPe:21,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:6,notes:"Communication + media. META + GOOG + NFLX + DIS exposure."},
+{ticker:"VDE",name:"Vanguard Energy ETF",sector:"ETF",type:"ETF",price:118,rsi:46,pe:12,fwdPe:11,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Broad US energy. Lower cost alternative to XLE."},
+{ticker:"ICLN",name:"iShares Global Clean Energy ETF",sector:"ETF",type:"ETF",price:18,rsi:38,pe:22,fwdPe:18,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"103 clean energy holdings. Significant run-up — check valuation."},
+{ticker:"PBW",name:"Invesco WilderHill Clean Energy",sector:"ETF",type:"ETF",price:14,rsi:35,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"Broad clean energy. SolarEdge, Bloom, Ormat weighted."},
+{ticker:"ARKK",name:"ARK Innovation ETF",sector:"ETF",type:"ETF",price:56,rsi:48,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"Disruptive innovation. High volatility. TSLA + CRISPR + COIN."},
+{ticker:"ARKG",name:"ARK Genomic Revolution ETF",sector:"ETF",type:"ETF",price:22,rsi:32,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:3,notes:"Genomics + biotech. Long-duration speculative. Oversold."},
+{ticker:"ARKW",name:"ARK Next Generation Internet ETF",sector:"ETF",type:"ETF",price:82,rsi:52,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"Web3 + AI + fintech disruptors. High concentration + volatility."},
+{ticker:"IBIT",name:"iShares Bitcoin Trust ETF",sector:"ETF",type:"ETF",price:58,rsi:56,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Bitcoin spot ETF. Institutional crypto exposure with low fees."},
+{ticker:"JETS",name:"U.S. Global Jets ETF",sector:"ETF",type:"ETF",price:22,rsi:38,pe:12,fwdPe:11,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"Airline sector ETF. Recovery from oversold. Travel demand resilient."},
+{ticker:"KWEB",name:"KraneShares China Internet ETF",sector:"ETF",type:"ETF",price:34,rsi:56,pe:16,fwdPe:12,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"China internet (BABA, Tencent, JD). Deep value vs US peers. Geopolitical risk."},
+{ticker:"EEM",name:"iShares MSCI Emerging Markets ETF",sector:"ETF",type:"ETF",price:44,rsi:50,pe:13,fwdPe:11,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"Broad EM. India overweight opportunity + China risk."},
+{ticker:"VNQ",name:"Vanguard Real Estate ETF",sector:"ETF",type:"ETF",price:86,rsi:48,pe:30,fwdPe:26,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Broad REIT index. Data center REITs now large component."},
+{ticker:"BIL",name:"SPDR Bloomberg 1-3 Month T-Bill",sector:"ETF",type:"ETF",price:91,rsi:55,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Cash equivalent. 5%+ yield. Parking cash while awaiting opportunities."},
 ];
 
-const SK="investorScreenerV4";
-let data=(()=>{ try{const r=localStorage.getItem(SK);if(r)return JSON.parse(r);}catch(e){} return JSON.parse(JSON.stringify(DEFAULT_DATA)); })();
-let sortKey=null,sortAsc=true,activeIdx=null,activeRange="3mo";
-let chartInstances=[];
+/* ── State ───────────────────────────────────────────── */
+const NOTES_KEY="eqscreen_notes", FILT_KEY="eqscreen_filters";
+let notes={}; try{notes=JSON.parse(localStorage.getItem(NOTES_KEY)||"{}");}catch(e){}
+let sortK="score",sortAsc=false,page=1,PER_PAGE=50;
+let filtered=[];
+let activeRow=null;
 
-function saveData(){localStorage.setItem(SK,JSON.stringify(data));}
-function upside(row){const p=parseFloat(row.price),t=parseFloat(row.target);return(!isNaN(p)&&!isNaN(t)&&p>0)?(t-p)/p*100:null;}
-function scClass(s){const v=parseFloat(s);return isNaN(v)?"":v>=7?"high":v>=4?"mid":"low";}
-function esc(s){return(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-function themeHTML(row){return(row.themes||[]).map(t=>`<span class="tag theme-${t}">${t}</span>`).join("");}
+const f={q:"",type:"",rsiMin:"",rsiMax:"",rsiZone:"",scoreMin:"",peMax:"",fpeMax:"",epsMin:"",revMin:"",roeMin:"",sectors:new Set()};
+
+/* ── Sectors ─────────────────────────────────────────── */
+const SECTORS=[...new Set(RAW.map(d=>d.sector))].sort();
+function buildSectors(){
+  const el=document.getElementById("sectorList");
+  el.innerHTML=SECTORS.map(s=>`<label class="sector-item"><input type="checkbox" data-s="${s}" checked> ${s}</label>`).join("");
+  SECTORS.forEach(s=>f.sectors.add(s));
+  el.querySelectorAll("input").forEach(cb=>{
+    cb.addEventListener("change",()=>{
+      if(cb.checked)f.sectors.add(cb.dataset.s); else f.sectors.delete(cb.dataset.s);
+      go();
+    });
+  });
+}
+
+/* ── Filter & sort ───────────────────────────────────── */
+function applyFilters(){
+  filtered=RAW.filter(d=>{
+    if(f.q&&!d.ticker.toLowerCase().includes(f.q)&&!d.name.toLowerCase().includes(f.q))return false;
+    if(f.type&&d.type!==f.type)return false;
+    if(!f.sectors.has(d.sector))return false;
+    if(f.rsiZone==="os"&&(d.rsi==null||d.rsi>=30))return false;
+    if(f.rsiZone==="n"&&(d.rsi==null||d.rsi<30||d.rsi>70))return false;
+    if(f.rsiZone==="ob"&&(d.rsi==null||d.rsi<=70))return false;
+    if(f.rsiMin!==""&&(d.rsi==null||d.rsi<+f.rsiMin))return false;
+    if(f.rsiMax!==""&&(d.rsi==null||d.rsi>+f.rsiMax))return false;
+    if(f.scoreMin!==""&&d.score<+f.scoreMin)return false;
+    if(f.peMax!==""&&(d.pe==null||d.pe>+f.peMax))return false;
+    if(f.fpeMax!==""&&(d.fwdPe==null||d.fwdPe>+f.fpeMax))return false;
+    if(f.epsMin!==""&&(d.eps_growth==null||d.eps_growth<+f.epsMin))return false;
+    if(f.revMin!==""&&(d.rev_growth==null||d.rev_growth<+f.revMin))return false;
+    if(f.roeMin!==""&&(d.roe==null||d.roe<+f.roeMin))return false;
+    return true;
+  });
+  filtered.sort((a,b)=>{
+    const av=a[sortK]??-Infinity,bv=b[sortK]??-Infinity;
+    if(typeof av==="string")return sortAsc?av.localeCompare(bv):bv.localeCompare(av);
+    return sortAsc?av-bv:bv-av;
+  });
+}
+
+function go(){applyFilters();page=1;renderStats();renderTable();renderPagination();}
+
+/* ── Stats bar ───────────────────────────────────────── */
+function avg(arr,k){const vals=arr.map(d=>d[k]).filter(v=>v!=null);return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null;}
+function renderStats(){
+  const n=filtered.length;
+  const aScore=avg(filtered,"score"),aRSI=avg(filtered,"rsi"),aPE=avg(filtered,"pe");
+  document.getElementById("statsbar").innerHTML=`
+    <div class="stat"><div class="stat-l">Showing</div><div class="stat-v">${n} / ${RAW.length}</div></div>
+    <div class="stat"><div class="stat-l">Avg Score</div><div class="stat-v">${aScore!=null?aScore.toFixed(1):"—"}</div></div>
+    <div class="stat"><div class="stat-l">Avg RSI</div><div class="stat-v">${aRSI!=null?aRSI.toFixed(1):"—"}</div></div>
+    <div class="stat"><div class="stat-l">Avg P/E</div><div class="stat-v">${aPE!=null?aPE.toFixed(1):"—"}</div></div>
+    <div class="stat"><div class="stat-l">Oversold (&lt;30)</div><div class="stat-v" style="color:var(--accent)">${filtered.filter(d=>d.rsi!=null&&d.rsi<30).length}</div></div>
+    <div class="stat"><div class="stat-l">Overbought (&gt;70)</div><div class="stat-v" style="color:var(--red)">${filtered.filter(d=>d.rsi!=null&&d.rsi>70).length}</div></div>`;
+  document.getElementById("resultsCount").textContent=`${n} results`;
+}
 
 /* ── Table ───────────────────────────────────────────── */
-function render(){
-  const tbody=document.getElementById("tbody");
-  const tf=document.getElementById("themeFilter").value;
-  const ty=document.getElementById("typeFilter").value;
-  const q=document.getElementById("searchBox").value.trim().toLowerCase();
-  let rows=data.map((r,i)=>({...r,_i:i}));
-  if(sortKey){
-    rows.sort((a,b)=>{
-      let av,bv;
-      if(sortKey==="upside"){av=upside(a)??-Infinity;bv=upside(b)??-Infinity;}
-      else if(["price","target","score"].includes(sortKey)){av=parseFloat(a[sortKey])||0;bv=parseFloat(b[sortKey])||0;}
-      else{av=(a[sortKey]||"").toString().toLowerCase();bv=(b[sortKey]||"").toString().toLowerCase();}
-      return sortAsc?(av<bv?-1:av>bv?1:0):(av>bv?-1:av<bv?1:0);
-    });
-  }
-  tbody.innerHTML="";
-  rows.forEach(row=>{
-    const idx=row._i;
-    const ts=row.themes||[];
-    const vis=(!tf||ts.includes(tf))&&(!ty||row.type===ty)&&(!q||row.ticker.toLowerCase().includes(q)||row.name.toLowerCase().includes(q));
-    const up=upside(row);
-    const tr=document.createElement("tr");
-    if(!vis)tr.classList.add("hidden");
-    if(idx===activeIdx)tr.classList.add("active");
-    tr.dataset.idx=idx;
-    tr.innerHTML=`
-      <td><span class="ticker-cell">${row.ticker}</span></td>
-      <td><input class="editable" data-idx="${idx}" data-f="name" value="${esc(row.name)}" style="width:135px"></td>
-      <td>${themeHTML(row)}</td>
-      <td>${row.type}</td>
-      <td><input class="editable num" type="number" step="0.01" data-idx="${idx}" data-f="price" value="${row.price}" placeholder="–"></td>
-      <td><input class="editable num" type="number" step="0.01" data-idx="${idx}" data-f="target" value="${row.target}" placeholder="–"></td>
-      <td style="color:${up===null?"var(--text-dim)":up>0?"var(--accent-light)":"var(--red)"}">${up===null?"":up.toFixed(1)+"%"}</td>
-      <td><input class="editable num" type="number" min="1" max="10" step="1" data-idx="${idx}" data-f="score" value="${row.score}" style="width:2.4rem"> <span class="score ${scClass(row.score)}">${isNaN(parseFloat(row.score))?"":row.score}</span></td>
-      <td><input class="editable" data-idx="${idx}" data-f="horizon" value="${esc(row.horizon)}" style="width:5rem"></td>
-      <td><textarea class="notes" data-idx="${idx}" data-f="notes" rows="2">${esc(row.notes)}</textarea></td>
-      <td><button class="del-btn" data-idx="${idx}">&times;</button></td>`;
-    tbody.appendChild(tr);
-  });
-  tbody.querySelectorAll("input.editable,textarea.notes").forEach(el=>{
-    el.addEventListener("input",e=>{
-      const i=+e.target.dataset.idx,f=e.target.dataset.f;
-      data[i][f]=e.target.value;
-      if(f==="price"||f==="target"){
-        const up2=upside(data[i]),cell=e.target.closest("tr").children[6];
-        cell.textContent=up2===null?"":up2.toFixed(1)+"%";
-        cell.style.color=up2===null?"var(--text-dim)":up2>0?"var(--accent-light)":"var(--red)";
-      }
-      if(f==="score"){const b=e.target.closest("tr").querySelector(".score");b.className="score "+scClass(e.target.value);b.textContent=e.target.value;}
-    });
-    el.addEventListener("change",saveData);
-  });
-  tbody.querySelectorAll(".del-btn").forEach(btn=>{
-    btn.addEventListener("click",e=>{
-      e.stopPropagation();
-      const i=+btn.dataset.idx;
-      data.splice(i,1);
-      if(activeIdx===i){activeIdx=null;closePanel();}
-      saveData();render();
-    });
-  });
-  tbody.querySelectorAll("tr[data-idx]").forEach(tr=>{
-    tr.addEventListener("click",e=>{
-      if(["INPUT","TEXTAREA","BUTTON"].includes(e.target.tagName))return;
-      openAnalysis(+tr.dataset.idx);
-    });
+function rsiBadge(v){if(v==null)return"—";const cls=v<30?"rsi-os":v>70?"rsi-ob":"rsi-n";return`<span class="rsi-badge ${cls}">${v}</span>`;}
+function scBadge(v){const cls=v>=7?"sc-h":v>=4?"sc-m":"sc-l";return`<span class="sc-badge ${cls}">${v}</span>`;}
+function fmt(v,dec=1){return v==null?"—":typeof v==="number"?v.toFixed(dec):v;}
+
+function renderTable(){
+  const start=(page-1)*PER_PAGE,slice=filtered.slice(start,start+PER_PAGE);
+  document.getElementById("tbody").innerHTML=slice.map(d=>`
+    <tr data-t="${d.ticker}" class="${activeRow===d.ticker?"active":""}">
+      <td class="tc">${d.ticker}</td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis">${d.name}</td>
+      <td>${d.sector}</td>
+      <td><span class="type-tag">${d.type}</span></td>
+      <td>$${fmt(d.price)}</td>
+      <td>${rsiBadge(d.rsi)}</td>
+      <td>${fmt(d.pe)}</td>
+      <td>${fmt(d.fwdPe)}</td>
+      <td>${d.eps_growth!=null?(d.eps_growth>0?"+":"")+d.eps_growth+"%":"—"}</td>
+      <td>${scBadge(d.score)}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;color:var(--dim);font-size:.75rem">${notes[d.ticker]||d.notes}</td>
+    </tr>`).join("");
+  document.querySelectorAll("#tbody tr").forEach(tr=>{
+    tr.addEventListener("click",()=>openDrawer(tr.dataset.t));
   });
 }
-document.querySelectorAll("th[data-key]").forEach(th=>{
-  th.addEventListener("click",()=>{const k=th.dataset.key;sortKey=k===sortKey?(sortAsc=!sortAsc,k):(sortAsc=true,k);render();});
+
+/* ── Pagination ──────────────────────────────────────── */
+function renderPagination(){
+  const total=Math.ceil(filtered.length/PER_PAGE);
+  const el=document.getElementById("pagination");
+  if(total<=1){el.innerHTML="";return;}
+  let html=`<span class="pg-info">Page ${page} of ${total}</span>`;
+  html+=`<button class="pg-btn" ${page===1?"disabled":""} id="pgPrev">← Prev</button>`;
+  const lo=Math.max(1,page-2),hi=Math.min(total,page+2);
+  if(lo>1)html+=`<button class="pg-btn" data-p="1">1</button>${lo>2?`<span style="color:var(--dim);padding:0 .2rem">…</span>`:""}`;
+  for(let i=lo;i<=hi;i++)html+=`<button class="pg-btn ${i===page?"active":""}" data-p="${i}">${i}</button>`;
+  if(hi<total)html+=`${hi<total-1?`<span style="color:var(--dim);padding:0 .2rem">…</span>`:`<button class="pg-btn" data-p="${total-1}">${total-1}</button>`}<button class="pg-btn" data-p="${total}">${total}</button>`;
+  html+=`<button class="pg-btn" ${page===total?"disabled":""} id="pgNext">Next →</button>`;
+  el.innerHTML=html;
+  el.querySelector("#pgPrev")?.addEventListener("click",()=>{page--;renderTable();renderPagination();});
+  el.querySelector("#pgNext")?.addEventListener("click",()=>{page++;renderTable();renderPagination();});
+  el.querySelectorAll("[data-p]").forEach(b=>b.addEventListener("click",()=>{page=+b.dataset.p;renderTable();renderPagination();}));
+}
+
+/* ── Drawer ──────────────────────────────────────────── */
+function openDrawer(ticker){
+  const d=RAW.find(r=>r.ticker===ticker);if(!d)return;
+  activeRow=ticker;renderTable();
+  document.getElementById("dr-ticker").textContent=d.ticker;
+  document.getElementById("dr-name").textContent=`${d.name} · ${d.type} · ${d.sector}`;
+  document.getElementById("dr-price").innerHTML=`$${fmt(d.price)} ${rsiBadge(d.rsi)}`;
+  drawGauge(d.rsi);
+  document.getElementById("dr-kv").innerHTML=[
+    ["P/E",fmt(d.pe)],["Fwd P/E",fmt(d.fwdPe)],
+    ["EPS Gr%",d.eps_growth!=null?d.eps_growth+"%":"—"],["Rev Gr%",d.rev_growth!=null?d.rev_growth+"%":"—"],
+    ["ROE%",d.roe!=null?d.roe+"%":"—"],["D/E",fmt(d.debt_equity,2)],
+    ["Mkt Cap",d.market_cap_b!=null?"$"+d.market_cap_b+"B":"—"],["Score",scBadge(d.score)],
+  ].map(([l,v])=>`<div class="kv"><div class="kv-l">${l}</div><div class="kv-v">${v}</div></div>`).join("");
+  const rsi=d.rsi;
+  let sig="",sigClass="ta-neut";
+  if(rsi==null)sig="No RSI data";
+  else if(rsi<20){sig="Strongly Oversold — high bounce probability";sigClass="ta-bull";}
+  else if(rsi<30){sig="Oversold — mean-reversion opportunity";sigClass="ta-bull";}
+  else if(rsi<45){sig="Approaching oversold — watch for entry";sigClass="ta-bull";}
+  else if(rsi<=55){sig="Neutral — no directional bias";sigClass="ta-neut";}
+  else if(rsi<=70){sig="Trending higher — momentum intact";sigClass="ta-neut";}
+  else if(rsi<=80){sig="Overbought — consider trimming";sigClass="ta-bear";}
+  else{sig="Strongly Overbought — pullback likely";sigClass="ta-bear";}
+  document.getElementById("dr-signal").innerHTML=`<span class="ta-pill ${sigClass}">${sig}</span>`;
+  document.getElementById("dr-notes").value=notes[ticker]||d.notes||"";
+  document.getElementById("dr-notes").oninput=function(){notes[ticker]=this.value;localStorage.setItem(NOTES_KEY,JSON.stringify(notes));renderTable();};
+  document.getElementById("dr-yf").href=`https://finance.yahoo.com/chart/${ticker}`;
+  document.getElementById("drawer").classList.add("open");
+  document.getElementById("overlay").classList.add("on");
+}
+
+function drawGauge(rsi){
+  const svg=document.getElementById("gaugeSvg");
+  if(rsi==null){svg.innerHTML="";document.getElementById("gaugeVal").textContent="—";document.getElementById("gaugeLabel").textContent="No RSI data";return;}
+  const cx=100,cy=78,r=64;
+  const pct=Math.max(0,Math.min(100,rsi))/100;
+  const startA=Math.PI,endA=0;
+  const toXY=(pct)=>{const a=Math.PI*(1-pct);return[cx+r*Math.cos(a),cy-r*Math.sin(a)];};
+  const arc=(p1,p2,color)=>{const[x1,y1]=toXY(p1),[x2,y2]=toXY(p2);return`<path d="M${x1},${y1} A${r},${r} 0 0 1 ${x2},${y2}" stroke="${color}" stroke-width="10" fill="none" stroke-linecap="round"/>`;};
+  const[nx,ny]=toXY(pct);
+  svg.innerHTML=
+    arc(0,0.3,"#3fb950")+arc(0.3,0.7,"#8b949e")+arc(0.7,1,"#f85149")+
+    `<line x1="${cx}" y1="${cy}" x2="${nx}" y2="${ny}" stroke="var(--text)" stroke-width="2.5" stroke-linecap="round"/>
+     <circle cx="${cx}" cy="${cy}" r="4" fill="var(--text)"/>`;
+  document.getElementById("gaugeVal").innerHTML=`<span style="color:${rsi<30?"var(--accent)":rsi>70?"var(--red)":"var(--text)"}">${rsi}</span>`;
+  document.getElementById("gaugeLabel").textContent=rsi<30?"Oversold":rsi>70?"Overbought":"Neutral";
+}
+
+function closeDrawer(){
+  activeRow=null;renderTable();
+  document.getElementById("drawer").classList.remove("open");
+  document.getElementById("overlay").classList.remove("on");
+}
+document.getElementById("drClose").addEventListener("click",closeDrawer);
+document.getElementById("overlay").addEventListener("click",closeDrawer);
+
+/* ── Sort ────────────────────────────────────────────── */
+document.querySelectorAll("th[data-k]").forEach(th=>{
+  th.addEventListener("click",()=>{
+    if(sortK===th.dataset.k)sortAsc=!sortAsc; else{sortK=th.dataset.k;sortAsc=false;}
+    document.querySelectorAll("th").forEach(t=>{t.classList.remove("sorted");t.querySelector(".sort-arrow")&&(t.querySelector(".sort-arrow").textContent="↕");});
+    th.classList.add("sorted");th.querySelector(".sort-arrow").textContent=sortAsc?"↑":"↓";
+    go();
+  });
 });
-document.getElementById("themeFilter").addEventListener("change",render);
-document.getElementById("typeFilter").addEventListener("change",render);
-document.getElementById("searchBox").addEventListener("input",render);
-document.getElementById("addRowBtn").addEventListener("click",()=>{
-  data.push({ticker:"NEW",name:"New Ticker",themes:[],type:"Stock",price:"",target:"",score:5,horizon:"",notes:""});
-  saveData();render();
-});
-document.getElementById("resetBtn").addEventListener("click",()=>{
-  if(confirm("Reset all rows to defaults?")){data=JSON.parse(JSON.stringify(DEFAULT_DATA));saveData();activeIdx=null;closePanel();render();}
-});
 
-/* ── Tabs ────────────────────────────────────────────── */
-document.querySelectorAll(".tab").forEach(tab=>{
-  tab.addEventListener("click",()=>{
-    document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-    document.querySelectorAll(".tab-content").forEach(t=>t.classList.remove("active"));
-    tab.classList.add("active");
-    document.getElementById("tab-"+tab.dataset.tab).classList.add("active");
+/* ── Sidebar controls ────────────────────────────────── */
+document.getElementById("searchBox").addEventListener("input",e=>{f.q=e.target.value.trim().toLowerCase();go();});
+document.querySelectorAll(".type-btn").forEach(b=>{
+  b.addEventListener("click",()=>{document.querySelectorAll(".type-btn").forEach(x=>x.classList.remove("on"));b.classList.add("on");f.type=b.dataset.t;go();});
+});
+["rsiMin","rsiMax","scoreMin","peMax","fpeMax","epsMin","revMin","roeMin"].forEach(id=>{
+  document.getElementById(id).addEventListener("input",e=>{f[id]=e.target.value;go();});
+});
+document.querySelectorAll(".qbtn").forEach(b=>{
+  b.addEventListener("click",()=>{
+    const zone=b.dataset.rsi;
+    if(f.rsiZone===zone){f.rsiZone="";document.querySelectorAll(".qbtn").forEach(x=>x.classList.remove("on"));}
+    else{f.rsiZone=zone;document.querySelectorAll(".qbtn").forEach(x=>x.classList.remove("on"));b.classList.add("on");}
+    go();
   });
 });
 
-/* ── Range ───────────────────────────────────────────── */
-document.getElementById("rangeBtns").addEventListener("click",e=>{
-  const btn=e.target.closest(".range-btn");if(!btn)return;
-  document.querySelectorAll(".range-btn").forEach(b=>b.classList.remove("active"));
-  btn.classList.add("active");activeRange=btn.dataset.range;
-  if(activeIdx!==null)openAnalysis(activeIdx);
+/* ── Presets ─────────────────────────────────────────── */
+document.querySelectorAll(".preset").forEach(b=>{
+  b.addEventListener("click",()=>{
+    resetFilters();
+    const p=b.dataset.p;
+    if(p==="highscore")f.scoreMin="7";
+    else if(p==="value"){f.peMax="15";f.scoreMin="5";}
+    else if(p==="growth"){f.epsMin="20";f.revMin="15";}
+    else if(p==="oversold"){f.rsiZone="os";document.querySelector('.qbtn[data-rsi="os"]').classList.add("on");}
+    else if(p==="overbought"){f.rsiZone="ob";document.querySelector('.qbtn[data-rsi="ob"]').classList.add("on");}
+    if(f.scoreMin)document.getElementById("scoreMin").value=f.scoreMin;
+    if(f.peMax)document.getElementById("peMax").value=f.peMax;
+    if(f.epsMin)document.getElementById("epsMin").value=f.epsMin;
+    if(f.revMin)document.getElementById("revMin").value=f.revMin;
+    go();
+  });
 });
-document.getElementById("closePanel").addEventListener("click",closePanel);
-function closePanel(){
-  document.getElementById("analysisPanel").classList.remove("open");
-  destroyCharts();
-  activeIdx=null;render();
+
+function resetFilters(){
+  Object.assign(f,{q:"",type:"",rsiMin:"",rsiMax:"",rsiZone:"",scoreMin:"",peMax:"",fpeMax:"",epsMin:"",revMin:"",roeMin:""});
+  f.sectors=new Set(SECTORS);
+  ["searchBox","rsiMin","rsiMax","scoreMin","peMax","fpeMax","epsMin","revMin","roeMin"].forEach(id=>document.getElementById(id).value="");
+  document.querySelectorAll(".type-btn").forEach(b=>b.classList.remove("on"));
+  document.querySelector('.type-btn[data-t=""]').classList.add("on");
+  document.querySelectorAll(".qbtn").forEach(b=>b.classList.remove("on"));
+  document.querySelectorAll("#sectorList input").forEach(cb=>{cb.checked=true;f.sectors.add(cb.dataset.s);});
 }
-function destroyCharts(){
-  chartInstances.forEach(c=>{try{c.remove();}catch(e){}});
-  chartInstances=[];
-}
+document.getElementById("resetBtn").addEventListener("click",()=>{resetFilters();go();});
 
-/* ── Yahoo Finance ───────────────────────────────────── */
-function tsToDate(ts){
-  const d=new Date(ts*1000);
-  return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,"0")}-${String(d.getUTCDate()).padStart(2,"0")}`;
-}
-async function fetchOHLCV(ticker,range){
-  const interval=range==="2y"?"1wk":"1d";
-  const yUrl=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?range=${range}&interval=${interval}&includePrePost=false`;
-  const res=await fetch(`https://corsproxy.io/?${encodeURIComponent(yUrl)}`);
-  if(!res.ok)throw new Error(`HTTP ${res.status}`);
-  const j=await res.json();
-  const result=j?.chart?.result?.[0];
-  if(!result?.timestamp)throw new Error("No data returned");
-  const ts=result.timestamp,q=result.indicators.quote[0],out=[];
-  for(let i=0;i<ts.length;i++){
-    if(q.open[i]==null||q.close[i]==null||q.high[i]==null||q.low[i]==null)continue;
-    out.push({time:tsToDate(ts[i]),open:+q.open[i].toFixed(4),high:+q.high[i].toFixed(4),low:+q.low[i].toFixed(4),close:+q.close[i].toFixed(4),volume:q.volume[i]||0});
-  }
-  if(out.length<10)throw new Error("Too few data points");
-  // Dedupe and sort by date string (YYYY-MM-DD sorts lexicographically)
-  const seen=new Set();
-  return out.filter(d=>seen.has(d.time)?false:seen.add(d.time)).sort((a,b)=>a.time<b.time?-1:1);
-}
-
-/* ── Indicators ──────────────────────────────────────── */
-function sma(arr,n){return arr.map((_,i)=>i<n-1?null:+(arr.slice(i-n+1,i+1).reduce((a,b)=>a+b,0)/n).toFixed(4));}
-function ema(arr,n){const k=2/(n+1);let e=null,out=[];arr.forEach(v=>{e=e===null?v:v*k+e*(1-k);out.push(+e.toFixed(4));});return out;}
-function stddev(arr,n){return arr.map((_,i)=>{if(i<n-1)return null;const sl=arr.slice(i-n+1,i+1),m=sl.reduce((a,b)=>a+b,0)/n;return+Math.sqrt(sl.reduce((s,v)=>s+(v-m)**2,0)/n).toFixed(4);});}
-function rsi(arr,p=14){
-  let ag=0,al=0,out=[];
-  for(let i=1;i<arr.length;i++){
-    const d=arr[i]-arr[i-1],g=d>0?d:0,l=d<0?-d:0;
-    if(i<=p){ag+=g/p;al+=l/p;}
-    else{ag=(ag*(p-1)+g)/p;al=(al*(p-1)+l)/p;out.push(+(100-100/(1+(al===0?1e9:ag/al))).toFixed(2));}
-  }
-  return out; // length = arr.length - p - 1, aligns to arr[p+1..]
-}
-function stoch(ohlcv,k=14,d=3){
-  const pK=ohlcv.map((_,i)=>{
-    if(i<k-1)return null;
-    const sl=ohlcv.slice(i-k+1,i+1),lo=Math.min(...sl.map(x=>x.low)),hi=Math.max(...sl.map(x=>x.high));
-    return hi===lo?50:+((ohlcv[i].close-lo)/(hi-lo)*100).toFixed(2);
-  });
-  const pD=pK.map((_,i)=>{
-    const sl=pK.slice(Math.max(0,i-d+1),i+1).filter(v=>v!==null);
-    return sl.length===d?+(sl.reduce((a,b)=>a+b,0)/d).toFixed(2):null;
-  });
-  return{pK,pD};
-}
-function macd(arr){
-  // Returns arrays aligned 1:1 with arr
-  const e12=ema(arr,12),e26=ema(arr,26);
-  const m=e12.map((v,i)=>+(v-e26[i]).toFixed(4));
-  const s=ema(m,9);
-  const h=m.map((v,i)=>+(v-s[i]).toFixed(4));
-  return{m,s,h};
-}
-function atr(ohlcv,p=14){
-  const tr=ohlcv.map((d,i)=>i===0?d.high-d.low:Math.max(d.high-d.low,Math.abs(d.high-ohlcv[i-1].close),Math.abs(d.low-ohlcv[i-1].close)));
-  let avg=0,out=[];
-  tr.forEach((v,i)=>{if(i<p)avg+=v/p;else{avg=(avg*(p-1)+v)/p;out.push(+avg.toFixed(4));}});
-  return out; // length = arr.length - p, aligns to ohlcv[p..]
-}
-function obv(ohlcv){let o=0;return ohlcv.map((d,i)=>{if(i>0){if(d.close>ohlcv[i-1].close)o+=d.volume;else if(d.close<ohlcv[i-1].close)o-=d.volume;}return o;});}
-
-/* ── Chart factory ───────────────────────────────────── */
-const COPTS={layout:{background:{color:"#0d1117"},textColor:"#8b949e"},grid:{vertLines:{color:"#21262d"},horzLines:{color:"#21262d"}},timeScale:{borderColor:"#30363d",timeVisible:false},rightPriceScale:{borderColor:"#30363d"},crosshair:{mode:1}};
-function mkC(id,h,extra={}){
-  const el=document.getElementById(id);el.innerHTML="";
-  const c=LightweightCharts.createChart(el,{...COPTS,...extra,height:h});
-  chartInstances.push(c);return c;
-}
-function setLine(chart,data,color,opts={}){
-  if(!data.length)return null;
-  const s=chart.addLineSeries({color,lineWidth:1.5,priceLineVisible:false,lastValueVisible:false,crosshairMarkerVisible:false,...opts});
-  s.setData(data);return s;
-}
-function setDashed(chart,times,val,color){
-  const s=chart.addLineSeries({color,lineWidth:1,lineStyle:LightweightCharts.LineStyle.Dashed,priceLineVisible:false,lastValueVisible:false,crosshairMarkerVisible:false});
-  s.setData(times.map(t=>({time:t,value:val})));
-}
-
-/* ── Open analysis ───────────────────────────────────── */
-async function openAnalysis(idx){
-  activeIdx=idx;render();
-  const row=data[idx];
-  const panel=document.getElementById("analysisPanel");
-  panel.classList.add("open");
-  setTimeout(()=>panel.scrollIntoView({behavior:"smooth",block:"start"}),50);
-
-  document.getElementById("ph-ticker").textContent=row.ticker;
-  document.getElementById("ph-name").textContent=row.name;
-  document.getElementById("ph-price").textContent="Loading…";
-  document.getElementById("ph-chg").textContent="";
-  document.getElementById("ph-overall").textContent="";
-  document.getElementById("ph-sigs").innerHTML="";
-  document.getElementById("mom-stats").innerHTML="";
-  document.getElementById("macd-stats").innerHTML="";
-  document.getElementById("ta-summary").innerHTML="";
-
-  // Show loading states
-  destroyCharts();
-  ["c-candle","c-vol","c-rsi","c-stoch","c-bb","c-macd","c-atr","c-obv"].forEach(id=>{
-    const el=document.getElementById(id);if(el)el.innerHTML='<div class="loading">Loading…</div>';
-  });
-
-  try{
-    const ohlcv=await fetchOHLCV(row.ticker,activeRange);
-    buildAll(row,ohlcv);
-  }catch(err){
-    document.getElementById("ph-price").textContent="—";
-    ["c-candle","c-vol","c-rsi","c-stoch","c-bb","c-macd","c-atr","c-obv"].forEach(id=>{
-      const el=document.getElementById(id);
-      if(el)el.innerHTML=`<div class="err-msg">⚠ Could not load data for <b>${row.ticker}</b><br><small>${err.message}</small><br><small style="color:var(--text-dim)">Data via Yahoo Finance/corsproxy.io — may be rate-limited. Try again in a moment.</small></div>`;
-    });
-  }
-}
-
-/* ── Build all charts & stats ────────────────────────── */
-function buildAll(row,ohlcv){
-  const closes=ohlcv.map(d=>d.close);
-  const times=ohlcv.map(d=>d.time);
-  const n=ohlcv.length;
-
-  // Price header
-  const last=ohlcv[n-1],prev=ohlcv[n-2];
-  const chg=prev?last.close-prev.close:0,chgP=prev?chg/prev.close*100:0;
-  document.getElementById("ph-price").textContent="$"+last.close.toFixed(2);
-  const cb=document.getElementById("ph-chg");
-  cb.textContent=(chg>=0?"+":"")+chg.toFixed(2)+" ("+(chgP>=0?"+":"")+chgP.toFixed(2)+"%)";
-  cb.className="badge "+(chg>=0?"up":"down");
-
-  // Compute indicators
-  const s20=sma(closes,20),s50=sma(closes,50),s200=sma(closes,200);
-  const bstd=stddev(closes,20);
-  const bbU=s20.map((v,i)=>v!==null&&bstd[i]!==null?+(v+2*bstd[i]).toFixed(4):null);
-  const bbL=s20.map((v,i)=>v!==null&&bstd[i]!==null?+(v-2*bstd[i]).toFixed(4):null);
-  const rsiV=rsi(closes,14);           // aligns to closes[15..] → times[15..]
-  const{pK,pD}=stoch(ohlcv,14,3);
-  const{m:macdV,s:sigV,h:histV}=macd(closes); // all same length as closes
-  const atrV=atr(ohlcv,14);            // aligns to ohlcv[14..] → times[14..]
-  const obvV=obv(ohlcv);               // same length as ohlcv
-
-  // Last values
-  const s20v=s20.at(-1),s50v=s50.at(-1),s200v=s200.at(-1);
-  const bbUv=bbU.filter(v=>v!==null).at(-1),bbLv=bbL.filter(v=>v!==null).at(-1);
-  const bbPos=bbUv&&bbLv?((last.close-bbLv)/(bbUv-bbLv)*100):null;
-  const lastRSI=rsiV.at(-1);
-  const lastK=pK.filter(v=>v!==null).at(-1),lastD=pD.filter(v=>v!==null).at(-1);
-  const lastMACD=macdV.at(-1),lastSig=sigV.at(-1),lastHist=histV.at(-1);
-  const lastATR=atrV.at(-1);
-
-  // Signals
-  const sigs=[];
-  if(s20v!=null) sigs.push({l:`Price ${last.close>s20v?"▲ above":"▼ below"} SMA20`,b:last.close>s20v});
-  if(s50v!=null) sigs.push({l:`Price ${last.close>s50v?"▲ above":"▼ below"} SMA50`,b:last.close>s50v});
-  if(s200v!=null)sigs.push({l:`Price ${last.close>s200v?"▲ above":"▼ below"} SMA200`,b:last.close>s200v});
-  if(s20v!=null&&s50v!=null)sigs.push({l:s20v>s50v?"Golden Cross ✓":"Death Cross ✗",b:s20v>s50v});
-  if(lastRSI!=null)sigs.push({l:`RSI ${lastRSI.toFixed(0)} ${lastRSI>70?"Overbought":lastRSI<30?"Oversold":"Neutral"}`,b:lastRSI<30?true:lastRSI>70?false:null});
-  if(lastMACD!=null&&lastSig!=null)sigs.push({l:`MACD ${lastMACD>lastSig?"Bullish":"Bearish"}`,b:lastMACD>lastSig});
-  if(lastK!=null)sigs.push({l:`Stoch ${lastK.toFixed(0)} ${lastK>80?"Overbought":lastK<20?"Oversold":"Neutral"}`,b:lastK<20?true:lastK>80?false:null});
-
-  const bulls=sigs.filter(s=>s.b===true).length,bears=sigs.filter(s=>s.b===false).length;
-  const overall=bulls>bears?"BULLISH":bears>bulls?"BEARISH":"NEUTRAL";
-  const ob=document.getElementById("ph-overall");
-  ob.textContent=overall;ob.className="badge "+(overall==="BULLISH"?"bull":overall==="BEARISH"?"bear":"neutral");
-  document.getElementById("ph-sigs").innerHTML=sigs.map(s=>`<span class="sig ${s.b===true?"bull":s.b===false?"bear":"neut"}">${s.l}</span>`).join("");
-
-  /* ── Tab 1: Price & Volume ── */
-  const pc=mkC("c-candle",260);
-  const cs=pc.addCandlestickSeries({upColor:"#3fb950",downColor:"#f85149",borderUpColor:"#3fb950",borderDownColor:"#f85149",wickUpColor:"#3fb950",wickDownColor:"#f85149"});
-  cs.setData(ohlcv);
-  const smaSeries=(chart,vals,color)=>{const d=vals.map((v,i)=>v!=null?{time:times[i],value:v}:null).filter(Boolean);if(d.length)setLine(chart,d,color,{lineWidth:1});};
-  smaSeries(pc,s20,"#f0b429");smaSeries(pc,s50,"#a371f7");smaSeries(pc,s200,"#f85149");
-  pc.timeScale().fitContent();
-
-  const vc=mkC("c-vol",80,{rightPriceScale:{scaleMargins:{top:.1,bottom:0}}});
-  const vs=vc.addHistogramSeries({priceFormat:{type:"volume"},priceScaleId:"",scaleMargins:{top:0,bottom:0}});
-  vs.setData(ohlcv.map(d=>({time:d.time,value:d.volume,color:d.close>=d.open?"rgba(63,185,80,.7)":"rgba(248,81,73,.7)"})));
-  vc.timeScale().fitContent();
-
-  /* ── Tab 2: RSI & Momentum ── */
-  const rsiOffset=15; // rsi() skips first p+1 points (p=14)
-  document.getElementById("mom-stats").innerHTML=[
-    {label:"RSI (14)",value:lastRSI?.toFixed(1)??"—",sub:lastRSI>70?"Overbought":lastRSI<30?"Oversold":"Neutral (30–70)",cls:lastRSI>70?"bear":lastRSI<30?"bull":"neut"},
-    {label:"Stoch %K / %D",value:lastK!=null?`${lastK.toFixed(0)} / ${lastD?.toFixed(0)??"—"}`:"—",sub:lastK>80?"Overbought":lastK<20?"Oversold":"Neutral",cls:lastK>80?"bear":lastK<20?"bull":"neut"},
-    {label:"BB Position",value:bbPos!=null?bbPos.toFixed(0)+"%":"—",sub:bbPos>80?"Near upper band":bbPos<20?"Near lower band":"Mid-band",cls:bbPos>80?"bear":bbPos<20?"bull":"neut"},
-    {label:"ATR (14)",value:lastATR?"$"+lastATR.toFixed(2):"—",sub:lastATR?(lastATR/last.close*100).toFixed(2)+"% daily range":"",cls:"neut"},
-  ].map(s=>`<div class="stat-card"><div class="stat-label">${s.label}</div><div class="stat-value ${s.cls}">${s.value}</div><div class="stat-sub">${s.sub}</div></div>`).join("");
-
-  const rc=mkC("c-rsi",115);
-  const rsiData=rsiV.map((v,i)=>({time:times[i+rsiOffset],value:v}));
-  setLine(rc,rsiData,"#58a6ff",{lastValueVisible:true});
-  setDashed(rc,times,70,"rgba(248,81,73,.6)");
-  setDashed(rc,times,30,"rgba(63,185,80,.6)");
-  setDashed(rc,times,50,"rgba(48,54,61,.8)");
-  rc.timeScale().fitContent();
-
-  const stc=mkC("c-stoch",100);
-  const kData=pK.map((v,i)=>v!=null?{time:times[i],value:v}:null).filter(Boolean);
-  const dData=pD.map((v,i)=>v!=null?{time:times[i],value:v}:null).filter(Boolean);
-  if(kData.length)setLine(stc,kData,"#58a6ff",{lastValueVisible:true});
-  if(dData.length)setLine(stc,dData,"#f0b429",{lineWidth:1,lastValueVisible:false});
-  setDashed(stc,times,80,"rgba(248,81,73,.6)");
-  setDashed(stc,times,20,"rgba(63,185,80,.6)");
-  stc.timeScale().fitContent();
-
-  const bbc=mkC("c-bb",180);
-  const bbUd=bbU.map((v,i)=>v!=null?{time:times[i],value:v}:null).filter(Boolean);
-  const bbMd=s20.map((v,i)=>v!=null?{time:times[i],value:v}:null).filter(Boolean);
-  const bbLd=bbL.map((v,i)=>v!=null?{time:times[i],value:v}:null).filter(Boolean);
-  if(bbUd.length)setLine(bbc,bbUd,"rgba(88,166,255,.4)",{lineWidth:1});
-  if(bbMd.length)setLine(bbc,bbMd,"#58a6ff",{lineWidth:1});
-  if(bbLd.length)setLine(bbc,bbLd,"rgba(88,166,255,.4)",{lineWidth:1});
-  setLine(bbc,ohlcv.map(d=>({time:d.time,value:d.close})),"#e6edf3",{lastValueVisible:true});
-  bbc.timeScale().fitContent();
-
-  /* ── Tab 3: MACD & Trend ── */
-  document.getElementById("macd-stats").innerHTML=[
-    {label:"MACD",value:lastMACD?.toFixed(3)??"—",sub:`Signal: ${lastSig?.toFixed(3)??"—"}`,cls:lastMACD>lastSig?"bull":"bear"},
-    {label:"Histogram",value:lastHist?.toFixed(3)??"—",sub:lastHist>0?"Positive momentum":"Negative momentum",cls:lastHist>0?"bull":"bear"},
-    {label:"ATR (14)",value:lastATR?"$"+lastATR.toFixed(2):"—",sub:lastATR?(lastATR/last.close*100).toFixed(2)+"% of price":"",cls:"neut"},
-    {label:"OBV Trend",value:obvV.at(-1)>obvV.at(-5)?"Rising":"Falling",sub:"5-bar OBV direction",cls:obvV.at(-1)>obvV.at(-5)?"bull":"bear"},
-  ].map(s=>`<div class="stat-card"><div class="stat-label">${s.label}</div><div class="stat-value ${s.cls}">${s.value}</div><div class="stat-sub">${s.sub}</div></div>`).join("");
-
-  const mc=mkC("c-macd",125);
-  const macdLine=macdV.map((v,i)=>({time:times[i],value:v}));
-  const sigLine=sigV.map((v,i)=>({time:times[i],value:v}));
-  const histBars=histV.map((v,i)=>({time:times[i],value:v,color:v>=0?"rgba(63,185,80,.75)":"rgba(248,81,73,.75)"}));
-  setLine(mc,macdLine,"#58a6ff",{lastValueVisible:true});
-  setLine(mc,sigLine,"#f85149",{lineWidth:1,lastValueVisible:false});
-  const hs=mc.addHistogramSeries({priceLineVisible:false,lastValueVisible:false});
-  hs.setData(histBars);
-  mc.timeScale().fitContent();
-
-  const atrc=mkC("c-atr",90);
-  const atrData=atrV.map((v,i)=>({time:times[i+14],value:v}));
-  if(atrData.length)setLine(atrc,atrData,"#f0b429",{lastValueVisible:true});
-  atrc.timeScale().fitContent();
-
-  const obvc=mkC("c-obv",90);
-  setLine(obvc,obvV.map((v,i)=>({time:times[i],value:v})),"#a371f7",{lastValueVisible:true});
-  obvc.timeScale().fitContent();
-
-  /* ── Tab 4: TA Summary ── */
-  const fmt=(v,dec=2)=>v!=null?v.toFixed(dec):"—";
-  document.getElementById("ta-summary").innerHTML=`
-    <div class="stat-grid">
-      <div class="stat-card"><div class="stat-label">Overall Signal</div><div class="stat-value ${overall==="BULLISH"?"bull":overall==="BEARISH"?"bear":"neut"}">${overall}</div><div class="stat-sub">${bulls} bull · ${bears} bear · ${sigs.length-bulls-bears} neutral</div></div>
-      <div class="stat-card"><div class="stat-label">Last Close</div><div class="stat-value">$${last.close.toFixed(2)}</div><div class="stat-sub">${chg>=0?"+":""}${chg.toFixed(2)} (${chgP>=0?"+":""}${chgP.toFixed(2)}%)</div></div>
-      <div class="stat-card"><div class="stat-label">Range (loaded)</div><div class="stat-value" style="font-size:.9rem">$${Math.min(...ohlcv.map(d=>d.low)).toFixed(2)} – $${Math.max(...ohlcv.map(d=>d.high)).toFixed(2)}</div><div class="stat-sub">${activeRange} high / low</div></div>
-      <div class="stat-card"><div class="stat-label">Volatility ATR%</div><div class="stat-value ${lastATR/last.close*100>3?"bear":lastATR/last.close*100<1.5?"bull":"neut"}">${lastATR?(lastATR/last.close*100).toFixed(2)+"%":"—"}</div><div class="stat-sub">ATR as % of price</div></div>
-    </div>
-    <table class="ind-table">
-      <thead><tr><th>Indicator</th><th>Value</th><th>Signal</th><th>Interpretation</th></tr></thead>
-      <tbody>
-      ${[
-        ["SMA 20", s20v?"$"+fmt(s20v):"-", last.close>s20v?"bull":"bear", last.close>s20v?"Above SMA20 — short-term uptrend":"Below SMA20 — short-term downtrend"],
-        ["SMA 50", s50v?"$"+fmt(s50v):"-", last.close>s50v?"bull":"bear", last.close>s50v?"Above SMA50 — medium-term uptrend":"Below SMA50 — medium-term downtrend"],
-        ["SMA 200", s200v?"$"+fmt(s200v):"-", s200v?(last.close>s200v?"bull":"bear"):"neut", s200v?(last.close>s200v?"Above SMA200 — long-term uptrend":"Below SMA200 — long-term downtrend"):"Insufficient data for 200-day SMA"],
-        ["Golden/Death Cross", s20v&&s50v?(s20v>s50v?"Golden Cross":"Death Cross"):"-", s20v&&s50v?(s20v>s50v?"bull":"bear"):"neut", s20v&&s50v?(s20v>s50v?"SMA20 > SMA50 — bullish momentum":"SMA20 < SMA50 — bearish momentum"):"—"],
-        ["RSI (14)", lastRSI?fmt(lastRSI):"-", lastRSI>70?"bear":lastRSI<30?"bull":"neut", lastRSI>70?"Overbought — potential pullback":lastRSI<30?"Oversold — potential bounce":"Neutral zone"],
-        ["Stoch %K/%D", lastK!=null?`${fmt(lastK,0)} / ${fmt(lastD,0)}`:"-", lastK>80?"bear":lastK<20?"bull":"neut", lastK>80?"Overbought":lastK<20?"Oversold":"Neutral"],
-        ["MACD vs Signal", lastMACD!=null?`${fmt(lastMACD,3)} / ${fmt(lastSig,3)}`:"-", lastMACD>lastSig?"bull":"bear", lastMACD>lastSig?"MACD above signal — bullish":"MACD below signal — bearish"],
-        ["MACD Histogram", lastHist!=null?fmt(lastHist,3):"-", lastHist>0?"bull":"bear", lastHist>0?"Expanding positive — bullish momentum":"Expanding negative — bearish momentum"],
-        ["BB Position", bbPos!=null?fmt(bbPos,0)+"%":"-", bbPos>80?"bear":bbPos<20?"bull":"neut", bbPos>80?"Near upper band (stretched)":bbPos<20?"Near lower band (compressed)":"Mid-range"],
-        ["OBV Trend", obvV.at(-1)>obvV.at(-5)?"Rising":"Falling", obvV.at(-1)>obvV.at(-5)?"bull":"bear", obvV.at(-1)>obvV.at(-5)?"Volume confirming price (accumulation)":"Volume diverging (distribution)"],
-        ["ATR (14)", lastATR?"$"+fmt(lastATR):"-", "neut", lastATR?`Daily avg range: ${(lastATR/last.close*100).toFixed(2)}% of price`:"—"],
-      ].map(([ind,val,cls,interp])=>`<tr><td>${ind}</td><td style="font-weight:600">${val}</td><td><span class="pill ${cls}">${cls==="bull"?"BULLISH":cls==="bear"?"BEARISH":"NEUTRAL"}</span></td><td style="color:var(--text-dim);font-size:.79rem">${interp}</td></tr>`).join("")}
-      </tbody>
-    </table>`;
-
-  /* Sync timescales */
-  const all=[pc,vc,rc,stc,bbc,mc,atrc,obvc];
-  all.forEach((c,ci)=>{
-    c.timeScale().subscribeVisibleLogicalRangeChange(range=>{
-      if(!range)return;
-      all.forEach((c2,ci2)=>{if(ci2!==ci)try{c2.timeScale().setVisibleLogicalRange(range);}catch(e){}});
-    });
-  });
-}
-
-render();
+/* ── Init ────────────────────────────────────────────── */
+buildSectors();
+go();
 </script>
 </body>
 </html>
