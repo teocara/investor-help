@@ -181,15 +181,43 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
 
 #overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:99;}
 #overlay.on{display:block;}
+
+/* Disclaimer */
+.sb-disclaimer{font-size:.62rem;color:var(--dim);margin-top:.3rem;line-height:1.4;}
+
+/* Watchlist star */
+.star-btn{background:none;border:none;cursor:pointer;font-size:1rem;color:var(--card-b);line-height:1;padding:0;}
+.star-btn.on{color:var(--yellow);}
+.star-btn:hover{color:var(--yellow);}
+
+/* Export button */
+.export-btn{width:100%;padding:.4rem;border-radius:5px;border:1px solid var(--card-b);background:transparent;color:var(--dim);cursor:pointer;font-size:.75rem;font-family:inherit;margin-bottom:.4rem;}
+.export-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* Mobile / responsive */
+#sbToggle{display:none;}
+@media (max-width:860px){
+  body{display:block;}
+  #sbToggle{display:block;position:fixed;top:.6rem;left:.6rem;z-index:101;width:2.1rem;height:2.1rem;border-radius:6px;border:1px solid var(--card-b);background:var(--paper);color:var(--text);font-size:1rem;cursor:pointer;}
+  #sidebar{position:fixed;left:-100%;top:0;height:100vh;z-index:100;transition:left .2s ease;width:85vw;min-width:0;}
+  #sidebar.open{left:0;}
+  #main{height:auto;min-height:100vh;}
+  .table-wrap{overflow-x:auto;}
+  #drawer{width:100vw;right:-100vw;}
+  #drawer.wide{width:100vw;}
+}
 </style>
 </head>
 <body>
+
+<button id="sbToggle" aria-label="Toggle filters">☰</button>
 
 <!-- Sidebar -->
 <div id="sidebar">
   <div class="sb-head">
     <div class="sb-title">EquityScreen Pro</div>
     <div class="sb-sub">340+ securities · live filters</div>
+    <div class="sb-disclaimer">Fundamentals/scores are static sample data as of this build, not live quotes. TA charts, news and backtests fetch live data from Yahoo Finance.</div>
   </div>
   <div class="sb-body">
 
@@ -258,12 +286,14 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
         <button class="preset" data-p="growth">Growth Stars</button>
         <button class="preset" data-p="oversold">Oversold RSI</button>
         <button class="preset" data-p="overbought">Overbought</button>
+        <button class="preset" data-p="watchlist">★ Watchlist</button>
       </div>
     </div>
 
   </div>
   <div class="sb-foot">
     <div class="results-count" id="resultsCount">— results</div>
+    <button class="export-btn" id="exportBtn">⬇ Export CSV</button>
     <button class="reset-btn" id="resetBtn">Reset All Filters</button>
   </div>
 </div>
@@ -274,6 +304,7 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
   <div class="table-wrap">
     <table>
       <thead id="thead"><tr>
+        <th style="cursor:default"></th>
         <th data-k="ticker">Ticker <span class="sort-arrow">↕</span></th>
         <th data-k="name">Name <span class="sort-arrow">↕</span></th>
         <th data-k="sector">Sector <span class="sort-arrow">↕</span></th>
@@ -736,20 +767,39 @@ const RAW = [
 
 
 /* ── State ───────────────────────────────────────────── */
-const NOTES_KEY="eqscreen_notes", FILT_KEY="eqscreen_filters";
+const NOTES_KEY="eqscreen_notes", FILT_KEY="eqscreen_filters", WATCH_KEY="eqscreen_watchlist";
 let notes={}; try{notes=JSON.parse(localStorage.getItem(NOTES_KEY)||"{}");}catch(e){}
+let watchlist=new Set(); try{watchlist=new Set(JSON.parse(localStorage.getItem(WATCH_KEY)||"[]"));}catch(e){}
+function saveWatchlist(){localStorage.setItem(WATCH_KEY,JSON.stringify([...watchlist]));}
+function toggleWatch(ticker){watchlist.has(ticker)?watchlist.delete(ticker):watchlist.add(ticker);saveWatchlist();}
+
 let sortK="score",sortAsc=false,page=1,PER_PAGE=50;
 let filtered=[];
 let activeRow=null;
 
-const f={q:"",type:"",rsiMin:"",rsiMax:"",rsiZone:"",scoreMin:"",peMax:"",fpeMax:"",epsMin:"",revMin:"",roeMin:"",sectors:new Set()};
+const f={q:"",type:"",rsiMin:"",rsiMax:"",rsiZone:"",scoreMin:"",peMax:"",fpeMax:"",epsMin:"",revMin:"",roeMin:"",watchOnly:false,sectors:new Set()};
+
+function saveFilters(){
+  try{
+    localStorage.setItem(FILT_KEY,JSON.stringify({...f,sectors:[...f.sectors]}));
+  }catch(e){}
+}
+function loadFilters(){
+  try{
+    const saved=JSON.parse(localStorage.getItem(FILT_KEY)||"null");
+    if(!saved)return;
+    Object.assign(f,saved);
+    f.sectors=new Set(saved.sectors||SECTORS);
+  }catch(e){}
+}
 
 /* ── Sectors ─────────────────────────────────────────── */
 const SECTORS=[...new Set(RAW.map(d=>d.sector))].sort();
+f.sectors=new Set(SECTORS);
+loadFilters();
 function buildSectors(){
   const el=document.getElementById("sectorList");
-  el.innerHTML=SECTORS.map(s=>`<label class="sector-item"><input type="checkbox" data-s="${s}" checked> ${s}</label>`).join("");
-  SECTORS.forEach(s=>f.sectors.add(s));
+  el.innerHTML=SECTORS.map(s=>`<label class="sector-item"><input type="checkbox" data-s="${s}" ${f.sectors.has(s)?"checked":""}> ${s}</label>`).join("");
   el.querySelectorAll("input").forEach(cb=>{
     cb.addEventListener("change",()=>{
       if(cb.checked)f.sectors.add(cb.dataset.s); else f.sectors.delete(cb.dataset.s);
@@ -775,6 +825,7 @@ function applyFilters(){
     if(f.epsMin!==""&&(d.eps_growth==null||d.eps_growth<+f.epsMin))return false;
     if(f.revMin!==""&&(d.rev_growth==null||d.rev_growth<+f.revMin))return false;
     if(f.roeMin!==""&&(d.roe==null||d.roe<+f.roeMin))return false;
+    if(f.watchOnly&&!watchlist.has(d.ticker))return false;
     return true;
   });
   filtered.sort((a,b)=>{
@@ -784,7 +835,7 @@ function applyFilters(){
   });
 }
 
-function go(){applyFilters();page=1;renderStats();renderTable();renderPagination();}
+function go(){applyFilters();page=1;renderStats();renderTable();renderPagination();saveFilters();}
 
 /* ── Stats bar ───────────────────────────────────────── */
 function avg(arr,k){const vals=arr.map(d=>d[k]).filter(v=>v!=null);return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null;}
@@ -810,6 +861,7 @@ function renderTable(){
   const start=(page-1)*PER_PAGE,slice=filtered.slice(start,start+PER_PAGE);
   document.getElementById("tbody").innerHTML=slice.map(d=>`
     <tr data-t="${d.ticker}" class="${activeRow===d.ticker?"active":""}">
+      <td><button class="star-btn ${watchlist.has(d.ticker)?"on":""}" data-star="${d.ticker}" title="Toggle watchlist">${watchlist.has(d.ticker)?"★":"☆"}</button></td>
       <td class="tc">${d.ticker}</td>
       <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis">${d.name}</td>
       <td>${d.sector}</td>
@@ -823,7 +875,14 @@ function renderTable(){
       <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;color:var(--dim);font-size:.75rem">${notes[d.ticker]||d.notes}</td>
     </tr>`).join("");
   document.querySelectorAll("#tbody tr").forEach(tr=>{
-    tr.addEventListener("click",()=>openDrawer(tr.dataset.t));
+    tr.addEventListener("click",(e)=>{if(e.target.closest("[data-star]"))return;openDrawer(tr.dataset.t);});
+  });
+  document.querySelectorAll("[data-star]").forEach(btn=>{
+    btn.addEventListener("click",(e)=>{
+      e.stopPropagation();
+      toggleWatch(btn.dataset.star);
+      if(f.watchOnly)go();else renderTable();
+    });
   });
 }
 
@@ -952,11 +1011,33 @@ document.querySelectorAll(".ct-btn[data-ind]").forEach(b=>{
 
 function tsToDate(ts){const d=new Date(ts*1000);return`${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,"0")}-${String(d.getUTCDate()).padStart(2,"0")}`;}
 
+/* CORS proxies tried in order — falls back if the primary is down/rate-limited */
+const CORS_PROXIES=[
+  url=>`https://corsproxy.io/?${encodeURIComponent(url)}`,
+  url=>`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+];
+async function fetchViaProxy(targetUrl,{timeoutMs=10000}={}){
+  let lastErr;
+  for(const buildProxyUrl of CORS_PROXIES){
+    const controller=new AbortController();
+    const timer=setTimeout(()=>controller.abort(),timeoutMs);
+    try{
+      const res=await fetch(buildProxyUrl(targetUrl),{signal:controller.signal});
+      clearTimeout(timer);
+      if(!res.ok)throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    }catch(e){
+      clearTimeout(timer);
+      lastErr=e;
+    }
+  }
+  throw lastErr||new Error("All proxies failed");
+}
+
 async function fetchOHLCV(ticker,range){
   const interval=(range==="5y"||range==="10y"||range==="max")?"1wk":range==="2y"?"1wk":"1d";
   const yUrl=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?range=${range}&interval=${interval}&includePrePost=false`;
-  const res=await fetch(`https://corsproxy.io/?${encodeURIComponent(yUrl)}`);
-  const json=await res.json();
+  const json=await fetchViaProxy(yUrl);
   const r=json.chart.result[0];
   const times=r.timestamps||r.timestamp;
   const q=r.indicators.quote[0];
@@ -1027,7 +1108,11 @@ async function loadTACharts(ticker){
     taOHLCV=await fetchOHLCV(ticker,taRange);
     renderTACharts(taOHLCV);
   }catch(e){
-    document.getElementById("priceChart").innerHTML=`<div class="chart-loading" style="color:var(--red)">Failed to load: ${e.message}</div>`;
+    document.getElementById("priceChart").innerHTML=`<div class="chart-loading" style="color:var(--red);flex-direction:column;gap:.5rem">
+      <div>Failed to load: ${e.message}</div>
+      <button class="ct-btn" id="taRetryBtn">↻ Retry</button>
+    </div>`;
+    document.getElementById("taRetryBtn")?.addEventListener("click",()=>loadTACharts(ticker));
   }
 }
 
@@ -1193,11 +1278,9 @@ async function loadNews(ticker){
   document.getElementById("news-summary-sub").textContent="";
 
   const yUrl=`https://query2.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(ticker)}&newsCount=12&quotesCount=0&lang=en-US`;
-  const proxy=`https://corsproxy.io/?${encodeURIComponent(yUrl)}`;
 
   try{
-    const res=await fetch(proxy);
-    const json=await res.json();
+    const json=await fetchViaProxy(yUrl);
     const rawItems=(json.news||[]).slice(0,12);
 
     if(!rawItems.length){
@@ -1251,8 +1334,11 @@ async function loadNews(ticker){
       </div>`;
     }).join("");
   }catch(e){
-    document.getElementById("news-list").innerHTML=`<div style="color:var(--red);font-size:.8rem;text-align:center;padding:2rem">Could not fetch news: ${e.message}</div>`;
+    document.getElementById("news-list").innerHTML=`<div style="color:var(--red);font-size:.8rem;text-align:center;padding:2rem">
+      Could not fetch news: ${e.message}<br><button class="ct-btn" id="newsRetryBtn" style="margin-top:.6rem">↻ Retry</button>
+    </div>`;
     document.getElementById("news-summary-title").textContent="News unavailable";
+    document.getElementById("newsRetryBtn")?.addEventListener("click",()=>loadNews(ticker));
   }
 }
 
@@ -1471,7 +1557,9 @@ document.querySelectorAll("th[data-k]").forEach(th=>{
 });
 
 /* ── Sidebar controls ────────────────────────────────── */
-document.getElementById("searchBox").addEventListener("input",e=>{f.q=e.target.value.trim().toLowerCase();go();});
+function debounce(fn,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};}
+const debouncedGo=debounce(go,180);
+document.getElementById("searchBox").addEventListener("input",e=>{f.q=e.target.value.trim().toLowerCase();debouncedGo();});
 document.querySelectorAll(".type-btn").forEach(b=>{
   b.addEventListener("click",()=>{document.querySelectorAll(".type-btn").forEach(x=>x.classList.remove("on"));b.classList.add("on");f.type=b.dataset.t;go();});
 });
@@ -1497,6 +1585,7 @@ document.querySelectorAll(".preset").forEach(b=>{
     else if(p==="growth"){f.epsMin="20";f.revMin="15";}
     else if(p==="oversold"){f.rsiZone="os";document.querySelector('.qbtn[data-rsi="os"]').classList.add("on");}
     else if(p==="overbought"){f.rsiZone="ob";document.querySelector('.qbtn[data-rsi="ob"]').classList.add("on");}
+    else if(p==="watchlist")f.watchOnly=true;
     if(f.scoreMin)document.getElementById("scoreMin").value=f.scoreMin;
     if(f.peMax)document.getElementById("peMax").value=f.peMax;
     if(f.epsMin)document.getElementById("epsMin").value=f.epsMin;
@@ -1506,7 +1595,7 @@ document.querySelectorAll(".preset").forEach(b=>{
 });
 
 function resetFilters(){
-  Object.assign(f,{q:"",type:"",rsiMin:"",rsiMax:"",rsiZone:"",scoreMin:"",peMax:"",fpeMax:"",epsMin:"",revMin:"",roeMin:""});
+  Object.assign(f,{q:"",type:"",rsiMin:"",rsiMax:"",rsiZone:"",scoreMin:"",peMax:"",fpeMax:"",epsMin:"",revMin:"",roeMin:"",watchOnly:false});
   f.sectors=new Set(SECTORS);
   ["searchBox","rsiMin","rsiMax","scoreMin","peMax","fpeMax","epsMin","revMin","roeMin"].forEach(id=>document.getElementById(id).value="");
   document.querySelectorAll(".type-btn").forEach(b=>b.classList.remove("on"));
@@ -1516,8 +1605,39 @@ function resetFilters(){
 }
 document.getElementById("resetBtn").addEventListener("click",()=>{resetFilters();go();});
 
+/* ── CSV export ───────────────────────────────────────── */
+document.getElementById("exportBtn").addEventListener("click",()=>{
+  const cols=["ticker","name","sector","type","price","rsi","pe","fwdPe","eps_growth","rev_growth","roe","score"];
+  const header=cols.join(",");
+  const esc=v=>{const s=v==null?"":String(v);return /[",\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s;};
+  const rows=filtered.map(d=>cols.map(c=>esc(d[c])).join(","));
+  const csv=[header,...rows].join("\n");
+  const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;a.download=`equityscreen_export_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+/* ── Mobile sidebar toggle ────────────────────────────── */
+document.getElementById("sbToggle").addEventListener("click",()=>{
+  document.getElementById("sidebar").classList.toggle("open");
+});
+
+/* ── Sync UI with restored filters ───────────────────── */
+function syncFilterUI(){
+  document.getElementById("searchBox").value=f.q||"";
+  ["rsiMin","rsiMax","scoreMin","peMax","fpeMax","epsMin","revMin","roeMin"].forEach(id=>{
+    document.getElementById(id).value=f[id]||"";
+  });
+  document.querySelectorAll(".type-btn").forEach(b=>b.classList.toggle("on",b.dataset.t===f.type));
+  document.querySelectorAll(".qbtn").forEach(b=>b.classList.toggle("on",b.dataset.rsi===f.rsiZone));
+}
+
 /* ── Init ────────────────────────────────────────────── */
 buildSectors();
+syncFilterUI();
 go();
 </script>
 </body>
