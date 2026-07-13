@@ -47,7 +47,11 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
 
 /* Main */
 #main{flex:1;min-width:0;display:flex;flex-direction:column;height:100vh;overflow:hidden;}
-.statsbar{display:flex;gap:1.5rem;padding:.65rem 1rem;background:var(--paper);border-bottom:1px solid var(--line);flex-wrap:wrap;}
+.statsbar{display:flex;gap:1.5rem;padding:.65rem 1rem;background:var(--paper);border-bottom:1px solid var(--line);flex-wrap:wrap;align-items:center;}
+.view-toggle{display:flex;gap:0;border:1px solid var(--card-b);border-radius:5px;overflow:hidden;margin-left:auto;flex-shrink:0;}
+.vt-btn{padding:.28rem .7rem;font-size:.72rem;font-weight:600;background:transparent;border:none;color:var(--dim);cursor:pointer;font-family:inherit;transition:all .12s;}
+.vt-btn.on{background:rgba(88,166,255,.15);color:var(--blue);}
+.live-badge{font-size:.62rem;font-weight:600;padding:.15rem .4rem;border-radius:3px;background:rgba(63,185,80,.15);color:var(--accent);white-space:nowrap;}
 .stat{display:flex;flex-direction:column;}
 .stat-l{font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);}
 .stat-v{font-size:.95rem;font-weight:600;margin-top:.05rem;}
@@ -63,6 +67,23 @@ tbody tr{cursor:pointer;transition:background .1s;}
 tbody tr:hover td{background:rgba(88,166,255,.04);}
 tbody tr.active td{background:rgba(88,166,255,.08);}
 .tc{font-weight:700;color:var(--blue);}
+.chg-pos{color:var(--accent);font-size:.72rem;font-variant-numeric:tabular-nums;}
+.chg-neg{color:var(--red);font-size:.72rem;font-variant-numeric:tabular-nums;}
+.peg-ok{color:var(--accent);}.peg-fair{color:var(--yellow);}.peg-hi{color:var(--red);}
+.live-price{display:flex;flex-direction:column;line-height:1.2;}
+
+/* Scatter plot */
+#scatter-pane{flex:1;overflow:auto;padding:.75rem 1rem;display:none;flex-direction:column;}
+.scatter-toolbar{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:.5rem .75rem;}
+.scatter-toolbar label{font-size:.67rem;text-transform:uppercase;letter-spacing:.05em;color:var(--dim);}
+.sc-sel{background:var(--card);border:1px solid var(--card-b);color:var(--text);padding:.28rem .45rem;border-radius:4px;font-size:.75rem;font-family:inherit;}
+.sc-sel:focus{outline:none;border-color:var(--blue);}
+.scatter-wrap{position:relative;flex:1;}
+#scatter-svg{width:100%;display:block;}
+.scatter-tip{position:fixed;background:var(--card);border:1px solid var(--card-b);border-radius:5px;padding:.4rem .65rem;font-size:.72rem;pointer-events:none;z-index:200;display:none;line-height:1.6;}
+.scatter-legend{display:flex;flex-wrap:wrap;gap:.35rem .7rem;margin-top:.5rem;}
+.leg-item{display:flex;align-items:center;gap:.3rem;font-size:.67rem;color:var(--dim);}
+.leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
 .rsi-badge{display:inline-block;padding:.1rem .38rem;border-radius:4px;font-weight:600;font-size:.72rem;}
 .rsi-os{background:rgba(63,185,80,.18);color:var(--accent);}
 .rsi-ob{background:rgba(248,81,73,.15);color:var(--red);}
@@ -300,8 +321,13 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
 
 <!-- Main -->
 <div id="main">
-  <div class="statsbar" id="statsbar"></div>
-  <div class="table-wrap">
+  <div class="statsbar" id="statsbar">
+    <div class="view-toggle">
+      <button class="vt-btn on" id="vtTable">⊞ Table</button>
+      <button class="vt-btn" id="vtScatter">◉ Scatter</button>
+    </div>
+  </div>
+  <div class="table-wrap" id="tableWrap">
     <table>
       <thead id="thead"><tr>
         <th style="cursor:default"></th>
@@ -313,12 +339,57 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
         <th data-k="rsi">RSI <span class="sort-arrow">↕</span></th>
         <th data-k="pe">P/E <span class="sort-arrow">↕</span></th>
         <th data-k="fwdPe">Fwd P/E <span class="sort-arrow">↕</span></th>
+        <th data-k="peg">PEG <span class="sort-arrow">↕</span></th>
         <th data-k="eps_growth">EPS Gr% <span class="sort-arrow">↕</span></th>
         <th data-k="score">Score <span class="sort-arrow">↕</span></th>
         <th data-k="notes" style="min-width:180px">Notes</th>
       </tr></thead>
       <tbody id="tbody"></tbody>
     </table>
+  </div>
+  <div id="scatter-pane">
+    <div class="scatter-toolbar">
+      <label>X axis</label>
+      <select class="sc-sel" id="scatterX">
+        <option value="pe">P/E</option>
+        <option value="fwdPe">Fwd P/E</option>
+        <option value="eps_growth" selected>EPS Growth %</option>
+        <option value="rev_growth">Rev Growth %</option>
+        <option value="rsi">RSI</option>
+        <option value="roe">ROE %</option>
+        <option value="debt_equity">D/E</option>
+        <option value="market_cap_b">Mkt Cap $B</option>
+        <option value="peg">PEG</option>
+        <option value="score">Score</option>
+        <option value="price">Price</option>
+      </select>
+      <label>Y axis</label>
+      <select class="sc-sel" id="scatterY">
+        <option value="pe">P/E</option>
+        <option value="fwdPe">Fwd P/E</option>
+        <option value="eps_growth">EPS Growth %</option>
+        <option value="rev_growth">Rev Growth %</option>
+        <option value="rsi">RSI</option>
+        <option value="roe">ROE %</option>
+        <option value="score" selected>Score</option>
+        <option value="debt_equity">D/E</option>
+        <option value="market_cap_b">Mkt Cap $B</option>
+        <option value="peg">PEG</option>
+        <option value="price">Price</option>
+      </select>
+      <label>Size</label>
+      <select class="sc-sel" id="scatterSize">
+        <option value="fixed">Fixed</option>
+        <option value="market_cap_b">Mkt Cap</option>
+        <option value="score">Score</option>
+      </select>
+      <span style="margin-left:auto;font-size:.68rem;color:var(--dim)" id="scatter-count"></span>
+    </div>
+    <div class="scatter-wrap" id="scatter-wrap">
+      <svg id="scatter-svg"></svg>
+    </div>
+    <div class="scatter-legend" id="scatter-legend"></div>
+    <div class="scatter-tip" id="scatter-tip"></div>
   </div>
   <div class="pagination" id="pagination"></div>
 </div>
@@ -773,6 +844,25 @@ let watchlist=new Set(); try{watchlist=new Set(JSON.parse(localStorage.getItem(W
 function saveWatchlist(){localStorage.setItem(WATCH_KEY,JSON.stringify([...watchlist]));}
 function toggleWatch(ticker){watchlist.has(ticker)?watchlist.delete(ticker):watchlist.add(ticker);saveWatchlist();}
 
+/* Computed fields: PEG = P/E ÷ EPS growth (when both positive) */
+RAW.forEach(d=>{
+  d.peg=(d.pe!=null&&d.eps_growth!=null&&d.eps_growth>0)?+(d.pe/d.eps_growth).toFixed(2):null;
+});
+
+/* Live data merged from Yahoo Finance quote endpoint */
+let liveData={};
+let liveLoaded=false;
+let liveRefreshTimer=null;
+let liveLastUpdated=null;
+let viewMode="table"; /* "table" | "scatter" */
+
+const SECTOR_COLORS={
+  "Technology":"#58a6ff","Healthcare":"#3fb950","Financials":"#d29922",
+  "Consumer Disc.":"#f78166","Communication":"#a371f7","Energy":"#e3b341",
+  "Industrials":"#79c0ff","Materials":"#56d364","Real Estate":"#ffa198",
+  "Utilities":"#7ce4f4","Renewables":"#39d353","ETF":"#6e7681",
+};
+
 let sortK="score",sortAsc=false,page=1,PER_PAGE=50;
 let filtered=[];
 let activeRow=null;
@@ -835,45 +925,124 @@ function applyFilters(){
   });
 }
 
-function go(){applyFilters();page=1;renderStats();renderTable();renderPagination();saveFilters();}
+function go(){
+  applyFilters();page=1;renderStats();
+  if(viewMode==="scatter")renderScatter();else{renderTable();renderPagination();}
+  saveFilters();
+}
 
 /* ── Stats bar ───────────────────────────────────────── */
 function avg(arr,k){const vals=arr.map(d=>d[k]).filter(v=>v!=null);return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null;}
 function renderStats(){
   const n=filtered.length;
   const aScore=avg(filtered,"score"),aRSI=avg(filtered,"rsi"),aPE=avg(filtered,"pe");
+  const liveTime=liveLastUpdated?`<span class="live-badge">● LIVE ${liveLastUpdated}</span>`:"";
   document.getElementById("statsbar").innerHTML=`
     <div class="stat"><div class="stat-l">Showing</div><div class="stat-v">${n} / ${RAW.length}</div></div>
     <div class="stat"><div class="stat-l">Avg Score</div><div class="stat-v">${aScore!=null?aScore.toFixed(1):"—"}</div></div>
     <div class="stat"><div class="stat-l">Avg RSI</div><div class="stat-v">${aRSI!=null?aRSI.toFixed(1):"—"}</div></div>
     <div class="stat"><div class="stat-l">Avg P/E</div><div class="stat-v">${aPE!=null?aPE.toFixed(1):"—"}</div></div>
     <div class="stat"><div class="stat-l">Oversold (&lt;30)</div><div class="stat-v" style="color:var(--accent)">${filtered.filter(d=>d.rsi!=null&&d.rsi<30).length}</div></div>
-    <div class="stat"><div class="stat-l">Overbought (&gt;70)</div><div class="stat-v" style="color:var(--red)">${filtered.filter(d=>d.rsi!=null&&d.rsi>70).length}</div></div>`;
+    <div class="stat"><div class="stat-l">Overbought (&gt;70)</div><div class="stat-v" style="color:var(--red)">${filtered.filter(d=>d.rsi!=null&&d.rsi>70).length}</div></div>
+    ${liveTime}
+    <div class="view-toggle">
+      <button class="vt-btn ${viewMode==="table"?"on":""}" id="vtTable">⊞ Table</button>
+      <button class="vt-btn ${viewMode==="scatter"?"on":""}" id="vtScatter">◉ Scatter</button>
+    </div>`;
   document.getElementById("resultsCount").textContent=`${n} results`;
+  document.getElementById("vtTable").addEventListener("click",()=>{viewMode="table";renderView();});
+  document.getElementById("vtScatter").addEventListener("click",()=>{viewMode="scatter";renderView();});
+}
+
+function renderView(){
+  const tableWrap=document.getElementById("tableWrap");
+  const scatterPane=document.getElementById("scatter-pane");
+  const pagination=document.getElementById("pagination");
+  if(viewMode==="scatter"){
+    tableWrap.style.display="none";pagination.style.display="none";
+    scatterPane.style.display="flex";
+    renderScatter();
+  }else{
+    tableWrap.style.display="";pagination.style.display="";
+    scatterPane.style.display="none";
+    renderTable();renderPagination();
+  }
+  renderStats();
+}
+
+/* ── Live price fetch ──────────────────────────────────── */
+async function fetchLiveQuotes(){
+  const tickers=RAW.map(d=>d.ticker);
+  const BATCH=50;
+  const batches=[];
+  for(let i=0;i<tickers.length;i+=BATCH)batches.push(tickers.slice(i,i+BATCH));
+  await Promise.allSettled(batches.map(async batch=>{
+    const url=`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${batch.join(",")}&fields=regularMarketPrice,regularMarketChangePercent,fiftyTwoWeekHigh,fiftyTwoWeekLow,trailingPE,forwardPE,pegRatio,trailingAnnualDividendYield`;
+    try{
+      const json=await fetchViaProxy(url,{timeoutMs:12000});
+      (json?.quoteResponse?.result||[]).forEach(q=>{
+        liveData[q.symbol]={
+          price:q.regularMarketPrice,
+          chgPct:q.regularMarketChangePercent,
+          high52:q.fiftyTwoWeekHigh,
+          low52:q.fiftyTwoWeekLow,
+          peg:q.pegRatio,
+          divYield:q.trailingAnnualDividendYield,
+        };
+        /* Overwrite computed PEG with Yahoo's if available */
+        const raw=RAW.find(r=>r.ticker===q.symbol);
+        if(raw&&q.pegRatio!=null)raw.peg=+q.pegRatio.toFixed(2);
+      });
+    }catch(e){}
+  }));
+  liveLoaded=true;
+  liveLastUpdated=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
+  renderTable();renderStats();
+}
+
+function scheduleRefresh(){
+  clearTimeout(liveRefreshTimer);
+  liveRefreshTimer=setTimeout(()=>{fetchLiveQuotes().then(scheduleRefresh);},5*60*1000);
 }
 
 /* ── Table ───────────────────────────────────────────── */
 function rsiBadge(v){if(v==null)return"—";const cls=v<30?"rsi-os":v>70?"rsi-ob":"rsi-n";return`<span class="rsi-badge ${cls}">${v}</span>`;}
 function scBadge(v){const cls=v>=7?"sc-h":v>=4?"sc-m":"sc-l";return`<span class="sc-badge ${cls}">${v}</span>`;}
 function fmt(v,dec=1){return v==null?"—":typeof v==="number"?v.toFixed(dec):v;}
+function pegBadge(v){
+  if(v==null)return"—";
+  const cls=v<1?"peg-ok":v<2?"peg-fair":"peg-hi";
+  return`<span class="${cls}" style="font-variant-numeric:tabular-nums">${v.toFixed(2)}</span>`;
+}
 
 function renderTable(){
   const start=(page-1)*PER_PAGE,slice=filtered.slice(start,start+PER_PAGE);
-  document.getElementById("tbody").innerHTML=slice.map(d=>`
-    <tr data-t="${d.ticker}" class="${activeRow===d.ticker?"active":""}">
+  document.getElementById("tbody").innerHTML=slice.map(d=>{
+    const live=liveData[d.ticker];
+    let priceCell;
+    if(live?.price!=null){
+      const chg=live.chgPct;
+      const chgStr=chg!=null?`<span class="${chg>=0?"chg-pos":"chg-neg"}">${chg>=0?"+":""}${chg.toFixed(2)}%</span>`:"";
+      priceCell=`<div class="live-price"><span>$${live.price.toFixed(2)}</span>${chgStr}</div>`;
+    }else{
+      priceCell=`$${fmt(d.price)}`;
+    }
+    return`<tr data-t="${d.ticker}" class="${activeRow===d.ticker?"active":""}">
       <td><button class="star-btn ${watchlist.has(d.ticker)?"on":""}" data-star="${d.ticker}" title="Toggle watchlist">${watchlist.has(d.ticker)?"★":"☆"}</button></td>
       <td class="tc">${d.ticker}</td>
-      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis">${d.name}</td>
+      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis">${d.name}</td>
       <td>${d.sector}</td>
       <td><span class="type-tag">${d.type}</span></td>
-      <td>$${fmt(d.price)}</td>
+      <td>${priceCell}</td>
       <td>${rsiBadge(d.rsi)}</td>
       <td>${fmt(d.pe)}</td>
       <td>${fmt(d.fwdPe)}</td>
+      <td>${pegBadge(d.peg)}</td>
       <td>${d.eps_growth!=null?(d.eps_growth>0?"+":"")+d.eps_growth+"%":"—"}</td>
       <td>${scBadge(d.score)}</td>
-      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;color:var(--dim);font-size:.75rem">${notes[d.ticker]||d.notes}</td>
-    </tr>`).join("");
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;color:var(--dim);font-size:.75rem">${notes[d.ticker]||d.notes}</td>
+    </tr>`;
+  }).join("");
   document.querySelectorAll("#tbody tr").forEach(tr=>{
     tr.addEventListener("click",(e)=>{if(e.target.closest("[data-star]"))return;openDrawer(tr.dataset.t);});
   });
@@ -944,15 +1113,25 @@ function openDrawer(ticker){
 
   document.getElementById("dr-ticker").textContent=d.ticker;
   document.getElementById("dr-name").textContent=`${d.name} · ${d.type} · ${d.sector}`;
-  document.getElementById("dr-price").innerHTML=`$${fmt(d.price)} ${rsiBadge(d.rsi)}`;
+  const live=liveData[ticker];
+  const displayPrice=live?.price!=null?live.price:d.price;
+  const chgHtml=live?.chgPct!=null
+    ?`<span class="${live.chgPct>=0?"chg-pos":"chg-neg"}" style="font-size:.82rem;margin-left:.35rem">${live.chgPct>=0?"+":""}${live.chgPct.toFixed(2)}%</span>`:"";
+  document.getElementById("dr-price").innerHTML=`$${displayPrice!=null?displayPrice.toFixed(2):"—"}${chgHtml} ${rsiBadge(d.rsi)}`;
   drawGauge(d.rsi);
+  const pctFromHigh=live?.high52!=null&&live?.price!=null
+    ?((live.price/live.high52-1)*100).toFixed(1)+"%":"—";
+  const pctFromLow=live?.low52!=null&&live?.price!=null
+    ?((live.price/live.low52-1)*100).toFixed(1)+"%":"—";
   document.getElementById("dr-kv").innerHTML=[
-    ["P/E",fmt(d.pe)],["Fwd P/E",fmt(d.fwdPe)],
+    ["P/E",fmt(d.pe)],["Fwd P/E",fmt(d.fwdPe)],["PEG",pegBadge(d.peg)],
     ["EPS Gr%",d.eps_growth!=null?(d.eps_growth>0?"+":"")+d.eps_growth+"%":"—"],
     ["Rev Gr%",d.rev_growth!=null?(d.rev_growth>0?"+":"")+d.rev_growth+"%":"—"],
     ["ROE%",d.roe!=null?d.roe+"%":"—"],["D/E",fmt(d.debt_equity,2)],
     ["Mkt Cap",d.market_cap_b!=null?"$"+d.market_cap_b+"B":"—"],["Score",scBadge(d.score)],
-    ["RSI",rsiBadge(d.rsi)],
+    ["52wk High",live?.high52!=null?"$"+live.high52.toFixed(2):"—"],
+    ["52wk Low",live?.low52!=null?"$"+live.low52.toFixed(2):"—"],
+    ["vs High",`<span style="color:${pctFromHigh==="—"?"var(--dim)":pctFromHigh.startsWith("-")?"var(--red)":"var(--accent)"}">${pctFromHigh}</span>`],
   ].map(([l,v])=>`<div class="kv"><div class="kv-l">${l}</div><div class="kv-v">${v}</div></div>`).join("");
   const rsi=d.rsi;
   let sig="",sigClass="ta-neut";
@@ -1535,6 +1714,121 @@ function runMonteCarlo(equityVals,n=200){
   return{p5:simReturns[Math.floor(n*.05)].toFixed(1),p50:simReturns[Math.floor(n*.5)].toFixed(1),p95:simReturns[Math.floor(n*.95)].toFixed(1)};
 }
 
+/* ══════════════════════════════════════════════════════
+   SCATTER PLOT
+   ══════════════════════════════════════════════════════ */
+const SCATTER_LABELS={
+  pe:"P/E",fwdPe:"Fwd P/E",eps_growth:"EPS Growth %",rev_growth:"Rev Growth %",
+  rsi:"RSI",roe:"ROE %",debt_equity:"D/E",market_cap_b:"Mkt Cap $B",
+  peg:"PEG",score:"Score",price:"Price",
+};
+
+function scatterVal(d,key){
+  if(key==="price"&&liveData[d.ticker]?.price!=null)return liveData[d.ticker].price;
+  return d[key]??null;
+}
+
+function renderScatter(){
+  const xKey=document.getElementById("scatterX").value;
+  const yKey=document.getElementById("scatterY").value;
+  const sizeKey=document.getElementById("scatterSize").value;
+  const wrap=document.getElementById("scatter-wrap");
+  const tip=document.getElementById("scatter-tip");
+
+  const data=filtered.filter(d=>scatterVal(d,xKey)!=null&&scatterVal(d,yKey)!=null);
+  document.getElementById("scatter-count").textContent=`${data.length} points`;
+
+  if(!data.length){document.getElementById("scatter-svg").innerHTML=`<text x="50%" y="50%" text-anchor="middle" fill="#8b949e" font-size="13">No data with both axes defined</text>`;return;}
+
+  const PAD={top:24,right:24,bottom:52,left:62};
+  const W=Math.max(wrap.clientWidth||700,500);
+  const H=440;
+  const IW=W-PAD.left-PAD.right;
+  const IH=H-PAD.top-PAD.bottom;
+
+  const xs=data.map(d=>scatterVal(d,xKey));
+  const ys=data.map(d=>scatterVal(d,yKey));
+  let xMin=Math.min(...xs),xMax=Math.max(...xs);
+  let yMin=Math.min(...ys),yMax=Math.max(...ys);
+  const xPad=(xMax-xMin)*0.07||1,yPad=(yMax-yMin)*0.07||1;
+  xMin-=xPad;xMax+=xPad;yMin-=yPad;yMax+=yPad;
+  const sx=v=>PAD.left+(v-xMin)/(xMax-xMin)*IW;
+  const sy=v=>PAD.top+IH-(v-yMin)/(yMax-yMin)*IH;
+
+  let svg=`<svg id="scatter-svg" width="${W}" height="${H}" style="display:block;overflow:visible">`;
+
+  /* grid */
+  const TICKS=5;
+  for(let i=0;i<=TICKS;i++){
+    const gx=PAD.left+i/TICKS*IW;
+    const gy=PAD.top+i/TICKS*IH;
+    const xv=(xMin+i/TICKS*(xMax-xMin)).toFixed(1);
+    const yv=(yMax-i/TICKS*(yMax-yMin)).toFixed(1);
+    svg+=`<line x1="${gx}" y1="${PAD.top}" x2="${gx}" y2="${PAD.top+IH}" stroke="#21262d" stroke-width="1"/>`;
+    svg+=`<line x1="${PAD.left}" y1="${gy}" x2="${PAD.left+IW}" y2="${gy}" stroke="#21262d" stroke-width="1"/>`;
+    svg+=`<text x="${gx}" y="${PAD.top+IH+14}" text-anchor="middle" fill="#6e7681" font-size="10">${xv}</text>`;
+    svg+=`<text x="${PAD.left-8}" y="${gy+4}" text-anchor="end" fill="#6e7681" font-size="10">${yv}</text>`;
+  }
+
+  /* axis labels */
+  svg+=`<text x="${PAD.left+IW/2}" y="${H-4}" text-anchor="middle" fill="#8b949e" font-size="11" font-weight="600">${SCATTER_LABELS[xKey]||xKey}</text>`;
+  svg+=`<text x="${-PAD.top-IH/2}" y="14" text-anchor="middle" fill="#8b949e" font-size="11" font-weight="600" transform="rotate(-90)">${SCATTER_LABELS[yKey]||yKey}</text>`;
+
+  /* zero lines */
+  if(xMin<0&&xMax>0){const z=sx(0);svg+=`<line x1="${z}" y1="${PAD.top}" x2="${z}" y2="${PAD.top+IH}" stroke="#30363d" stroke-width="1.5" stroke-dasharray="4,3"/>`;}
+  if(yMin<0&&yMax>0){const z=sy(0);svg+=`<line x1="${PAD.left}" y1="${z}" x2="${PAD.left+IW}" y2="${z}" stroke="#30363d" stroke-width="1.5" stroke-dasharray="4,3"/>`;}
+
+  /* dots */
+  const sizeCap=sizeKey==="fixed"?null:data.map(d=>scatterVal(d,sizeKey)).filter(v=>v!=null);
+  const sizeMax=sizeCap?Math.max(...sizeCap):null;
+  data.forEach(d=>{
+    const cx=sx(scatterVal(d,xKey));
+    const cy=sy(scatterVal(d,yKey));
+    const col=SECTOR_COLORS[d.sector]||"#6e7681";
+    let r=5;
+    if(sizeKey!=="fixed"&&sizeMax){const sv=scatterVal(d,sizeKey);r=sv!=null?3+Math.sqrt((sv/sizeMax)*64):4;}
+    const isStarred=watchlist.has(d.ticker);
+    svg+=`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r}" fill="${col}" fill-opacity="0.82" stroke="${isStarred?"var(--yellow)":"#0d1117"}" stroke-width="${isStarred?2:0.8}" data-t="${d.ticker}" style="cursor:pointer" class="scatter-dot"/>`;
+    if(isStarred||d.score>=8||watchlist.has(d.ticker)){
+      svg+=`<text x="${(cx+r+3).toFixed(1)}" y="${(cy+3.5).toFixed(1)}" font-size="9.5" fill="#8b949e" pointer-events="none">${d.ticker}</text>`;
+    }
+  });
+
+  svg+="</svg>";
+  wrap.innerHTML=svg;
+
+  /* legend */
+  const sectors=[...new Set(data.map(d=>d.sector))].sort();
+  document.getElementById("scatter-legend").innerHTML=sectors.map(s=>
+    `<div class="leg-item"><div class="leg-dot" style="background:${SECTOR_COLORS[s]||"#6e7681"}"></div>${s}</div>`
+  ).join("");
+
+  /* tooltip + click */
+  wrap.querySelectorAll(".scatter-dot").forEach(dot=>{
+    dot.addEventListener("mouseenter",e=>{
+      const d=RAW.find(r=>r.ticker===dot.dataset.t);if(!d)return;
+      const live=liveData[d.ticker];
+      const livePrice=live?.price!=null?`$${live.price.toFixed(2)}`:null;
+      const chg=live?.chgPct!=null?`<span class="${live.chgPct>=0?"chg-pos":"chg-neg"}">${live.chgPct>=0?"+":""}${live.chgPct.toFixed(2)}%</span>`:"";
+      tip.style.display="block";
+      tip.innerHTML=`<strong style="color:var(--blue)">${d.ticker}</strong> <span style="color:var(--dim)">${d.name}</span><br>
+        ${livePrice?livePrice+" "+chg:"$"+fmt(d.price)}&nbsp;·&nbsp;${d.sector}<br>
+        <span style="color:var(--dim)">${SCATTER_LABELS[xKey]}:</span> <strong>${scatterVal(d,xKey)?.toFixed(2)??'—'}</strong>&nbsp;&nbsp;
+        <span style="color:var(--dim)">${SCATTER_LABELS[yKey]}:</span> <strong>${scatterVal(d,yKey)?.toFixed(2)??'—'}</strong>`;
+    });
+    dot.addEventListener("mousemove",e=>{
+      tip.style.left=(e.clientX+14)+"px";tip.style.top=(e.clientY-10)+"px";
+    });
+    dot.addEventListener("mouseleave",()=>{tip.style.display="none";});
+    dot.addEventListener("click",()=>{openDrawer(dot.dataset.t);});
+  });
+}
+
+["scatterX","scatterY","scatterSize"].forEach(id=>{
+  document.getElementById(id)?.addEventListener("change",()=>{if(viewMode==="scatter")renderScatter();});
+});
+window.addEventListener("resize",()=>{if(viewMode==="scatter")renderScatter();});
+
 /* ── Close drawer ─────────────────────────────────── */
 function closeDrawer(){
   drawerTicker=null;activeRow=null;renderTable();
@@ -1607,7 +1901,7 @@ document.getElementById("resetBtn").addEventListener("click",()=>{resetFilters()
 
 /* ── CSV export ───────────────────────────────────────── */
 document.getElementById("exportBtn").addEventListener("click",()=>{
-  const cols=["ticker","name","sector","type","price","rsi","pe","fwdPe","eps_growth","rev_growth","roe","score"];
+  const cols=["ticker","name","sector","type","price","rsi","pe","fwdPe","peg","eps_growth","rev_growth","roe","score"];
   const header=cols.join(",");
   const esc=v=>{const s=v==null?"":String(v);return /[",\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s;};
   const rows=filtered.map(d=>cols.map(c=>esc(d[c])).join(","));
@@ -1639,6 +1933,8 @@ function syncFilterUI(){
 buildSectors();
 syncFilterUI();
 go();
+/* Start live fetch — kick off immediately, then every 5 min */
+fetchLiveQuotes().then(scheduleRefresh).catch(()=>{});
 </script>
 </body>
 </html>
