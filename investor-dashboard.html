@@ -136,6 +136,26 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
 
 /* Glossary tooltip */
 .gloss-tip{position:fixed;background:var(--card);border:1px solid var(--card-b);border-radius:6px;padding:.45rem .65rem;font-size:.72rem;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text);line-height:1.5;max-width:250px;z-index:600;pointer-events:none;display:none;box-shadow:0 4px 16px rgba(0,0,0,.5);}
+
+/* Alerts & Trends bar */
+#alerts-bar{background:var(--paper);border-bottom:1px solid var(--line);padding:.55rem 1rem .5rem;flex-shrink:0;}
+#alerts-bar.collapsed .alerts-grid{display:none;}
+.alerts-hdr{display:flex;align-items:center;margin-bottom:.42rem;}
+.alerts-title{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);}
+.alerts-toggle{background:none;border:none;color:var(--dim);font-size:.68rem;cursor:pointer;padding:0 .3rem;margin-left:auto;font-family:inherit;}
+.alerts-toggle:hover{color:var(--text);}
+.alerts-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.65rem;}
+.alerts-col-lbl{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-bottom:.28rem;padding-bottom:.18rem;border-bottom:1px solid var(--line);}
+.alert-scroll{display:flex;flex-direction:column;gap:.16rem;max-height:120px;overflow-y:auto;}
+.ac{display:flex;align-items:center;gap:.35rem;padding:.19rem .4rem;border-radius:4px;border:1px solid var(--card-b);background:var(--card);cursor:pointer;font-size:.7rem;transition:border-color .1s;min-width:0;}
+.ac:hover{border-color:var(--blue);}
+.ac-ticker{font-weight:700;color:var(--blue);flex-shrink:0;min-width:2.8rem;}
+.ac-badge{font-size:.57rem;padding:.03rem .22rem;border-radius:3px;flex-shrink:0;}
+.ac-val{margin-left:auto;font-size:.67rem;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.ac-pos{color:var(--accent);}
+.ac-neg{color:var(--red);}
+.ac-dim{color:var(--dim);}
+.ac-loading{font-size:.67rem;color:var(--dim);padding:.28rem .2rem;font-style:italic;}
 .rsi-badge{display:inline-block;padding:.1rem .38rem;border-radius:4px;font-weight:600;font-size:.72rem;}
 .rsi-os{background:rgba(63,185,80,.18);color:var(--accent);}
 .rsi-ob{background:rgba(248,81,73,.15);color:var(--red);}
@@ -383,6 +403,32 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
       <button class="vt-btn" id="vtScatter">◉ Scatter</button>
     </div>
   </div>
+  <!-- Alerts & Trends -->
+  <div id="alerts-bar">
+    <div class="alerts-hdr">
+      <span class="alerts-title">Alerts &amp; Trends</span>
+      <button class="alerts-toggle" id="alertsToggle">▾ Collapse</button>
+    </div>
+    <div class="alerts-grid" id="alerts-grid">
+      <div>
+        <div class="alerts-col-lbl">Alarms</div>
+        <div class="alert-scroll" id="alarm-cards"></div>
+      </div>
+      <div>
+        <div class="alerts-col-lbl">Daily Movers</div>
+        <div class="alert-scroll" id="daily-cards"><div class="ac-loading">Fetching live data…</div></div>
+      </div>
+      <div>
+        <div class="alerts-col-lbl">Weekly Movers</div>
+        <div class="alert-scroll" id="weekly-cards"><div class="ac-loading">Loading…</div></div>
+      </div>
+      <div>
+        <div class="alerts-col-lbl">Monthly Movers</div>
+        <div class="alert-scroll" id="monthly-cards"><div class="ac-loading">Loading…</div></div>
+      </div>
+    </div>
+  </div>
+
   <div class="table-wrap" id="tableWrap">
     <table>
       <thead id="thead"><tr>
@@ -1113,7 +1159,7 @@ async function fetchLiveQuotes(){
   }));
   liveLoaded=true;
   liveLastUpdated=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
-  renderTable();renderStats();
+  renderTable();renderStats();renderDailyMovers();
 }
 
 function scheduleRefresh(){
@@ -2301,7 +2347,7 @@ async function fetchFromGitHub(){
   liveLastUpdated=updated
     ?new Date(updated).toLocaleDateString([],{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})
     :"GitHub";
-  renderTable();renderStats();
+  renderTable();renderStats();renderDailyMovers();
 }
 
 /* GitHub OHLCV — called by fetchOHLCVCached before Yahoo fallback */
@@ -2323,6 +2369,83 @@ function rangeToStartDate(range){
   else return null; /* max */
   return d.toISOString().slice(0,10);
 }
+
+/* ── Alerts & Trends ─────────────────────────────────── */
+function renderAlarms(){
+  const el=document.getElementById("alarm-cards");
+  if(!el)return;
+  const items=[];
+  RAW.filter(d=>d.rsi!=null&&d.rsi<32).sort((a,b)=>a.rsi-b.rsi).slice(0,5)
+     .forEach(d=>items.push({t:d.ticker,badge:"OS",cls:"sig-buy",val:`RSI ${d.rsi}`}));
+  RAW.filter(d=>d.rsi!=null&&d.rsi>70).sort((a,b)=>b.rsi-a.rsi).slice(0,4)
+     .forEach(d=>items.push({t:d.ticker,badge:"OB",cls:"sig-sell",val:`RSI ${d.rsi}`}));
+  RAW.filter(d=>d.score>=8).sort((a,b)=>b.score-a.score).slice(0,4)
+     .forEach(d=>items.push({t:d.ticker,badge:"★",cls:"sig-watch",val:`Sc ${d.score}`}));
+  RAW.filter(d=>d.peg!=null&&d.peg>0&&d.peg<1&&d.score>=6).sort((a,b)=>a.peg-b.peg).slice(0,4)
+     .forEach(d=>items.push({t:d.ticker,badge:"PEG",cls:"sig-buy",val:d.peg.toFixed(2)}));
+  RAW.filter(d=>d.eps_growth!=null&&d.eps_growth<-5).sort((a,b)=>a.eps_growth-b.eps_growth).slice(0,3)
+     .forEach(d=>items.push({t:d.ticker,badge:"EPS⚠",cls:"sig-sell",val:`${d.eps_growth}%`}));
+  el.innerHTML=items.map(a=>`<div class="ac" data-ticker="${a.t}">
+    <span class="ac-ticker">${a.t}</span>
+    <span class="${a.cls} ac-badge">${a.badge}</span>
+    <span class="ac-val ac-dim">${a.val}</span>
+  </div>`).join("");
+  el.querySelectorAll("[data-ticker]").forEach(c=>c.addEventListener("click",()=>openDrawer(c.dataset.ticker)));
+}
+
+function renderDailyMovers(){
+  const el=document.getElementById("daily-cards");
+  if(!el)return;
+  const movers=RAW.map(d=>({t:d.ticker,p:liveData[d.ticker]?.chgPct??null}))
+    .filter(x=>x.p!=null).sort((a,b)=>Math.abs(b.p)-Math.abs(a.p)).slice(0,10);
+  if(!movers.length){el.innerHTML='<div class="ac-loading">No live data yet</div>';return;}
+  el.innerHTML=movers.map(m=>`<div class="ac" data-ticker="${m.t}">
+    <span class="ac-ticker">${m.t}</span>
+    <span class="ac-val ${m.p>=0?'ac-pos':'ac-neg'}">${m.p>=0?'+':''}${m.p.toFixed(2)}%</span>
+  </div>`).join("");
+  el.querySelectorAll("[data-ticker]").forEach(c=>c.addEventListener("click",()=>openDrawer(c.dataset.ticker)));
+}
+
+async function computeMovers(lookbackDays){
+  const range=lookbackDays<=31?"1mo":lookbackDays<=92?"3mo":"6mo";
+  const cutStr=new Date(Date.now()-lookbackDays*864e5).toISOString().slice(0,10);
+  const top=RAW.filter(d=>d.market_cap_b!=null).sort((a,b)=>b.market_cap_b-a.market_cap_b).slice(0,40);
+  const results=[];
+  await Promise.allSettled(top.map(async d=>{
+    try{
+      const rows=await fetchOHLCVCached(d.ticker,range);
+      if(rows.length<2)return;
+      const startRow=rows.find(r=>r.time>=cutStr)||rows[0];
+      const last=rows[rows.length-1];
+      if(!startRow||startRow===last)return;
+      results.push({t:d.ticker,p:+((last.close/startRow.close-1)*100).toFixed(2)});
+    }catch(e){}
+  }));
+  return results.sort((a,b)=>Math.abs(b.p)-Math.abs(a.p)).slice(0,10);
+}
+
+function renderMoversEl(id,movers){
+  const el=document.getElementById(id);
+  if(!el)return;
+  if(!movers.length){el.innerHTML='<div class="ac-loading">No data</div>';return;}
+  el.innerHTML=movers.map(m=>`<div class="ac" data-ticker="${m.t}">
+    <span class="ac-ticker">${m.t}</span>
+    <span class="ac-val ${m.p>=0?'ac-pos':'ac-neg'}">${m.p>=0?'+':''}${m.p.toFixed(2)}%</span>
+  </div>`).join("");
+  el.querySelectorAll("[data-ticker]").forEach(c=>c.addEventListener("click",()=>openDrawer(c.dataset.ticker)));
+}
+
+async function loadTrends(){
+  const [wk,mo]=await Promise.all([computeMovers(7).catch(()=>[]),computeMovers(30).catch(()=>[])]);
+  renderMoversEl("weekly-cards",wk);
+  renderMoversEl("monthly-cards",mo);
+}
+
+document.getElementById("alertsToggle")?.addEventListener("click",function(){
+  const bar=document.getElementById("alerts-bar");
+  bar.classList.toggle("collapsed");
+  this.textContent=bar.classList.contains("collapsed")?"▸ Show":"▾ Collapse";
+});
 
 /* ── Glossary tooltip ────────────────────────────────── */
 (function(){
@@ -2354,9 +2477,12 @@ buildSectors();
 syncFilterUI();
 go();
 renderPortfolioSidebar();
+renderAlarms();
 /* Primary: GitHub pre-fetched data (daily refresh via Action) */
 /* Fallback: Yahoo Finance live fetch */
-fetchFromGitHub().catch(()=>fetchLiveQuotes().then(scheduleRefresh).catch(()=>{}));
+fetchFromGitHub()
+  .catch(()=>fetchLiveQuotes().then(scheduleRefresh).catch(()=>{}))
+  .finally(()=>{loadTrends();});
 </script>
 </body>
 </html>
