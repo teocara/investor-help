@@ -188,12 +188,48 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
 .dr-price{font-size:1.1rem;font-weight:700;}
 
 /* Analysis tabs */
-.dr-tabs{display:flex;border-bottom:1px solid var(--line);background:var(--paper);flex-shrink:0;}
-.dr-tab{flex:1;padding:.55rem .3rem;text-align:center;font-size:.72rem;font-weight:600;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:all .12s;letter-spacing:.02em;}
+.dr-tabs{display:flex;border-bottom:1px solid var(--line);background:var(--paper);flex-shrink:0;overflow-x:auto;}
+.dr-tab{flex:1;padding:.55rem .25rem;text-align:center;font-size:.68rem;font-weight:600;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:all .12s;letter-spacing:.01em;white-space:nowrap;}
 .dr-tab:hover{color:var(--text);}
 .dr-tab.on{color:var(--blue);border-bottom-color:var(--blue);}
 .dr-pane{display:none;flex:1;overflow-y:auto;padding:.9rem;}
 .dr-pane.on{display:block;}
+
+/* Bull / Bear Debate tab */
+.debate-wrap{display:flex;flex-direction:column;gap:.6rem;}
+.debate-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;}
+.debate-side{border-radius:8px;padding:.58rem .68rem;border:1px solid var(--card-b);}
+.debate-side.bull{border-top:3px solid var(--accent);background:rgba(63,185,80,.03);}
+.debate-side.bear{border-top:3px solid var(--red);background:rgba(248,81,73,.03);}
+.debate-agent{font-size:.76rem;font-weight:700;margin-bottom:.38rem;display:flex;align-items:center;gap:.3rem;}
+.debate-args{display:flex;flex-direction:column;gap:.18rem;}
+@keyframes dfade{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:none;}}
+.darg{display:flex;align-items:flex-start;gap:.28rem;font-size:.69rem;line-height:1.35;padding:.2rem .32rem;border-radius:4px;background:var(--card);animation:dfade .3s ease both;}
+.darg-icon{flex-shrink:0;margin-top:.05rem;font-size:.72rem;}
+.darg-body{flex:1;min-width:0;}
+.darg-main{font-weight:600;}
+.darg-sub{font-size:.63rem;color:var(--dim);margin-top:.04rem;}
+.darg-pts{flex-shrink:0;font-size:.6rem;font-weight:700;padding:.03rem .22rem;border-radius:3px;margin-top:.05rem;align-self:flex-start;}
+.bull .darg-pts{background:rgba(63,185,80,.2);color:var(--accent);}
+.bear .darg-pts{background:rgba(248,81,73,.15);color:var(--red);}
+.debate-score-row{display:flex;align-items:center;gap:.38rem;margin-top:.42rem;font-size:.67rem;}
+.debate-score-lbl{color:var(--dim);flex-shrink:0;}
+.debate-score-bar{flex:1;height:4px;border-radius:2px;background:var(--card-b);overflow:hidden;}
+.debate-score-fill{height:100%;border-radius:2px;transition:width .6s ease;}
+.bull .debate-score-fill{background:var(--accent);}
+.bear .debate-score-fill{background:var(--red);}
+.debate-sent{background:var(--card);border:1px solid var(--card-b);border-radius:6px;padding:.45rem .62rem;}
+.debate-sent-lbl{font-size:.57rem;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-bottom:.22rem;}
+.debate-sent-row{display:flex;gap:.5rem;flex-wrap:wrap;font-size:.7rem;}
+.debate-verdict{background:var(--card);border:1px solid var(--card-b);border-radius:8px;padding:.68rem .82rem;}
+.verdict-lbl{font-size:.57rem;text-transform:uppercase;letter-spacing:.07em;color:var(--dim);margin-bottom:.28rem;}
+.verdict-pts-row{display:flex;gap:.8rem;font-size:.68rem;margin-bottom:.35rem;flex-wrap:wrap;}
+.verdict-bar-wrap{display:flex;border-radius:4px;overflow:hidden;height:7px;margin-bottom:.42rem;}
+.verdict-bar-bull{background:var(--accent);}
+.verdict-bar-bear{background:var(--red);}
+.verdict-badge-row{margin-bottom:.35rem;}
+.verdict-reasoning{font-size:.71rem;color:var(--dim);line-height:1.55;}
+.verdict-disclaimer{font-size:.63rem;color:var(--dim);opacity:.6;margin-top:.35rem;font-style:italic;}
 
 /* RSI Gauge */
 .rsi-gauge{margin-bottom:.75rem;}
@@ -522,6 +558,7 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
     <div class="dr-tab" data-tab="backtest" data-tip="Backtest: simulate how a technical strategy (SMA crossover, RSI mean reversion, MACD, Bollinger) would have performed historically. Results include return vs buy-and-hold, win rate, and Sharpe ratio.">🔁 Backtest</div>
     <div class="dr-tab" data-tab="portfolio" data-tip="Portfolio Tracker: log your cost basis and share quantity to track unrealised P&amp;L and position size relative to current price.">💼 Portfolio</div>
     <div class="dr-tab" data-tab="dcf" data-tip="DCF (Discounted Cash Flow): intrinsic value model. Enter FCF, growth rates, and discount rate to estimate fair value per share vs current price.">💰 DCF</div>
+    <div class="dr-tab" data-tab="debate" data-tip="Bull vs Bear AI Debate: two rule-based agents argue the long and short case independently, then deliver a joint verdict with reasoning.">🤖 Debate</div>
   </div>
 
   <!-- Overview pane -->
@@ -613,6 +650,11 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
   <!-- DCF pane -->
   <div class="dr-pane" id="pane-dcf">
     <div style="color:var(--dim);font-size:.8rem;text-align:center;padding:2rem">Loading DCF calculator…</div>
+  </div>
+
+  <!-- Debate pane -->
+  <div class="dr-pane" id="pane-debate">
+    <div style="color:var(--dim);font-size:.8rem;text-align:center;padding:2rem">Click a stock then open the 🤖 Debate tab.</div>
   </div>
 </div>
 
@@ -1286,6 +1328,7 @@ document.querySelectorAll(".dr-tab").forEach(tab=>{
     if(t==="backtest"&&drawerTicker)resetBacktest();
     if(t==="portfolio"&&drawerTicker)renderPortfolioDrawer(drawerTicker);
     if(t==="dcf"&&drawerTicker)renderDCF(drawerTicker);
+    if(t==="debate"&&drawerTicker)renderDebate(drawerTicker);
   });
 });
 
@@ -2370,6 +2413,224 @@ function rangeToStartDate(range){
   else if(y[range])d.setFullYear(d.getFullYear()-y[range]);
   else return null; /* max */
   return d.toISOString().slice(0,10);
+}
+
+/* ══════════════════════════════════════════════════════
+   TAB 7 — BULL / BEAR DEBATE
+   Two rule-based agents build independent cases, then
+   a weighted point total determines the joint verdict.
+   ══════════════════════════════════════════════════════ */
+async function renderDebate(ticker){
+  const pane=document.getElementById("pane-debate");
+  if(!pane)return;
+  const d=RAW.find(r=>r.ticker===ticker);
+  if(!d){pane.innerHTML='<div style="color:var(--dim);font-size:.8rem;text-align:center;padding:2rem">Stock not found.</div>';return;}
+  const live=liveData[ticker];
+  const price=live?.price??d.price;
+
+  pane.innerHTML=`<div style="color:var(--dim);font-size:.8rem;text-align:center;padding:2rem">🐂 Bull agent building case…</div>`;
+
+  const bullArgs=[],bearArgs=[];
+
+  /* ── RSI ── */
+  if(d.rsi!=null){
+    if(d.rsi<20)     bullArgs.push({pts:25,main:`RSI ${d.rsi} — extreme oversold`,sub:"Statistically high mean-reversion probability"});
+    else if(d.rsi<30)bullArgs.push({pts:20,main:`RSI ${d.rsi} — oversold`,sub:"Classic technical buy signal"});
+    else if(d.rsi<40)bullArgs.push({pts:10,main:`RSI ${d.rsi} — approaching oversold`,sub:"Potential entry zone forming"});
+    if(d.rsi>80)      bearArgs.push({pts:25,main:`RSI ${d.rsi} — extreme overbought`,sub:"Mean-reversion risk is very high"});
+    else if(d.rsi>70) bearArgs.push({pts:18,main:`RSI ${d.rsi} — overbought`,sub:"Momentum stretched, pullback probable"});
+    else if(d.rsi>62) bearArgs.push({pts:7, main:`RSI ${d.rsi} — elevated`,sub:"Limited near-term upside room"});
+  }
+
+  /* ── EPS growth ── */
+  if(d.eps_growth!=null){
+    if(d.eps_growth>50)      bullArgs.push({pts:22,main:`EPS growth +${d.eps_growth}%`,sub:"Explosive earnings expansion"});
+    else if(d.eps_growth>25) bullArgs.push({pts:16,main:`EPS growth +${d.eps_growth}%`,sub:"Strong multi-year earnings momentum"});
+    else if(d.eps_growth>12) bullArgs.push({pts:10,main:`EPS growth +${d.eps_growth}%`,sub:"Solid earnings trajectory"});
+    else if(d.eps_growth>0)  bullArgs.push({pts:4, main:`EPS growth +${d.eps_growth}%`,sub:"Modest but positive earnings growth"});
+    if(d.eps_growth<-15)      bearArgs.push({pts:25,main:`EPS contraction ${d.eps_growth}%`,sub:"Sharp profit decline — fundamental deterioration"});
+    else if(d.eps_growth<0)   bearArgs.push({pts:16,main:`EPS shrinking ${d.eps_growth}%`,sub:"Earnings contracting year-over-year"});
+    else if(d.eps_growth<5)   bearArgs.push({pts:6, main:`EPS growth only ${d.eps_growth}%`,sub:"Stagnant earnings — limited re-rating catalyst"});
+  }
+
+  /* ── Revenue growth ── */
+  if(d.rev_growth!=null){
+    if(d.rev_growth>25)      bullArgs.push({pts:12,main:`Revenue +${d.rev_growth}% YoY`,sub:"Rapid top-line expansion"});
+    else if(d.rev_growth>12) bullArgs.push({pts:7, main:`Revenue +${d.rev_growth}% YoY`,sub:"Above-average revenue growth"});
+    if(d.rev_growth<0)       bearArgs.push({pts:12,main:`Revenue declining ${d.rev_growth}%`,sub:"Shrinking top line — structural warning"});
+    else if(d.rev_growth<3)  bearArgs.push({pts:5, main:`Revenue +${d.rev_growth}% — near stagnant`,sub:"Insufficient growth to drive re-rating"});
+  }
+
+  /* ── PEG ── */
+  if(d.peg!=null){
+    if(d.peg>0){
+      if(d.peg<0.6)       bullArgs.push({pts:20,main:`PEG ${d.peg.toFixed(2)} — exceptional value`,sub:"High growth at a low price multiple"});
+      else if(d.peg<1)    bullArgs.push({pts:13,main:`PEG ${d.peg.toFixed(2)} — growth on sale`,sub:"Paying less than 1× EPS growth rate"});
+      else if(d.peg<1.5)  bullArgs.push({pts:5, main:`PEG ${d.peg.toFixed(2)} — fair value`,sub:"Reasonable price-to-growth ratio"});
+      if(d.peg>4)         bearArgs.push({pts:20,main:`PEG ${d.peg.toFixed(2)} — extreme premium`,sub:"Pricing in perfection — any miss is punished"});
+      else if(d.peg>2.5)  bearArgs.push({pts:12,main:`PEG ${d.peg.toFixed(2)} — overpriced growth`,sub:"Premium multiple with little margin of safety"});
+      else if(d.peg>1.8)  bearArgs.push({pts:6, main:`PEG ${d.peg.toFixed(2)} — moderately rich`,sub:"Growth partially baked into price"});
+    }else{
+      bearArgs.push({pts:14,main:`PEG negative (earnings contraction)`,sub:"PEG < 0 indicates a shrinking earnings base"});
+    }
+  }
+
+  /* ── P/E vs Fwd P/E ── */
+  if(d.pe!=null&&d.fwdPe!=null){
+    const ratio=d.fwdPe/d.pe;
+    if(ratio<0.82)      bullArgs.push({pts:12,main:`Fwd P/E ${d.fwdPe} vs P/E ${d.pe}`,sub:"Significant earnings acceleration expected"});
+    else if(ratio<0.92) bullArgs.push({pts:7, main:`Fwd P/E ${d.fwdPe} vs P/E ${d.pe}`,sub:"Earnings growth expected next 12 months"});
+    if(ratio>1.12)      bearArgs.push({pts:12,main:`Fwd P/E ${d.fwdPe} > P/E ${d.pe}`,sub:"Earnings forecast to decelerate"});
+  }
+  if(d.pe!=null){
+    if(d.pe>60) bearArgs.push({pts:10,main:`P/E ${d.pe} — very high valuation`,sub:"Limited room for further multiple expansion"});
+    else if(d.pe>40) bearArgs.push({pts:5,main:`P/E ${d.pe} — elevated multiple`,sub:"Priced for continued strong execution"});
+    if(d.pe<15&&d.pe>0) bullArgs.push({pts:8,main:`P/E ${d.pe} — cheap multiple`,sub:"Low absolute valuation vs market"});
+  }
+
+  /* ── Composite score ── */
+  if(d.score>=9)      bullArgs.push({pts:18,main:`Score ${d.score}/10 — elite`,sub:"Top-tier across valuation, growth, momentum, quality"});
+  else if(d.score>=7) bullArgs.push({pts:11,main:`Score ${d.score}/10 — strong`,sub:"Above-average fundamentals across key metrics"});
+  else if(d.score>=6) bullArgs.push({pts:5, main:`Score ${d.score}/10 — decent`,sub:"Adequate fundamentals, room for improvement"});
+  if(d.score<=2)      bearArgs.push({pts:18,main:`Score ${d.score}/10 — very weak`,sub:"Poor fundamentals across multiple dimensions"});
+  else if(d.score<=4) bearArgs.push({pts:10,main:`Score ${d.score}/10 — below average`,sub:"Fundamental weaknesses across several metrics"});
+
+  /* ── ROE ── */
+  if(d.roe!=null){
+    if(d.roe>30)      bullArgs.push({pts:10,main:`ROE ${d.roe}% — exceptional`,sub:"Durable competitive advantage indicated"});
+    else if(d.roe>15) bullArgs.push({pts:6, main:`ROE ${d.roe}% — solid`,sub:"Above-average capital efficiency"});
+    if(d.roe<0)       bearArgs.push({pts:12,main:`ROE ${d.roe}% — negative`,sub:"Destroying shareholder equity"});
+    else if(d.roe<5)  bearArgs.push({pts:7, main:`ROE ${d.roe}% — poor`,sub:"Very low return on equity capital"});
+  }
+
+  /* ── D/E ── */
+  if(d.debt_equity!=null){
+    if(d.debt_equity<0.2)  bullArgs.push({pts:6, main:`D/E ${d.debt_equity} — fortress balance sheet`,sub:"Low leverage — room to invest or return capital"});
+    if(d.debt_equity>1.5)  bearArgs.push({pts:14,main:`D/E ${d.debt_equity} — high leverage`,sub:"Heavy debt amplifies downside in a slowdown"});
+    else if(d.debt_equity>0.8) bearArgs.push({pts:7,main:`D/E ${d.debt_equity} — elevated debt`,sub:"Leverage limits financial flexibility"});
+  }
+
+  /* ── 52-week range + daily change ── */
+  if(live?.high52&&live?.low52&&live?.price){
+    const fromHigh=(live.price/live.high52-1)*100;
+    const fromLow=(live.price/live.low52-1)*100;
+    if(fromHigh<-30)     bullArgs.push({pts:10,main:`${Math.abs(fromHigh).toFixed(0)}% below 52wk high`,sub:"Deep pullback may represent value entry"});
+    else if(fromHigh<-15)bullArgs.push({pts:6, main:`${Math.abs(fromHigh).toFixed(0)}% off 52wk high`,sub:"Meaningful discount from recent peak"});
+    if(fromHigh>-5)      bearArgs.push({pts:10,main:`Near 52wk high (${fromHigh.toFixed(1)}%)`,sub:"Limited upside headroom — investors already positioned"});
+    if(fromLow<8)        bullArgs.push({pts:12,main:`${fromLow.toFixed(1)}% above 52wk low`,sub:"Near annual support — risk/reward skewed upside"});
+  }
+  if(live?.chgPct!=null){
+    if(live.chgPct<-4)   bearArgs.push({pts:8,main:`Today ${live.chgPct.toFixed(2)}% — heavy selling`,sub:"Potential institutional distribution"});
+    else if(live.chgPct>4)bullArgs.push({pts:8,main:`Today +${live.chgPct.toFixed(2)}% — strong bid`,sub:"Potential institutional accumulation"});
+  }
+
+  /* ── Dividend ── */
+  if(live?.divYield!=null&&live.divYield>0.025)
+    bullArgs.push({pts:5,main:`Dividend yield ${(live.divYield*100).toFixed(1)}%`,sub:"Meaningful income while waiting for price appreciation"});
+
+  /* ── News sentiment (async) ── */
+  pane.innerHTML=`<div style="color:var(--dim);font-size:.8rem;text-align:center;padding:1rem">🐻 Bear agent responding — fetching news…</div>`;
+  let newsScore=null,newsPos=0,newsNeg=0,newsNeu=0,newsN=0;
+  try{
+    const j=await fetchViaProxy(`https://query2.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(ticker)}&newsCount=12&quotesCount=0&lang=en-US`,{timeoutMs:8000});
+    const items=(j.news||[]).slice(0,12);
+    if(items.length){
+      const sc=items.map(i=>scoreSentiment(i.title||""));
+      newsScore=sc.reduce((a,b)=>a+b,0)/sc.length;
+      newsPos=sc.filter(s=>s>0.1).length;
+      newsNeg=sc.filter(s=>s<-0.1).length;
+      newsNeu=sc.length-newsPos-newsNeg;
+      newsN=items.length;
+    }
+  }catch(e){}
+
+  if(newsScore!=null){
+    if(newsScore>0.35)      bullArgs.push({pts:14,main:`News: Bullish narrative (avg ${newsScore.toFixed(2)})`,sub:`${newsPos} positive · ${newsNeu} neutral · ${newsNeg} negative headlines`});
+    else if(newsScore>0.1)  bullArgs.push({pts:7, main:`News: Mildly positive tone`,sub:`${newsPos} positive vs ${newsNeg} negative headlines`});
+    if(newsScore<-0.35)     bearArgs.push({pts:14,main:`News: Bearish narrative (avg ${newsScore.toFixed(2)})`,sub:`${newsNeg} negative · ${newsNeu} neutral · ${newsPos} positive headlines`});
+    else if(newsScore<-0.1) bearArgs.push({pts:7, main:`News: Cautiously negative tone`,sub:`${newsNeg} negative vs ${newsPos} positive headlines`});
+  }
+
+  /* ── Compute totals & verdict ── */
+  const bullTotal=bullArgs.reduce((s,a)=>s+a.pts,0);
+  const bearTotal=bearArgs.reduce((s,a)=>s+a.pts,0);
+  const totalPts=Math.max(bullTotal+bearTotal,1);
+  const edge=bullTotal-bearTotal;
+
+  let verdict,vCls,vIcon;
+  if(edge>40){verdict="Strong Buy";vCls="sig-buy";vIcon="⬆";}
+  else if(edge>20){verdict="Buy";vCls="sig-buy";vIcon="▲";}
+  else if(edge>8){verdict="Lean Buy";vCls="sig-watch";vIcon="↗";}
+  else if(edge>-8){verdict="Hold / Neutral";vCls="sig-hold";vIcon="◈";}
+  else if(edge>-20){verdict="Lean Sell";vCls="sig-watch";vIcon="↘";}
+  else if(edge>-40){verdict="Sell";vCls="sig-sell";vIcon="▼";}
+  else{verdict="Strong Sell";vCls="sig-sell";vIcon="⬇";}
+
+  const topBull=[...bullArgs].sort((a,b)=>b.pts-a.pts)[0];
+  const topBear=[...bearArgs].sort((a,b)=>b.pts-a.pts)[0];
+  let reasoning;
+  if(edge>0&&topBull)reasoning=`Bull case anchored by <em>${topBull.main}</em>. ${topBear?`Bear's strongest counter: <em>${topBear.main}</em>.`:""} Net edge: +${edge} pts to bulls.`;
+  else if(edge<0&&topBear)reasoning=`Bear case anchored by <em>${topBear.main}</em>. ${topBull?`Bull's strongest counter: <em>${topBull.main}</em>.`:""} Net edge: +${Math.abs(edge)} pts to bears.`;
+  else reasoning="Arguments evenly matched — no decisive edge for either side at this time.";
+
+  const argHtml=(args,side)=>[...args].sort((a,b)=>b.pts-a.pts).map((a,i)=>`
+    <div class="darg" style="animation-delay:${i*70}ms">
+      <span class="darg-icon">${side==="bull"?"✓":"✗"}</span>
+      <div class="darg-body">
+        <div class="darg-main">${a.main}</div>
+        ${a.sub?`<div class="darg-sub">${a.sub}</div>`:""}
+      </div>
+      <span class="darg-pts">+${a.pts}</span>
+    </div>`).join("");
+
+  const bullW=Math.round(bullTotal/totalPts*100);
+
+  pane.innerHTML=`<div class="debate-wrap">
+    <div class="debate-grid">
+      <div class="debate-side bull">
+        <div class="debate-agent">🐂 <span style="color:var(--accent)">Bull Agent</span></div>
+        <div class="debate-args">${bullArgs.length?argHtml(bullArgs,"bull"):`<div style="font-size:.71rem;color:var(--dim)">No bullish signals found.</div>`}</div>
+        <div class="debate-score-row">
+          <span class="debate-score-lbl">Conviction</span>
+          <div class="debate-score-bar"><div class="debate-score-fill" style="width:${bullW}%"></div></div>
+          <span style="color:var(--accent);font-weight:700">${bullTotal} pts</span>
+        </div>
+      </div>
+      <div class="debate-side bear">
+        <div class="debate-agent">🐻 <span style="color:var(--red)">Bear Agent</span></div>
+        <div class="debate-args">${bearArgs.length?argHtml(bearArgs,"bear"):`<div style="font-size:.71rem;color:var(--dim)">No bearish signals found.</div>`}</div>
+        <div class="debate-score-row">
+          <span class="debate-score-lbl">Conviction</span>
+          <div class="debate-score-bar"><div class="debate-score-fill" style="width:${100-bullW}%"></div></div>
+          <span style="color:var(--red);font-weight:700">${bearTotal} pts</span>
+        </div>
+      </div>
+    </div>
+    ${newsScore!=null?`<div class="debate-sent">
+      <div class="debate-sent-lbl">News Sentiment — ${newsN} articles analysed</div>
+      <div class="debate-sent-row">
+        <span style="color:var(--accent)">▲ ${newsPos} bullish</span>
+        <span style="color:var(--dim)">◈ ${newsNeu} neutral</span>
+        <span style="color:var(--red)">▼ ${newsNeg} bearish</span>
+        <span style="margin-left:auto;color:${newsScore>0.1?"var(--accent)":newsScore<-0.1?"var(--red)":"var(--dim)"}">avg score ${newsScore.toFixed(2)}</span>
+      </div>
+    </div>`:""}
+    <div class="debate-verdict">
+      <div class="verdict-lbl">Joint Verdict — ${d.ticker} · ${d.name}</div>
+      <div class="verdict-pts-row">
+        <span style="color:var(--accent)">🐂 Bull ${bullTotal} pts</span>
+        <span style="color:var(--red)">🐻 Bear ${bearTotal} pts</span>
+        <span style="color:${edge>=0?"var(--accent)":"var(--red)"}">Edge ${edge>=0?"+":""}${edge}</span>
+      </div>
+      <div class="verdict-bar-wrap">
+        <div class="verdict-bar-bull" style="flex:${bullTotal||1}"></div>
+        <div class="verdict-bar-bear" style="flex:${bearTotal||1}"></div>
+      </div>
+      <div class="verdict-badge-row"><span class="${vCls}" style="font-size:.95rem">${vIcon} ${verdict}</span></div>
+      <div class="verdict-reasoning">${reasoning}</div>
+      <div class="verdict-disclaimer">Rule-based model using fundamental, technical &amp; sentiment signals. Not financial advice.</div>
+    </div>
+  </div>`;
 }
 
 /* ── Alerts & Trends ─────────────────────────────────── */
