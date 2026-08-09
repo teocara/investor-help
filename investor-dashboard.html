@@ -136,6 +136,8 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
 
 /* Glossary tooltip */
 .gloss-tip{position:fixed;background:var(--card);border:1px solid var(--card-b);border-radius:6px;padding:.45rem .65rem;font-size:.72rem;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text);line-height:1.5;max-width:250px;z-index:600;pointer-events:none;display:none;box-shadow:0 4px 16px rgba(0,0,0,.5);}
+[data-tip]{cursor:help;}
+.kv-l[data-tip],.dcf-lbl[data-tip],.dr-label[data-tip]{text-decoration:underline dotted rgba(139,148,158,.5);text-underline-offset:2px;}
 
 /* Alerts & Trends bar */
 #alerts-bar{background:var(--paper);border-bottom:1px solid var(--line);padding:.55rem 1rem .5rem;flex-shrink:0;}
@@ -1339,7 +1341,7 @@ function openDrawer(ticker){
     ["52wk High",live?.high52!=null?"$"+live.high52.toFixed(2):"—"],
     ["52wk Low",live?.low52!=null?"$"+live.low52.toFixed(2):"—"],
     ["vs High",`<span style="color:${pctFromHigh==="—"?"var(--dim)":pctFromHigh.startsWith("-")?"var(--red)":"var(--accent)"}">${pctFromHigh}</span>`],
-  ].map(([l,v])=>`<div class="kv"${KV_TIPS[l]?` data-tip="${KV_TIPS[l]}"`:``}><div class="kv-l">${l}</div><div class="kv-v">${v}</div></div>`).join("");
+  ].map(([l,v])=>`<div class="kv"><div class="kv-l"${KV_TIPS[l]?` data-tip="${KV_TIPS[l]}"`:""}>${l}</div><div class="kv-v">${v}</div></div>`).join("");
   const rsi=d.rsi;
   let sig="",sigClass="ta-neut";
   if(rsi==null)sig="No RSI data";
