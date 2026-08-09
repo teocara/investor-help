@@ -133,6 +133,9 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
 .sig-sell{display:inline-block;padding:.1rem .38rem;border-radius:4px;font-size:.68rem;font-weight:700;background:rgba(248,81,73,.14);color:var(--red);}
 .sig-hold{display:inline-block;padding:.1rem .38rem;border-radius:4px;font-size:.68rem;font-weight:700;background:rgba(139,148,158,.14);color:var(--dim);}
 .sig-watch{display:inline-block;padding:.1rem .38rem;border-radius:4px;font-size:.68rem;font-weight:700;background:rgba(210,153,34,.16);color:var(--yellow);}
+
+/* Glossary tooltip */
+.gloss-tip{position:fixed;background:var(--card);border:1px solid var(--card-b);border-radius:6px;padding:.45rem .65rem;font-size:.72rem;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text);line-height:1.5;max-width:250px;z-index:600;pointer-events:none;display:none;box-shadow:0 4px 16px rgba(0,0,0,.5);}
 .rsi-badge{display:inline-block;padding:.1rem .38rem;border-radius:4px;font-weight:600;font-size:.72rem;}
 .rsi-os{background:rgba(63,185,80,.18);color:var(--accent);}
 .rsi-ob{background:rgba(248,81,73,.15);color:var(--red);}
@@ -389,13 +392,13 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
         <th data-k="sector">Sector <span class="sort-arrow">↕</span></th>
         <th data-k="type">Type <span class="sort-arrow">↕</span></th>
         <th data-k="price">Price <span class="sort-arrow">↕</span></th>
-        <th data-k="rsi">RSI <span class="sort-arrow">↕</span></th>
-        <th data-k="pe">P/E <span class="sort-arrow">↕</span></th>
-        <th data-k="fwdPe">Fwd P/E <span class="sort-arrow">↕</span></th>
-        <th data-k="peg">PEG <span class="sort-arrow">↕</span></th>
-        <th data-k="eps_growth">EPS Gr% <span class="sort-arrow">↕</span></th>
-        <th data-k="score">Score <span class="sort-arrow">↕</span></th>
-        <th data-k="signal" style="cursor:default">Signal</th>
+        <th data-k="rsi" data-tip="RSI (Relative Strength Index): momentum oscillator 0–100. Below 30 = oversold (potential buy zone). Above 70 = overbought (stretched). Neutral range 40–60.">RSI <span class="sort-arrow">↕</span></th>
+        <th data-k="pe" data-tip="P/E (Price-to-Earnings): share price divided by trailing 12-month EPS. Lower = cheaper relative to current profits. Compare within the same sector.">P/E <span class="sort-arrow">↕</span></th>
+        <th data-k="fwdPe" data-tip="Forward P/E: price divided by next-12-month analyst EPS estimate. A lower Fwd P/E than trailing P/E implies expected earnings growth.">Fwd P/E <span class="sort-arrow">↕</span></th>
+        <th data-k="peg" data-tip="PEG Ratio: P/E divided by EPS growth rate. PEG &lt; 1 = potentially undervalued relative to growth. PEG &gt; 2 = growth already priced in.">PEG <span class="sort-arrow">↕</span></th>
+        <th data-k="eps_growth" data-tip="EPS Growth %: year-over-year earnings-per-share growth. Positive = expanding profits. Negative = earnings contraction.">EPS Gr% <span class="sort-arrow">↕</span></th>
+        <th data-k="score" data-tip="Proprietary composite score 1–10 combining valuation, growth, momentum, and quality factors. ≥7 = high conviction. ≤3 = weak fundamentals.">Score <span class="sort-arrow">↕</span></th>
+        <th data-k="signal" style="cursor:default" data-tip="Rule-based signal: Buy/Entry (oversold + strong fundamentals), Hold (overbought but quality), Sell (deteriorating earnings + stretched valuation), Neutral (no clear edge).">Signal</th>
         <th data-k="notes" style="min-width:180px">Notes</th>
       </tr></thead>
       <tbody id="tbody"></tbody>
@@ -465,12 +468,12 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
 
   <!-- Tab bar -->
   <div class="dr-tabs">
-    <div class="dr-tab on" data-tab="overview">Overview</div>
-    <div class="dr-tab" data-tab="ta">📈 TA Charts</div>
-    <div class="dr-tab" data-tab="news">📰 News</div>
-    <div class="dr-tab" data-tab="backtest">🔁 Backtest</div>
-    <div class="dr-tab" data-tab="portfolio">💼 Portfolio</div>
-    <div class="dr-tab" data-tab="dcf">💰 DCF</div>
+    <div class="dr-tab on" data-tab="overview" data-tip="Key metrics snapshot: price, RSI gauge, valuation ratios, growth rates, signal, and your investment thesis notes.">Overview</div>
+    <div class="dr-tab" data-tab="ta" data-tip="Technical Analysis Charts: interactive candlestick, RSI, MACD, and Volume charts with SMA/Bollinger Band overlays. Powered by historical price data.">📈 TA Charts</div>
+    <div class="dr-tab" data-tab="news" data-tip="Recent headlines and sentiment analysis for this ticker. Positive/negative sentiment bars show the market narrative at a glance.">📰 News</div>
+    <div class="dr-tab" data-tab="backtest" data-tip="Backtest: simulate how a technical strategy (SMA crossover, RSI mean reversion, MACD, Bollinger) would have performed historically. Results include return vs buy-and-hold, win rate, and Sharpe ratio.">🔁 Backtest</div>
+    <div class="dr-tab" data-tab="portfolio" data-tip="Portfolio Tracker: log your cost basis and share quantity to track unrealised P&amp;L and position size relative to current price.">💼 Portfolio</div>
+    <div class="dr-tab" data-tab="dcf" data-tip="DCF (Discounted Cash Flow): intrinsic value model. Enter FCF, growth rates, and discount rate to estimate fair value per share vs current price.">💰 DCF</div>
   </div>
 
   <!-- Overview pane -->
@@ -481,7 +484,7 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
       <div class="gauge-label" id="gaugeLabel"></div>
     </div>
     <div class="kv-grid" id="dr-kv"></div>
-    <div class="dr-label">TA Signal</div>
+    <div class="dr-label" data-tip="Rule-based signal derived from RSI, composite score, PEG ratio, and EPS growth trend. Not financial advice — use as one input among many.">TA Signal</div>
     <div id="dr-signal"></div>
     <div class="dr-label">Notes / Thesis</div>
     <textarea class="notes-ta" id="dr-notes" rows="3" placeholder="Add your notes…"></textarea>
@@ -1265,6 +1268,21 @@ function openDrawer(ticker){
   const pctFromLow=live?.low52!=null&&live?.price!=null
     ?((live.price/live.low52-1)*100).toFixed(1)+"%":"—";
   const divYieldStr=live?.divYield!=null?(live.divYield*100).toFixed(2)+"%":"—";
+  const KV_TIPS={
+    "P/E":"Price-to-Earnings ratio (trailing 12 months). Share price ÷ EPS. Lower generally means cheaper vs current earnings.",
+    "Fwd P/E":"Forward P/E uses next-12-month analyst EPS estimates. Lower Fwd P/E vs trailing P/E implies earnings expected to grow.",
+    "PEG":"PEG = P/E ÷ Annual EPS Growth %. PEG < 1: potentially undervalued for growth. PEG > 2: growth priced in. PEG < 0: shrinking earnings.",
+    "EPS Gr%":"EPS Growth %: year-over-year earnings-per-share growth rate. Positive = profits expanding; negative = contraction.",
+    "Rev Gr%":"Revenue Growth %: year-over-year top-line sales growth. Sustained growth above 10% often indicates a strong competitive position.",
+    "ROE%":"Return on Equity: Net Income ÷ Shareholders' Equity, expressed as %. Measures how efficiently a company generates profit from equity. >15% is generally strong.",
+    "D/E":"Debt-to-Equity ratio: total debt divided by shareholders' equity. Higher = more leveraged. >1 may signal elevated financial risk; depends on industry.",
+    "Mkt Cap":"Market Capitalisation: total market value of all outstanding shares (Price × Shares). Mega-cap >$200B, Large-cap $10–200B, Mid-cap $2–10B.",
+    "Score":"Composite quality score 1–10 combining valuation, growth momentum, profitability, and balance-sheet strength. ≥7 = high conviction.",
+    "Div Yield":"Dividend Yield: annual dividend per share ÷ share price. Represents cash income return. High yield (>5%) can signal value or elevated risk.",
+    "52wk High":"Highest closing price over the past 52 weeks. Proximity to the high indicates momentum; far below suggests either value or deterioration.",
+    "52wk Low":"Lowest closing price over the past 52 weeks. Near the low can indicate oversold conditions or fundamental deterioration.",
+    "vs High":"Distance from the 52-week high as a percentage. Deeply negative (e.g. -30%) may indicate an oversold opportunity or a broken trend.",
+  };
   document.getElementById("dr-kv").innerHTML=[
     ["P/E",fmt(d.pe)],["Fwd P/E",fmt(d.fwdPe)],["PEG",pegBadge(d.peg)],
     ["EPS Gr%",d.eps_growth!=null?(d.eps_growth>0?"+":"")+d.eps_growth+"%":"—"],
@@ -1275,7 +1293,7 @@ function openDrawer(ticker){
     ["52wk High",live?.high52!=null?"$"+live.high52.toFixed(2):"—"],
     ["52wk Low",live?.low52!=null?"$"+live.low52.toFixed(2):"—"],
     ["vs High",`<span style="color:${pctFromHigh==="—"?"var(--dim)":pctFromHigh.startsWith("-")?"var(--red)":"var(--accent)"}">${pctFromHigh}</span>`],
-  ].map(([l,v])=>`<div class="kv"><div class="kv-l">${l}</div><div class="kv-v">${v}</div></div>`).join("");
+  ].map(([l,v])=>`<div class="kv"${KV_TIPS[l]?` data-tip="${KV_TIPS[l]}"`:``}><div class="kv-l">${l}</div><div class="kv-v">${v}</div></div>`).join("");
   const rsi=d.rsi;
   let sig="",sigClass="ta-neut";
   if(rsi==null)sig="No RSI data";
@@ -1356,6 +1374,46 @@ async function fetchViaProxy(targetUrl,{timeoutMs=10000}={}){
   throw lastErr||new Error("All proxies failed");
 }
 
+async function fetchViaProxyText(targetUrl,{timeoutMs=10000}={}){
+  let lastErr;
+  for(const buildProxyUrl of CORS_PROXIES){
+    const controller=new AbortController();
+    const timer=setTimeout(()=>controller.abort(),timeoutMs);
+    try{
+      const res=await fetch(buildProxyUrl(targetUrl),{signal:controller.signal});
+      clearTimeout(timer);
+      if(!res.ok)throw new Error(`HTTP ${res.status}`);
+      return await res.text();
+    }catch(e){clearTimeout(timer);lastErr=e;}
+  }
+  throw lastErr||new Error("All proxies failed");
+}
+function tickerToStooq(ticker){
+  if(ticker.endsWith('.TO'))return ticker.slice(0,-3).toLowerCase()+'.ca';
+  if(ticker.endsWith('.T'))return ticker.slice(0,-2).toLowerCase()+'.jp';
+  if(ticker.endsWith('.L'))return ticker.slice(0,-2).toLowerCase()+'.uk';
+  return ticker.toLowerCase().replace(/[^a-z0-9.-]/g,'')+'.us';
+}
+async function fetchOHLCVStooq(ticker,range){
+  const sym=tickerToStooq(ticker);
+  const end=new Date(),start=new Date();
+  const days={"1mo":31,"3mo":92,"6mo":183,"1y":366,"2y":730,"5y":1826,"10y":3652,"max":7300}[range]||366;
+  start.setDate(start.getDate()-days);
+  const fmt=d=>d.toISOString().slice(0,10).replace(/-/g,'');
+  const url=`https://stooq.com/q/d/l/?s=${sym}&d1=${fmt(start)}&d2=${fmt(end)}&i=d`;
+  const csv=await fetchViaProxyText(url);
+  if(!csv||csv.trim().length<20||csv.toLowerCase().includes('no data'))throw new Error('No Stooq data');
+  const lines=csv.trim().split('\n');
+  const rows=[];
+  for(let i=1;i<lines.length;i++){
+    const[date,open,high,low,close,volume]=lines[i].split(',');
+    const cl=parseFloat(close);if(isNaN(cl))continue;
+    rows.push({time:date.trim(),open:parseFloat(open)||cl,high:parseFloat(high)||cl,low:parseFloat(low)||cl,close:cl,volume:parseInt(volume)||0});
+  }
+  if(rows.length<2)throw new Error('Insufficient Stooq data');
+  return rows.sort((a,b)=>a.time.localeCompare(b.time));
+}
+
 /* ── IndexedDB OHLCV cache (1-day TTL) ──────────────────── */
 let _idb=null;
 function openIDB(){
@@ -1392,16 +1450,18 @@ async function fetchOHLCV(ticker,range){
 async function fetchOHLCVCached(ticker,range){
   const key=`${ticker}:${range}`;
   try{const cached=await idbGet(key);if(cached&&(Date.now()-cached.ts)<IDB_TTL)return cached.rows;}catch(e){}
-  /* Try GitHub pre-fetched OHLCV first (no CORS proxy needed) */
   let rows;
+  /* 1) GitHub pre-fetched OHLCV (no CORS proxy needed, runs after nightly Action) */
   try{
     rows=await fetchOHLCVGitHub(ticker,range);
-    if(rows&&rows.length>10){
-      idbPut(key,{rows,ts:Date.now()}).catch(()=>{});
-      return rows;
-    }
+    if(rows&&rows.length>10){idbPut(key,{rows,ts:Date.now()}).catch(()=>{});return rows;}
   }catch(e){}
-  /* Fall back to Yahoo Finance via CORS proxy */
+  /* 2) Stooq free data via CORS proxy */
+  try{
+    rows=await fetchOHLCVStooq(ticker,range);
+    if(rows&&rows.length>5){idbPut(key,{rows,ts:Date.now()}).catch(()=>{});return rows;}
+  }catch(e){}
+  /* 3) Yahoo Finance via CORS proxy (requires no auth on some proxies) */
   rows=await fetchOHLCV(ticker,range);
   idbPut(key,{rows,ts:Date.now()}).catch(()=>{});
   return rows;
@@ -2069,10 +2129,10 @@ function renderDCF(ticker){
   pane.innerHTML=`
     <div style="font-size:.82rem;font-weight:600;margin-bottom:.65rem">${ticker} — DCF Fair Value</div>
     <div class="dcf-form">
-      <div><div class="dcf-lbl">EPS Growth (5yr %)</div><input class="dcf-input" id="dcf-growth" type="number" step="0.1" value="${d.eps_growth??10}"></div>
-      <div><div class="dcf-lbl">FCF Margin %</div><input class="dcf-input" id="dcf-fcf" type="number" step="0.1" value="20"></div>
-      <div><div class="dcf-lbl">Terminal Growth %</div><input class="dcf-input" id="dcf-tg" type="number" step="0.1" value="3"></div>
-      <div><div class="dcf-lbl">Discount Rate %</div><input class="dcf-input" id="dcf-dr" type="number" step="0.1" value="10"></div>
+      <div><div class="dcf-lbl" data-tip="EPS Growth: expected annual earnings-per-share growth over the next 5 years. Pre-filled from analyst estimates. Higher growth = higher intrinsic value.">EPS Growth (5yr %)</div><input class="dcf-input" id="dcf-growth" type="number" step="0.1" value="${d.eps_growth??10}"></div>
+      <div><div class="dcf-lbl" data-tip="FCF Margin: Free Cash Flow as % of revenue. FCF = Operating Cash Flow − Capital Expenditures. Scales the projected cash flows used in the model.">FCF Margin %</div><input class="dcf-input" id="dcf-fcf" type="number" step="0.1" value="20"></div>
+      <div><div class="dcf-lbl" data-tip="Terminal Growth Rate: the perpetual growth rate assumed after year 5. Typically set near long-run GDP growth (2–4%). Must be lower than the discount rate.">Terminal Growth %</div><input class="dcf-input" id="dcf-tg" type="number" step="0.1" value="3"></div>
+      <div><div class="dcf-lbl" data-tip="Discount Rate (WACC): the required rate of return used to discount future cash flows to present value. Higher rate = lower fair value. Typically 8–12% for equities.">Discount Rate %</div><input class="dcf-input" id="dcf-dr" type="number" step="0.1" value="10"></div>
       <button class="dcf-run" id="dcf-run">▶ Calculate Fair Value</button>
     </div>
     <div id="dcf-result"></div>
@@ -2263,6 +2323,30 @@ function rangeToStartDate(range){
   else return null; /* max */
   return d.toISOString().slice(0,10);
 }
+
+/* ── Glossary tooltip ────────────────────────────────── */
+(function(){
+  const tip=document.createElement('div');
+  tip.className='gloss-tip';
+  document.body.appendChild(tip);
+  let active=null;
+  document.addEventListener('mouseover',e=>{
+    const el=e.target.closest('[data-tip]');
+    if(el&&el!==active){active=el;tip.textContent=el.dataset.tip;tip.style.display='block';}
+    else if(!el){active=null;tip.style.display='none';}
+  });
+  document.addEventListener('mouseout',e=>{
+    if(!e.relatedTarget?.closest('[data-tip]')){active=null;tip.style.display='none';}
+  });
+  document.addEventListener('mousemove',e=>{
+    if(tip.style.display==='block'){
+      const x=e.clientX+14,y=e.clientY+14;
+      const tw=tip.offsetWidth,th=tip.offsetHeight;
+      tip.style.left=(x+tw>window.innerWidth?e.clientX-tw-8:x)+'px';
+      tip.style.top=(y+th>window.innerHeight?e.clientY-th-8:y)+'px';
+    }
+  });
+})();
 
 /* ── Init ────────────────────────────────────────────── */
 loadPortfolio();
