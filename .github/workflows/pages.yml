@@ -26,6 +26,9 @@ jobs:
 
       - uses: actions/configure-pages@v5
 
+      - name: Create index redirect
+        run: cp investor-dashboard.html index.html
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: .
