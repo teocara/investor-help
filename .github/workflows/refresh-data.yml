@@ -1,0 +1,33 @@
+name: Refresh market data
+
+on:
+  schedule:
+    # 21:30 UTC Mon–Fri  =  5:30 PM ET (after NYSE close)
+    - cron: '30 21 * * 1-5'
+  workflow_dispatch:          # manual trigger from GitHub UI
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write         # needed to push the data files
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install yfinance pandas
+
+      - name: Run data refresh
+        run: python scripts/refresh_data.py
+
+      - name: Commit updated data
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: refresh market data [skip ci]"
+          file_pattern: "public/**"

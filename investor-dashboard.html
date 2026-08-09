@@ -129,6 +129,10 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
 .dcf-row{display:flex;justify-content:space-between;font-size:.75rem;padding:.22rem 0;border-bottom:1px solid var(--line);}
 .dcf-row:last-child{border:none;}
 .dcf-note{font-size:.68rem;color:var(--dim);line-height:1.5;margin-top:.5rem;}
+.sig-buy{display:inline-block;padding:.1rem .38rem;border-radius:4px;font-size:.68rem;font-weight:700;background:rgba(63,185,80,.18);color:var(--accent);}
+.sig-sell{display:inline-block;padding:.1rem .38rem;border-radius:4px;font-size:.68rem;font-weight:700;background:rgba(248,81,73,.14);color:var(--red);}
+.sig-hold{display:inline-block;padding:.1rem .38rem;border-radius:4px;font-size:.68rem;font-weight:700;background:rgba(139,148,158,.14);color:var(--dim);}
+.sig-watch{display:inline-block;padding:.1rem .38rem;border-radius:4px;font-size:.68rem;font-weight:700;background:rgba(210,153,34,.16);color:var(--yellow);}
 .rsi-badge{display:inline-block;padding:.1rem .38rem;border-radius:4px;font-weight:600;font-size:.72rem;}
 .rsi-os{background:rgba(63,185,80,.18);color:var(--accent);}
 .rsi-ob{background:rgba(248,81,73,.15);color:var(--red);}
@@ -391,6 +395,7 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
         <th data-k="peg">PEG <span class="sort-arrow">↕</span></th>
         <th data-k="eps_growth">EPS Gr% <span class="sort-arrow">↕</span></th>
         <th data-k="score">Score <span class="sort-arrow">↕</span></th>
+        <th data-k="signal" style="cursor:default">Signal</th>
         <th data-k="notes" style="min-width:180px">Notes</th>
       </tr></thead>
       <tbody id="tbody"></tbody>
@@ -1117,6 +1122,31 @@ function scheduleRefresh(){
 function rsiBadge(v){if(v==null)return"—";const cls=v<30?"rsi-os":v>70?"rsi-ob":"rsi-n";return`<span class="rsi-badge ${cls}">${v}</span>`;}
 function scBadge(v){const cls=v>=7?"sc-h":v>=4?"sc-m":"sc-l";return`<span class="sc-badge ${cls}">${v}</span>`;}
 function fmt(v,dec=1){return v==null?"—":typeof v==="number"?v.toFixed(dec):v;}
+function signalBadge(d){
+  /* Rule-based signal: RSI + Score + PEG */
+  const rsi=d.rsi,sc=d.score,peg=d.peg,pe=d.pe,fpe=d.fwdPe,epsg=d.eps_growth;
+  const oversold=rsi!=null&&rsi<30;
+  const overbought=rsi!=null&&rsi>70;
+  const highScore=sc>=7;
+  const lowScore=sc<=3;
+  const cheapPEG=peg!=null&&peg<1;
+  const richPEG=peg!=null&&peg>3;
+  const contraction=pe!=null&&fpe!=null&&fpe>pe*1.05;
+  const negGrowth=epsg!=null&&epsg<-5;
+  /* Strong Buy */
+  if(oversold&&highScore&&!richPEG)return`<span class="sig-buy">▲ Buy</span>`;
+  /* Caution / Watch */
+  if(overbought&&highScore)return`<span class="sig-watch">◈ Hold</span>`;
+  /* Sell signal */
+  if((overbought&&lowScore)||(negGrowth&&lowScore))return`<span class="sig-sell">▼ Sell</span>`;
+  if(richPEG&&overbought)return`<span class="sig-sell">▼ Sell</span>`;
+  /* Accumulate zone */
+  if(oversold||(rsi!=null&&rsi<40&&highScore))return`<span class="sig-buy">▲ Entry</span>`;
+  /* Neutral / Hold */
+  if(contraction&&!cheapPEG)return`<span class="sig-watch">◈ Hold</span>`;
+  if(overbought)return`<span class="sig-watch">◈ Hold</span>`;
+  return`<span class="sig-hold">– Neutral</span>`;
+}
 function pegBadge(v){
   if(v==null)return"—";
   const cls=v<1?"peg-ok":v<2?"peg-fair":"peg-hi";
@@ -1148,6 +1178,7 @@ function renderTable(){
       <td>${pegBadge(d.peg)}</td>
       <td>${d.eps_growth!=null?(d.eps_growth>0?"+":"")+d.eps_growth+"%":"—"}</td>
       <td>${scBadge(d.score)}</td>
+      <td>${signalBadge(d)}</td>
       <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;color:var(--dim);font-size:.75rem">${notes[d.ticker]||d.notes}</td>
     </tr>`;
   }).join("");
@@ -1361,7 +1392,17 @@ async function fetchOHLCV(ticker,range){
 async function fetchOHLCVCached(ticker,range){
   const key=`${ticker}:${range}`;
   try{const cached=await idbGet(key);if(cached&&(Date.now()-cached.ts)<IDB_TTL)return cached.rows;}catch(e){}
-  const rows=await fetchOHLCV(ticker,range);
+  /* Try GitHub pre-fetched OHLCV first (no CORS proxy needed) */
+  let rows;
+  try{
+    rows=await fetchOHLCVGitHub(ticker,range);
+    if(rows&&rows.length>10){
+      idbPut(key,{rows,ts:Date.now()}).catch(()=>{});
+      return rows;
+    }
+  }catch(e){}
+  /* Fall back to Yahoo Finance via CORS proxy */
+  rows=await fetchOHLCV(ticker,range);
   idbPut(key,{rows,ts:Date.now()}).catch(()=>{});
   return rows;
 }
@@ -2164,14 +2205,74 @@ function syncFilterUI(){
   document.querySelectorAll(".qbtn").forEach(b=>b.classList.toggle("on",b.dataset.rsi===f.rsiZone));
 }
 
+/* ── GitHub data refresh (primary source) ─────────────── */
+const GH_RAW="https://raw.githubusercontent.com/teocara/investor-help/main/public";
+
+async function fetchFromGitHub(){
+  const res=await fetch(`${GH_RAW}/quotes.json`,{cache:"no-store"});
+  if(!res.ok)throw new Error(`GitHub quotes.json ${res.status}`);
+  const data=await res.json();
+  const updated=data.updated;
+  Object.entries(data.tickers||{}).forEach(([ticker,q])=>{
+    if(!q||typeof q!=="object")return;
+    /* Merge live price data */
+    if(q.price!=null){
+      liveData[ticker]={
+        price:q.price,chgPct:q.chgPct,
+        high52:q.high52,low52:q.low52,
+        peg:q.peg,divYield:q.divYield,
+      };
+    }
+    /* Merge fundamentals into RAW */
+    const raw=RAW.find(r=>r.ticker===ticker);
+    if(raw){
+      if(q.rsi!=null)raw.rsi=q.rsi;
+      if(q.pe!=null)raw.pe=q.pe;
+      if(q.fwdPe!=null)raw.fwdPe=q.fwdPe;
+      if(q.peg!=null)raw.peg=q.peg;
+      if(q.eps_growth!=null)raw.eps_growth=q.eps_growth;
+      if(q.rev_growth!=null)raw.rev_growth=q.rev_growth;
+      if(q.roe!=null)raw.roe=q.roe;
+      if(q.debt_equity!=null)raw.debt_equity=q.debt_equity;
+      if(q.market_cap_b!=null)raw.market_cap_b=q.market_cap_b;
+    }
+  });
+  liveLoaded=true;
+  liveLastUpdated=updated
+    ?new Date(updated).toLocaleDateString([],{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})
+    :"GitHub";
+  renderTable();renderStats();
+}
+
+/* GitHub OHLCV — called by fetchOHLCVCached before Yahoo fallback */
+async function fetchOHLCVGitHub(ticker,range){
+  const res=await fetch(`${GH_RAW}/ohlcv/${encodeURIComponent(ticker)}.json`,{cache:"no-store"});
+  if(!res.ok)throw new Error(`GH ohlcv ${res.status}`);
+  const rows=await res.json();
+  /* filter to requested range */
+  const cutoff=rangeToStartDate(range);
+  return rows.filter(r=>!cutoff||r.time>=cutoff);
+}
+
+function rangeToStartDate(range){
+  const d=new Date();
+  const m={"1mo":1,"3mo":3,"6mo":6};
+  const y={"1y":1,"2y":2,"5y":5,"10y":10};
+  if(m[range])d.setMonth(d.getMonth()-m[range]);
+  else if(y[range])d.setFullYear(d.getFullYear()-y[range]);
+  else return null; /* max */
+  return d.toISOString().slice(0,10);
+}
+
 /* ── Init ────────────────────────────────────────────── */
 loadPortfolio();
 buildSectors();
 syncFilterUI();
 go();
 renderPortfolioSidebar();
-/* Start live fetch — kick off immediately, then every 5 min */
-fetchLiveQuotes().then(scheduleRefresh).catch(()=>{});
+/* Primary: GitHub pre-fetched data (daily refresh via Action) */
+/* Fallback: Yahoo Finance live fetch */
+fetchFromGitHub().catch(()=>fetchLiveQuotes().then(scheduleRefresh).catch(()=>{}));
 </script>
 </body>
 </html>
