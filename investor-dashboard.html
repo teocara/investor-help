@@ -168,6 +168,48 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
 .sc-l{background:rgba(248,81,73,.15);color:var(--red);}
 .type-tag{font-size:.65rem;padding:.06rem .32rem;border-radius:3px;border:1px solid var(--card-b);color:var(--dim);}
 
+/* Asset Allocation Planner */
+#alloc-pane{flex:1;overflow:auto;padding:1rem 1.25rem;display:none;flex-direction:column;gap:1rem;}
+.alloc-header{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+.alloc-title{font-size:1.05rem;font-weight:700;color:var(--text);}
+.alloc-sub{font-size:.72rem;color:var(--dim);margin-top:.1rem;}
+.alloc-risk-row{display:flex;gap:.4rem;align-items:center;margin-left:auto;}
+.alloc-risk-lbl{font-size:.67rem;color:var(--dim);}
+.risk-chip{padding:.22rem .6rem;border-radius:20px;font-size:.67rem;font-weight:700;border:none;cursor:pointer;font-family:inherit;transition:all .12s;}
+.risk-chip.on{box-shadow:0 0 0 2px var(--text);}
+.risk-conservative{background:rgba(88,166,255,.15);color:var(--blue);}
+.risk-balanced{background:rgba(210,153,34,.15);color:var(--yellow);}
+.risk-aggressive{background:rgba(63,185,80,.15);color:var(--accent);}
+.alloc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.85rem;}
+.alloc-card{background:var(--card);border:1px solid var(--card-b);border-radius:10px;padding:.9rem;display:flex;flex-direction:column;gap:.65rem;transition:border-color .15s;}
+.alloc-card:hover{border-color:var(--blue);}
+.alloc-card-head{display:flex;align-items:center;gap:.5rem;}
+.alloc-horizon{font-size:1.2rem;font-weight:800;color:var(--blue);}
+.alloc-horizon-lbl{font-size:.68rem;color:var(--dim);line-height:1.4;}
+.alloc-donut-wrap{display:flex;justify-content:center;position:relative;}
+.alloc-donut-wrap svg{overflow:visible;}
+.alloc-legend{display:flex;flex-direction:column;gap:.22rem;}
+.alloc-leg-row{display:flex;align-items:center;gap:.45rem;font-size:.72rem;}
+.alloc-leg-dot{width:9px;height:9px;border-radius:3px;flex-shrink:0;}
+.alloc-leg-name{flex:1;color:var(--text);}
+.alloc-leg-pct{font-weight:700;font-variant-numeric:tabular-nums;color:var(--dim);min-width:2.8rem;text-align:right;}
+.alloc-section-lbl{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--dim);border-bottom:1px solid var(--line);padding-bottom:.25rem;margin-bottom:.1rem;}
+.alloc-picks{display:flex;flex-direction:column;gap:.22rem;}
+.alloc-pick{display:flex;align-items:center;gap:.4rem;font-size:.72rem;padding:.22rem .4rem;border-radius:5px;background:var(--bg);border:1px solid var(--line);cursor:pointer;transition:border-color .1s;}
+.alloc-pick:hover{border-color:var(--blue);}
+.alloc-pick-tk{font-weight:700;color:var(--blue);min-width:2.8rem;}
+.alloc-pick-name{flex:1;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.alloc-pick-score{font-size:.65rem;padding:.05rem .28rem;border-radius:3px;background:rgba(63,185,80,.18);color:var(--accent);font-weight:700;flex-shrink:0;}
+.alloc-pick-why{font-size:.62rem;color:var(--dim);font-style:italic;margin-top:.05rem;}
+.alloc-themes{display:flex;flex-wrap:wrap;gap:.3rem;}
+.alloc-theme{font-size:.62rem;padding:.18rem .45rem;border-radius:20px;border:1px solid var(--card-b);color:var(--dim);}
+.alloc-rationale{font-size:.72rem;color:var(--dim);line-height:1.6;background:var(--bg);border-radius:6px;padding:.55rem .65rem;border-left:2px solid var(--blue);}
+.alloc-expected{display:grid;grid-template-columns:1fr 1fr;gap:.35rem;}
+.alloc-exp-cell{background:var(--bg);border-radius:5px;padding:.35rem .5rem;text-align:center;}
+.alloc-exp-lbl{font-size:.57rem;text-transform:uppercase;letter-spacing:.05em;color:var(--dim);}
+.alloc-exp-val{font-size:.9rem;font-weight:700;margin-top:.08rem;}
+@media(max-width:900px){.alloc-grid{grid-template-columns:1fr;}}
+
 .pagination{display:flex;align-items:center;gap:.4rem;padding:.6rem 1rem;background:var(--paper);border-top:1px solid var(--line);justify-content:flex-end;}
 .pg-btn{padding:.28rem .55rem;border-radius:4px;border:1px solid var(--card-b);background:transparent;color:var(--dim);cursor:pointer;font-size:.75rem;}
 .pg-btn:hover:not(:disabled){border-color:var(--blue);color:var(--blue);}
@@ -489,6 +531,7 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
     </table>
   </div>
   <div id="heatmap-pane"></div>
+  <div id="alloc-pane"></div>
   <div id="scatter-pane">
     <div class="scatter-toolbar">
       <label>X axis</label>
@@ -1114,26 +1157,32 @@ function renderStats(){
       <button class="vt-btn ${viewMode==="table"?"on":""}" id="vtTable">⊞ Table</button>
       <button class="vt-btn ${viewMode==="scatter"?"on":""}" id="vtScatter">◉ Scatter</button>
       <button class="vt-btn ${viewMode==="heatmap"?"on":""}" id="vtHeatmap">⬡ Heatmap</button>
+      <button class="vt-btn ${viewMode==="alloc"?"on":""}" id="vtAlloc">🎯 Allocate</button>
     </div>`;
   document.getElementById("resultsCount").textContent=`${n} results`;
   document.getElementById("vtTable").addEventListener("click",()=>{viewMode="table";renderView();});
   document.getElementById("vtScatter").addEventListener("click",()=>{viewMode="scatter";renderView();});
   document.getElementById("vtHeatmap").addEventListener("click",()=>{viewMode="heatmap";renderView();});
+  document.getElementById("vtAlloc").addEventListener("click",()=>{viewMode="alloc";renderView();});
 }
 
 function renderView(){
   const tableWrap=document.getElementById("tableWrap");
   const scatterPane=document.getElementById("scatter-pane");
   const heatmapPane=document.getElementById("heatmap-pane");
+  const allocPane=document.getElementById("alloc-pane");
   const pagination=document.getElementById("pagination");
   tableWrap.style.display="none";scatterPane.style.display="none";
-  heatmapPane.style.display="none";pagination.style.display="none";
+  heatmapPane.style.display="none";allocPane.style.display="none";pagination.style.display="none";
   if(viewMode==="scatter"){
     scatterPane.style.display="flex";
     renderScatter();
   }else if(viewMode==="heatmap"){
     heatmapPane.style.display="block";
     renderHeatmap();
+  }else if(viewMode==="alloc"){
+    allocPane.style.display="flex";
+    renderAlloc();
   }else{
     tableWrap.style.display="";pagination.style.display="";
     renderTable();renderPagination();
@@ -2154,6 +2203,119 @@ function renderScatter(){
   document.getElementById(id)?.addEventListener("change",()=>{if(viewMode==="scatter")renderScatter();});
 });
 window.addEventListener("resize",()=>{if(viewMode==="scatter")renderScatter();});
+
+/* ── Asset Allocation Planner ───────────────────────── */
+let allocRisk="balanced"; // conservative | balanced | aggressive
+
+const ALLOC_PROFILES={
+  conservative:{
+    "5y": [{n:"US Large Cap",p:35,c:"#58a6ff"},{n:"Int'l Developed",p:15,c:"#3fb950"},{n:"Bonds",p:35,c:"#a371f7"},{n:"REITs",p:5,c:"#d29922"},{n:"Gold / Commodities",p:5,c:"#f0883e"},{n:"Cash",p:5,c:"#8b949e"}],
+    "10y":[{n:"US Large Cap",p:40,c:"#58a6ff"},{n:"Int'l Developed",p:18,c:"#3fb950"},{n:"Bonds",p:25,c:"#a371f7"},{n:"REITs",p:7,c:"#d29922"},{n:"Gold / Commodities",p:5,c:"#f0883e"},{n:"Cash",p:5,c:"#8b949e"}],
+    "20y":[{n:"US Large Cap",p:45,c:"#58a6ff"},{n:"Int'l Developed",p:20,c:"#3fb950"},{n:"Emerging Markets",p:8,c:"#ffa657"},{n:"Bonds",p:18,c:"#a371f7"},{n:"REITs",p:6,c:"#d29922"},{n:"Gold / Commodities",p:3,c:"#f0883e"}]
+  },
+  balanced:{
+    "5y": [{n:"US Large Cap",p:40,c:"#58a6ff"},{n:"Int'l Developed",p:15,c:"#3fb950"},{n:"Growth / Tech",p:10,c:"#ffa657"},{n:"Bonds",p:25,c:"#a371f7"},{n:"REITs",p:5,c:"#d29922"},{n:"Cash",p:5,c:"#8b949e"}],
+    "10y":[{n:"US Large Cap",p:42,c:"#58a6ff"},{n:"Int'l Developed",p:18,c:"#3fb950"},{n:"Growth / Tech",p:15,c:"#ffa657"},{n:"Emerging Markets",p:5,c:"#f85149"},{n:"Bonds",p:12,c:"#a371f7"},{n:"REITs",p:5,c:"#d29922"},{n:"Cash",p:3,c:"#8b949e"}],
+    "20y":[{n:"US Large Cap",p:38,c:"#58a6ff"},{n:"Growth / Tech",p:20,c:"#ffa657"},{n:"Int'l Developed",p:18,c:"#3fb950"},{n:"Emerging Markets",p:12,c:"#f85149"},{n:"REITs",p:7,c:"#d29922"},{n:"Bonds",p:5,c:"#a371f7"}]
+  },
+  aggressive:{
+    "5y": [{n:"US Large Cap",p:35,c:"#58a6ff"},{n:"Growth / Tech",p:25,c:"#ffa657"},{n:"Int'l Developed",p:15,c:"#3fb950"},{n:"Small Cap",p:10,c:"#bc8cff"},{n:"Emerging Markets",p:10,c:"#f85149"},{n:"Bonds",p:5,c:"#a371f7"}],
+    "10y":[{n:"Growth / Tech",p:30,c:"#ffa657"},{n:"US Large Cap",p:30,c:"#58a6ff"},{n:"Emerging Markets",p:18,c:"#f85149"},{n:"Small Cap",p:12,c:"#bc8cff"},{n:"Int'l Developed",p:8,c:"#3fb950"},{n:"Bonds",p:2,c:"#a371f7"}],
+    "20y":[{n:"Growth / Tech",p:35,c:"#ffa657"},{n:"US Large Cap",p:28,c:"#58a6ff"},{n:"Emerging Markets",p:22,c:"#f85149"},{n:"Small Cap",p:10,c:"#bc8cff"},{n:"Int'l Developed",p:5,c:"#3fb950"}]
+  }
+};
+
+const HORIZON_META={
+  "5y":{label:"5-Year Horizon",risk:"Medium",retLow:5,retHigh:9,themes:["Dividend Growth","Value Rotation","Quality Moat","Inflation Hedge"],rationale:"Five-year horizon calls for a balanced approach — enough equity exposure to beat inflation while bonds cushion against near-term volatility. Focus on quality companies with durable earnings and moderate valuations."},
+  "10y":{label:"10-Year Horizon",risk:"Medium–High",retLow:7,retHigh:11,themes:["Secular Growth","Global Diversification","Tech Megatrends","Emerging Middle Class"],rationale:"A decade allows compounding to do real work. Lean more heavily into equities, add selective emerging-market exposure, and let short-term volatility ride. Bonds serve mainly as a rebalancing buffer."},
+  "20y":{label:"20-Year Horizon",risk:"High",retLow:8,retHigh:13,themes:["AI & Innovation","Demography Shifts","Clean Energy","Emerging Markets","Global Growth"],rationale:"Twenty years is long enough to ride through multiple market cycles. Maximize equity allocation, favor high-growth sectors, and embrace emerging-market risk for the superior long-run return premium. Bonds become almost optional."}
+};
+
+function donutSVG(slices,r=58){
+  const cx=70,cy=70,strokeW=22;
+  let angle=-90;
+  const paths=slices.map(s=>{
+    const a1=angle,a2=angle+(s.p/100)*360;
+    angle=a2;
+    const r1=a1*Math.PI/180,r2=a2*Math.PI/180;
+    const large=a2-a1>180?1:0;
+    const x1=cx+r*Math.cos(r1),y1=cy+r*Math.sin(r1);
+    const x2=cx+r*Math.cos(r2),y2=cy+r*Math.sin(r2);
+    return`<path d="M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} Z" fill="${s.c}" opacity=".85"/>`;
+  }).join('');
+  const inner=`<circle cx="${cx}" cy="${cy}" r="${r-strokeW}" fill="var(--card)"/>`;
+  return`<svg width="140" height="140" viewBox="0 0 140 140">${paths}${inner}</svg>`;
+}
+
+function pickStocksForHorizon(horizon,risk){
+  const data=[...filtered].filter(d=>d.score!=null);
+  let candidates=[];
+  const bucketMap={"5y":{minScore:6,sectors:["Technology","Healthcare","Consumer Defensive","Financial Services","Industrials"]},"10y":{minScore:6,sectors:["Technology","Healthcare","Consumer Cyclical","Communication Services","Industrials","Financial Services"]},"20y":{minScore:5,sectors:["Technology","Healthcare","Consumer Cyclical","Communication Services","Energy","Industrials","Financial Services","Emerging Markets"]}};
+  const bkt=bucketMap[horizon];
+  // best by score from preferred sectors first, then fill from any sector
+  const preferred=data.filter(d=>bkt.sectors.includes(d.sector)&&d.score>=bkt.minScore).sort((a,b)=>b.score-a.score);
+  const rest=data.filter(d=>!bkt.sectors.includes(d.sector)&&d.score>=(bkt.minScore+1)).sort((a,b)=>b.score-a.score);
+  candidates=[...preferred,...rest].slice(0,5);
+  return candidates;
+}
+
+function whyPick(d,horizon){
+  const bits=[];
+  if(d.rsi!=null&&d.rsi<35)bits.push("oversold RSI");
+  if(d.peg!=null&&d.peg>0&&d.peg<1.2)bits.push("low PEG");
+  if(d.eps_growth!=null&&d.eps_growth>20)bits.push(`EPS +${d.eps_growth.toFixed(0)}%`);
+  if(d.roe!=null&&d.roe>20)bits.push(`ROE ${d.roe.toFixed(0)}%`);
+  if(horizon==="20y"&&d.eps_growth!=null&&d.eps_growth>10)bits.push("long-run compounder");
+  if(horizon==="5y"&&d.div_yield!=null&&d.div_yield>1.5)bits.push(`yield ${d.div_yield.toFixed(1)}%`);
+  return bits.slice(0,2).join(" · ")||"strong fundamentals";
+}
+
+function renderAlloc(){
+  const pane=document.getElementById("alloc-pane");
+  const profile=ALLOC_PROFILES[allocRisk];
+  const horizons=["5y","10y","20y"];
+  const riskChips=["conservative","balanced","aggressive"].map(r=>`<button class="risk-chip risk-${r}${allocRisk===r?" on":""}" onclick="allocRisk='${r}';renderAlloc()">${r.charAt(0).toUpperCase()+r.slice(1)}</button>`).join('');
+  const cards=horizons.map(h=>{
+    const slices=profile[h];
+    const meta=HORIZON_META[h];
+    const donut=donutSVG(slices);
+    const legend=slices.map(s=>`<div class="alloc-leg-row"><div class="alloc-leg-dot" style="background:${s.c}"></div><div class="alloc-leg-name">${s.n}</div><div class="alloc-leg-pct" style="color:${s.c}">${s.p}%</div></div>`).join('');
+    const picks=pickStocksForHorizon(h,allocRisk);
+    const pickHtml=picks.length?picks.map(d=>`<div class="alloc-pick" data-ticker="${d.ticker}"><span class="alloc-pick-tk">${d.ticker}</span><span class="alloc-pick-name">${d.name||d.ticker}</span><span class="alloc-pick-score">${d.score!=null?d.score.toFixed(1):''}</span></div><div class="alloc-pick-why">${whyPick(d,h)}</div>`).join(''):`<div class="ac-loading">Load more data to see suggestions.</div>`;
+    const themes=meta.themes.map(t=>`<span class="alloc-theme">${t}</span>`).join('');
+    const retStr=`${meta.retLow}–${meta.retHigh}%`;
+    const retColor=allocRisk==="aggressive"?"var(--accent)":allocRisk==="balanced"?"var(--yellow)":"var(--blue)";
+    return`<div class="alloc-card">
+      <div class="alloc-card-head">
+        <div><div class="alloc-horizon">${h.replace('y',' yr')}</div><div class="alloc-horizon-lbl">${meta.label}</div></div>
+        <div style="margin-left:auto;text-align:right;font-size:.67rem;color:var(--dim)">Risk<br><span style="font-weight:700;color:var(--text)">${meta.risk}</span></div>
+      </div>
+      <div class="alloc-donut-wrap">${donut}</div>
+      <div class="alloc-legend">${legend}</div>
+      <div class="alloc-expected">
+        <div class="alloc-exp-cell"><div class="alloc-exp-lbl">Expected CAGR</div><div class="alloc-exp-val" style="color:${retColor}">${retStr}</div></div>
+        <div class="alloc-exp-cell"><div class="alloc-exp-lbl">Equity Exposure</div><div class="alloc-exp-val">${slices.filter(s=>!["Bonds","Cash","Gold / Commodities"].includes(s.n)).reduce((a,s)=>a+s.p,0)}%</div></div>
+      </div>
+      <div class="alloc-section-lbl">Key Themes</div>
+      <div class="alloc-themes">${themes}</div>
+      <div class="alloc-section-lbl">Top Picks from Your Watchlist</div>
+      <div class="alloc-picks">${pickHtml}</div>
+      <div class="alloc-rationale">${meta.rationale}</div>
+    </div>`;
+  }).join('');
+
+  pane.innerHTML=`
+    <div class="alloc-header">
+      <div><div class="alloc-title">Asset Allocation Planner</div><div class="alloc-sub">Suggested portfolio composition by investment horizon · scroll down for per-horizon top picks from your watchlist</div></div>
+      <div class="alloc-risk-row"><span class="alloc-risk-lbl">Risk profile:</span>${riskChips}</div>
+    </div>
+    <div class="alloc-grid">${cards}</div>`;
+  // wire row clicks
+  pane.querySelectorAll(".alloc-pick").forEach(el=>{
+    const tk=el.dataset.ticker;
+    if(tk)el.addEventListener("click",()=>openDrawer(tk));
+  });
+}
 
 /* ── Portfolio tracker ───────────────────────────────── */
 function renderPortfolioSidebar(){
