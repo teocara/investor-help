@@ -372,6 +372,16 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
 .bt-time-sub{font-size:.62rem;font-weight:400;color:var(--dim);}
 .bt-time-note{font-size:.68rem;line-height:1.45;color:var(--dim);background:var(--bg);border-radius:4px;padding:.45rem .55rem;margin-top:.1rem;}
 .bt-time-note strong{color:var(--text);}
+.bt-cmp-wrap{overflow-x:auto;margin:.45rem 0 .35rem;}
+.bt-cmp{width:100%;border-collapse:collapse;font-size:.72rem;min-width:380px;}
+.bt-cmp th{font-size:.58rem;text-transform:uppercase;letter-spacing:.04em;color:var(--dim);font-weight:600;text-align:right;padding:.25rem .4rem;border-bottom:1px solid var(--line);}
+.bt-cmp th:first-child{text-align:left;}
+.bt-cmp td{padding:.3rem .4rem;text-align:right;font-weight:600;border-bottom:1px solid var(--line);white-space:nowrap;}
+.bt-cmp tr:last-child td{border-bottom:none;}
+.bt-cmp tbody tr:hover{background:var(--bg);}
+.bt-cmp-k{text-align:left!important;font-weight:500!important;color:var(--dim);}
+.bt-cmp-sub{font-size:.6rem;font-weight:400;color:var(--dim);}
+.bt-cmp-warn{font-size:.55rem;color:var(--yellow);font-weight:400;}
 .bt-chart-wrap{background:var(--card);border:1px solid var(--card-b);border-radius:6px;margin-bottom:.5rem;}
 #btChart{height:160px;}
 .bt-trades{margin-top:.5rem;}
@@ -660,9 +670,12 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
       <button class="ct-btn" data-range="2y">2Y</button>
       <button class="ct-btn" data-range="5y">5Y</button>
       <button class="ct-btn" data-range="10y">10Y</button>
+      <button class="ct-btn" data-range="15y">15Y</button>
+      <button class="ct-btn" data-range="20y">20Y</button>
       <button class="ct-btn" data-range="max">Max</button>
       <span style="flex:1"></span>
-      <button class="ct-btn on" data-ind="sma">SMA</button>
+      <button class="ct-btn on" data-ind="sma" data-tip="SMA 20 &amp; 50 — short and medium-term trend lines.">SMA</button>
+      <button class="ct-btn on" data-ind="sma250" data-tip="SMA 250 — the ~1-trading-year average. Price above it is the classic definition of a long-term uptrend. Needs at least 250 bars of history, so pick a longer range if the line does not appear.">SMA250</button>
       <button class="ct-btn on" data-ind="bb">BB</button>
       <button class="ct-btn on" data-ind="vol">Vol</button>
     </div>
@@ -795,6 +808,8 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
           <option value="2y">2 Years</option>
           <option value="5y">5 Years</option>
           <option value="10y">10 Years</option>
+          <option value="15y">15 Years</option>
+          <option value="20y">20 Years</option>
           <option value="max">Max History</option>
         </select>
       </div>
@@ -1601,7 +1616,7 @@ function drawGauge(rsi){
    TAB 2 — TECHNICAL ANALYSIS CHARTS (lightweight-charts)
    ══════════════════════════════════════════════════════ */
 let taRange="1y";
-let taInds=new Set(["sma","bb","vol"]);
+let taInds=new Set(["sma","sma250","bb","vol"]);
 let taOHLCV=null;
 
 document.querySelectorAll(".ct-btn[data-range]").forEach(b=>{
@@ -1667,7 +1682,7 @@ function tickerToStooq(ticker){
 async function fetchOHLCVStooq(ticker,range){
   const sym=tickerToStooq(ticker);
   const end=new Date(),start=new Date();
-  const days={"1mo":31,"3mo":92,"6mo":183,"1y":366,"2y":730,"5y":1826,"10y":3652,"max":7300}[range]||366;
+  const days={"1mo":31,"3mo":92,"6mo":183,"1y":366,"2y":730,"5y":1826,"10y":3652,"15y":5479,"20y":7305,"max":10958}[range]||366;
   start.setDate(start.getDate()-days);
   const fmt=d=>d.toISOString().slice(0,10).replace(/-/g,'');
   const url=`https://stooq.com/q/d/l/?s=${sym}&d1=${fmt(start)}&d2=${fmt(end)}&i=d`;
@@ -1700,8 +1715,11 @@ function idbPut(key,val){return openIDB().then(db=>new Promise((res,rej)=>{const
 const IDB_TTL=86400000; /* 1 day ms */
 
 async function fetchOHLCV(ticker,range){
-  const interval=(range==="5y"||range==="10y"||range==="max")?"1wk":range==="2y"?"1wk":"1d";
-  const yUrl=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?range=${range}&interval=${interval}&includePrePost=false`;
+  /* Yahoo only accepts a fixed set of range tokens — 15y/20y are not among
+     them, so request full history and trim to the cutoff below. */
+  const yRange=(range==="15y"||range==="20y")?"max":range;
+  const interval=(yRange==="2y"||yRange==="5y"||yRange==="10y"||yRange==="max")?"1wk":"1d";
+  const yUrl=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?range=${yRange}&interval=${interval}&includePrePost=false`;
   const json=await fetchViaProxy(yUrl);
   const r=json.chart.result[0];
   const times=r.timestamps||r.timestamp;
@@ -1715,7 +1733,8 @@ async function fetchOHLCV(ticker,range){
     rows.push({time:dt,open:+q.open[i].toFixed(2),high:+q.high[i].toFixed(2),low:+q.low[i].toFixed(2),close:+q.close[i].toFixed(2),volume:q.volume[i]||0});
   }
   rows.sort((a,b)=>a.time.localeCompare(b.time));
-  return rows;
+  const cutoff=rangeToStartDate(range);
+  return cutoff?rows.filter(r=>r.time>=cutoff):rows;
 }
 async function fetchOHLCVCached(ticker,range){
   const key=`${ticker}:${range}`;
@@ -1739,6 +1758,30 @@ async function fetchOHLCVCached(ticker,range){
 
 /* Indicators */
 function calcSMA(closes,n){return closes.map((_,i)=>i<n-1?null:closes.slice(i-n+1,i+1).reduce((a,b)=>a+b,0)/n);}
+
+/* ── Bar-size awareness ──────────────────────────────────────────────────
+   Long ranges are served as weekly bars, so a window expressed in trading
+   days has to be converted to bars or a "250-day" average would silently
+   become 250 weeks (~5 years). Detects spacing from the median gap. */
+function barsPerYear(rows){
+  if(!rows||rows.length<3)return 252;
+  const gaps=[];
+  for(let i=1;i<rows.length;i++){
+    const d=(Date.parse(rows[i].time)-Date.parse(rows[i-1].time))/86400000;
+    if(d>0&&d<400)gaps.push(d);
+  }
+  if(!gaps.length)return 252;
+  gaps.sort((a,b)=>a-b);
+  const med=gaps[Math.floor(gaps.length/2)];
+  if(med<=2.5)return 252;      /* daily */
+  if(med<=10)return 52;        /* weekly */
+  return 12;                   /* monthly */
+}
+/* Convert a window given in trading days into bars for this dataset. */
+function barsFor(days,rows){
+  const bpy=barsPerYear(rows);
+  return Math.max(2,Math.round(days*bpy/252));
+}
 function calcEMA(closes,n){
   const ema=[];let k=2/(n+1);
   closes.forEach((c,i)=>{if(i===0)ema.push(c);else ema.push(+(c*k+ema[i-1]*(1-k)).toFixed(4));});
@@ -1758,10 +1801,10 @@ function calcRSI(closes,n=14){
   }
   return rsi;
 }
-function calcMACD(closes){
-  const e12=calcEMA(closes,12),e26=calcEMA(closes,26);
+function calcMACD(closes,fast=12,slow=26,signal=9){
+  const e12=calcEMA(closes,fast),e26=calcEMA(closes,slow);
   const m=e12.map((v,i)=>+(v-e26[i]).toFixed(4));
-  const s=calcEMA(m,9);
+  const s=calcEMA(m,signal);
   const h=m.map((v,i)=>+(v-s[i]).toFixed(4));
   return{m,s,h};
 }
@@ -1915,13 +1958,18 @@ function renderTACharts(rows){
     chartInstances.price=pc;
     const cs=pc.addCandlestickSeries({upColor:"#3fb950",downColor:"#f85149",borderUpColor:"#3fb950",borderDownColor:"#f85149",wickUpColor:"#3fb950",wickDownColor:"#f85149"});
     cs.setData(rows);
+    const addLine=(arr,color,lbl,width)=>{
+      const data=arr.map((v,i)=>v!=null?{time:times[i],value:v}:null).filter(Boolean);
+      if(data.length){const ls=pc.addLineSeries({color,lineWidth:width||1,title:lbl,priceLineVisible:false,lastValueVisible:false});ls.setData(data);}
+    };
     if(taInds.has("sma")){
-      const s20=calcSMA(closes,20),s50=calcSMA(closes,50);
-      const add=(arr,color,lbl)=>{
-        const data=arr.map((v,i)=>v!=null?{time:times[i],value:v}:null).filter(Boolean);
-        if(data.length){const ls=pc.addLineSeries({color,lineWidth:1,title:lbl,priceLineVisible:false,lastValueVisible:false});ls.setData(data);}
-      };
-      add(s20,"#58a6ff","SMA20");add(s50,"#d29922","SMA50");
+      addLine(calcSMA(closes,barsFor(20,rows)),"#58a6ff","SMA20");
+      addLine(calcSMA(closes,barsFor(50,rows)),"#d29922","SMA50");
+    }
+    if(taInds.has("sma250")){
+      /* Only meaningful once there is a full window of history to average. */
+      const n=barsFor(250,rows);
+      if(closes.length>=n)addLine(calcSMA(closes,n),"#f778ba","SMA250",2);
     }
     if(taInds.has("bb")){
       const bb=calcBB(closes);
@@ -2224,29 +2272,32 @@ function computeSignals(strat,rows){
   const highs=rows.map(r=>r.high||r.close);
   const lows=rows.map(r=>r.low||r.close);
   const sig=new Array(rows.length).fill(0);
+  /* Windows below are written in trading days; B() maps them onto whatever
+     bar size this dataset actually uses (daily under ~2y, weekly beyond). */
+  const B=n=>barsFor(n,rows);
 
   if(strat==="sma_cross"){
-    const s20=calcSMA(closes,20),s50=calcSMA(closes,50);
+    const s20=calcSMA(closes,B(20)),s50=calcSMA(closes,B(50));
     for(let i=1;i<rows.length;i++){
       if(s20[i]!=null&&s50[i]!=null){if(s20[i]>s50[i]&&s20[i-1]<=s50[i-1])sig[i]=1;else if(s20[i]<s50[i]&&s20[i-1]>=s50[i-1])sig[i]=-1;}
     }
   }else if(strat==="sma_50_200"){
-    const s50=calcSMA(closes,50),s200=calcSMA(closes,200);
+    const s50=calcSMA(closes,B(50)),s200=calcSMA(closes,B(200));
     for(let i=1;i<rows.length;i++){
       if(s50[i]!=null&&s200[i]!=null){if(s50[i]>s200[i]&&s50[i-1]<=s200[i-1])sig[i]=1;else if(s50[i]<s200[i]&&s50[i-1]>=s200[i-1])sig[i]=-1;}
     }
   }else if(strat==="ma_250_trend"){
-    const s250=calcSMA(closes,250);let wasAbove=null;
+    const s250=calcSMA(closes,B(250));let wasAbove=null;
     for(let i=1;i<rows.length;i++){
       if(s250[i]==null)continue;const above=closes[i]>s250[i];
       if(wasAbove===null){wasAbove=above;continue;}
       if(above&&!wasAbove)sig[i]=1;else if(!above&&wasAbove)sig[i]=-1;wasAbove=above;
     }
   }else if(strat==="ema_cross"){
-    const e12=calcEMA(closes,12),e26=calcEMA(closes,26);
+    const e12=calcEMA(closes,B(12)),e26=calcEMA(closes,B(26));
     for(let i=1;i<rows.length;i++){if(e12[i-1]<=e26[i-1]&&e12[i]>e26[i])sig[i]=1;else if(e12[i-1]>=e26[i-1]&&e12[i]<e26[i])sig[i]=-1;}
   }else if(strat==="triple_ma"){
-    const s20=calcSMA(closes,20),s50=calcSMA(closes,50),s200=calcSMA(closes,200);let wasAligned=false;
+    const s20=calcSMA(closes,B(20)),s50=calcSMA(closes,B(50)),s200=calcSMA(closes,B(200));let wasAligned=false;
     for(let i=1;i<rows.length;i++){
       if(s20[i]==null||s50[i]==null||s200[i]==null)continue;
       const bull=s20[i]>s50[i]&&s50[i]>s200[i];const bear=s20[i]<s50[i]&&s50[i]<s200[i];
@@ -2254,53 +2305,53 @@ function computeSignals(strat,rows){
       if(bull)wasAligned=true;else if(bear)wasAligned=false;
     }
   }else if(strat==="sma_envelope"){
-    const s20=calcSMA(closes,20);
+    const s20=calcSMA(closes,B(20));
     for(let i=1;i<rows.length;i++){if(s20[i]==null)continue;const lo=s20[i]*0.95,hi=s20[i]*1.05;if(closes[i-1]<lo&&closes[i]>=lo)sig[i]=1;else if(closes[i-1]>hi&&closes[i]<=hi)sig[i]=-1;}
   }else if(strat==="supertrend"){
     const st=calcSuperTrend(rows);
     for(let i=1;i<rows.length;i++){if(!st[i]||!st[i-1])continue;if(st[i-1].dir===-1&&st[i].dir===1)sig[i]=1;else if(st[i-1].dir===1&&st[i].dir===-1)sig[i]=-1;}
   }else if(strat==="rsi_mean"){
-    const rsi=calcRSI(closes);
+    const rsi=calcRSI(closes,B(14));
     for(let i=1;i<rows.length;i++){if(rsi[i]!=null&&rsi[i-1]!=null){if(rsi[i-1]<30&&rsi[i]>=30)sig[i]=1;else if(rsi[i-1]>70&&rsi[i]<=70)sig[i]=-1;}}
   }else if(strat==="rsi_trend"){
-    const rsi=calcRSI(closes);
+    const rsi=calcRSI(closes,B(14));
     for(let i=1;i<rows.length;i++){if(rsi[i]==null||rsi[i-1]==null)continue;if(rsi[i-1]<50&&rsi[i]>=50)sig[i]=1;else if(rsi[i-1]>50&&rsi[i]<=50)sig[i]=-1;}
   }else if(strat==="macd_signal"){
-    const{m,s}=calcMACD(closes);
+    const{m,s}=calcMACD(closes,B(12),B(26),B(9));
     for(let i=1;i<rows.length;i++){if(m[i-1]<s[i-1]&&m[i]>=s[i])sig[i]=1;else if(m[i-1]>s[i-1]&&m[i]<=s[i])sig[i]=-1;}
   }else if(strat==="macd_zero"){
-    const{m}=calcMACD(closes);
+    const{m}=calcMACD(closes,B(12),B(26),B(9));
     for(let i=1;i<rows.length;i++){if(m[i-1]<0&&m[i]>=0)sig[i]=1;else if(m[i-1]>0&&m[i]<=0)sig[i]=-1;}
   }else if(strat==="stoch_cross"){
-    const st=calcStoch(highs,lows,closes);
+    const st=calcStoch(highs,lows,closes,B(14),B(3));
     for(let i=1;i<rows.length;i++){const p=st[i-1],c=st[i];if(!p||!c)continue;if(p.k<p.d&&c.k>=c.d&&c.k<45)sig[i]=1;else if(p.k>p.d&&c.k<=c.d&&c.k>55)sig[i]=-1;}
   }else if(strat==="cci_rev"){
-    const cci=calcCCI(highs,lows,closes);
+    const cci=calcCCI(highs,lows,closes,B(20));
     for(let i=1;i<rows.length;i++){if(cci[i]==null||cci[i-1]==null)continue;if(cci[i-1]<-100&&cci[i]>=-100)sig[i]=1;else if(cci[i-1]>100&&cci[i]<=100)sig[i]=-1;}
   }else if(strat==="price_mom"){
-    const yr=252,mo=21;
+    const yr=B(252),mo=B(21);
     for(let i=yr;i<rows.length;i++){
       const ret=(closes[i-mo]-closes[i-yr])/closes[i-yr];
       const retPrev=(closes[Math.max(0,i-mo-1)]-closes[Math.max(0,i-yr-1)])/closes[Math.max(0,i-yr-1)];
       if(retPrev<=0&&ret>0)sig[i]=1;else if(retPrev>=0&&ret<0)sig[i]=-1;
     }
   }else if(strat==="bb_bounce"){
-    const bb=calcBB(closes);
+    const bb=calcBB(closes,B(20));
     for(let i=1;i<rows.length;i++){if(bb[i]==null)continue;if(closes[i-1]<bb[i].lower&&closes[i]>=bb[i].lower)sig[i]=1;else if(closes[i-1]>bb[i].upper&&closes[i]<=bb[i].upper)sig[i]=-1;}
   }else if(strat==="bb_breakout"){
-    const bb=calcBB(closes);
+    const bb=calcBB(closes,B(20));
     for(let i=1;i<rows.length;i++){const pb=bb[i-1],cb=bb[i];if(!pb||!cb)continue;if(closes[i-1]<=pb.upper&&closes[i]>cb.upper)sig[i]=1;else if(closes[i-1]>=pb.lower&&closes[i]<cb.lower)sig[i]=-1;}
   }else if(strat==="keltner"){
-    const kc=calcKeltner(closes,highs,lows);
+    const kc=calcKeltner(closes,highs,lows,B(20));
     for(let i=1;i<rows.length;i++){const pk=kc[i-1],ck=kc[i];if(!pk||!ck)continue;if(closes[i-1]<=pk.upper&&closes[i]>ck.upper)sig[i]=1;else if(closes[i-1]>=pk.lower&&closes[i]<ck.lower)sig[i]=-1;}
   }else if(strat==="donchian_20"){
-    const dc=calcDonchian(highs,lows,20);
+    const dc=calcDonchian(highs,lows,B(20));
     for(let i=1;i<rows.length;i++){if(!dc[i]||!dc[i-1])continue;if(closes[i-1]<=dc[i-1].upper&&closes[i]>dc[i].upper)sig[i]=1;else if(closes[i-1]>=dc[i-1].lower&&closes[i]<dc[i].lower)sig[i]=-1;}
   }else if(strat==="donchian_50"){
-    const dc=calcDonchian(highs,lows,50);
+    const dc=calcDonchian(highs,lows,B(50));
     for(let i=1;i<rows.length;i++){if(!dc[i]||!dc[i-1])continue;if(closes[i-1]<=dc[i-1].upper&&closes[i]>dc[i].upper)sig[i]=1;else if(closes[i-1]>=dc[i-1].lower&&closes[i]<dc[i].lower)sig[i]=-1;}
   }else if(strat==="atr_breakout"){
-    const atr=calcATR(rows),sma=calcSMA(closes,20);
+    const atr=calcATR(rows,B(14)),sma=calcSMA(closes,B(20));
     for(let i=1;i<rows.length;i++){
       if(atr[i]==null||sma[i]==null)continue;
       const hi=sma[i]+1.5*atr[i],lo=sma[i]-1.5*atr[i];
@@ -2308,7 +2359,7 @@ function computeSignals(strat,rows){
       else if(closes[i-1]>=sma[i]-1.5*(atr[i-1]||atr[i])&&closes[i]<lo)sig[i]=-1;
     }
   }else if(strat==="zscore_rev"){
-    const z=calcZScore(closes);
+    const z=calcZScore(closes,B(20));
     for(let i=1;i<rows.length;i++){if(z[i]==null||z[i-1]==null)continue;if(z[i-1]<-2&&z[i]>=-2)sig[i]=1;else if(z[i-1]>2&&z[i]<=2)sig[i]=-1;}
   }else if(strat==="parabolic_sar"){
     const sar=calcParabolicSAR(rows);
@@ -2393,7 +2444,9 @@ function runBacktest(strat,rows,stratB=null,combineLogic="none"){
   const sharpe=calcSharpe(equity.map(e=>e.value));
 
   /* ---- time-efficiency metrics ---- */
-  const BARS_YR=252;
+  /* Long ranges arrive as weekly bars, so derive the annualization factor
+     from the data rather than assuming 252 daily bars. */
+  const BARS_YR=barsPerYear(rows);
   const totalBars=rows.length;
   const growth=finalEq/10000;
   const yrs=totalBars/BARS_YR;
@@ -2414,17 +2467,34 @@ function runBacktest(strat,rows,stratB=null,combineLogic="none"){
   const yrsInvested=barsInPos/BARS_YR;
   const roti=yrsInvested>0&&growth>0?((Math.pow(growth,1/yrsInvested)-1)*100):null;
 
-  /* Average holding period and the mean per-trade gain per day held */
+  /* Buy & hold is invested 100% of the time by definition, so its RoTI is
+     simply its CAGR. Stated explicitly because that identity is the whole
+     reason a low-exposure strategy can win on RoTI while losing on CAGR. */
+  const bhRoti=bhCagr;
+  const bhExposure=100;
+
+  /* Head-to-head spreads (percentage points) */
+  const cagrEdge=cagr!=null&&bhCagr!=null?(cagr-bhCagr):null;
+  const rotiEdgePts=roti!=null&&bhRoti!=null?(roti-bhRoti):null;
+
+  /* Average holding period and the mean per-trade gain per bar held */
   const avgHold=holds.length?holds.reduce((s,h)=>s+h.bars,0)/holds.length:null;
   const retPerDay=holds.length
     ?holds.reduce((s,h)=>s+((h.ret-1)*100)/h.bars,0)/holds.length
     :null;
+  /* Same measure for buy & hold: one position held the whole window */
+  const bhRetPerDay=totalBars>0?((bhGrowth-1)*100)/totalBars:null;
 
   /* Calmar: annualized return per unit of worst drawdown */
   const calmar=cagr!=null&&+maxDD>0?(cagr/+maxDD):null;
+  const bhMaxDD=calcMaxDD(rows.map(r=>r.close));
+  const bhCalmar=bhCagr!=null&&+bhMaxDD>0?(bhCagr/+bhMaxDD):null;
+
+  const barLabel=BARS_YR>=200?"day":BARS_YR>=40?"week":"month";
 
   return{equity,trades,totalReturn,bhReturn,winRate,maxDD,sharpe,finalEq,
-         cagr,bhCagr,exposure,roti,avgHold,retPerDay,calmar,barsInPos,totalBars};
+         cagr,bhCagr,exposure,roti,avgHold,retPerDay,calmar,barsInPos,totalBars,
+         bhRoti,bhExposure,cagrEdge,rotiEdgePts,bhRetPerDay,bhMaxDD,bhCalmar,barLabel};
 }
 
 function calcMaxDD(vals){
@@ -2444,7 +2514,8 @@ function fmtAnnual(v){
 
 function renderBacktest(result,rows){
   const{equity,trades,totalReturn,bhReturn,winRate,maxDD,sharpe,finalEq,
-        cagr,bhCagr,exposure,roti,avgHold,retPerDay,calmar,barsInPos,totalBars}=result;
+        cagr,bhCagr,exposure,roti,avgHold,retPerDay,calmar,barsInPos,totalBars,
+        bhRoti,bhExposure,cagrEdge,rotiEdgePts,bhRetPerDay,bhMaxDD,bhCalmar,barLabel}=result;
   const positive=+totalReturn>=0;
   const vsLabel=+totalReturn>=+bhReturn?"▲ beats B&H":"▼ lags B&H";
   const vsColor=+totalReturn>=+bhReturn?"var(--accent)":"var(--red)";
@@ -2468,46 +2539,65 @@ function renderBacktest(result,rows){
     </div>
   </div>`;
 
-  /* ---- time-efficiency panel ---- */
+  /* ---- time-efficiency panel: strategy vs buy & hold, head to head ---- */
+  const fBR=fmtAnnual(bhRoti);
+  const pts=v=>v==null||!isFinite(v)?"—":(v>=0?"+":"")+v.toFixed(1)+" pts";
+  const edgeCol=v=>v==null?"var(--dim)":v>=0?"var(--accent)":"var(--red)";
+  const pct=v=>v==null||!isFinite(v)?"—":(v>=0?"+":"")+v.toFixed(2)+"%";
+
   html+=`<div class="bt-result bt-time-panel">
     <div class="bt-time-hd">
-      <span>⏱️ Return per Time Invested</span>
+      <span>⏱️ Return per Time Invested — vs Buy &amp; Hold</span>
       <span class="bt-time-sub">how hard the capital worked while it was actually at risk</span>
     </div>
-    <div class="bt-metric-grid">
-      <div class="bt-metric" data-tip="CAGR — the strategy's total return expressed as a constant annual rate over the whole test window, including the stretches sitting in cash. This is the honest headline number for comparing strategies of different lengths.">
-        <div class="bt-m-lbl">CAGR (calendar)</div>
-        <div class="bt-m-val" style="color:${cagrCol}">${fC.txt}</div></div>
-      <div class="bt-metric" data-tip="The same annualized calculation applied to buy &amp; hold over the identical window, so the two are directly comparable.">
-        <div class="bt-m-lbl">B&amp;H CAGR</div>
-        <div class="bt-m-val">${fB.txt}</div></div>
-      <div class="bt-metric" data-tip="Time in market — the share of trading days the strategy actually held a position. Low exposure means the capital was free to be deployed elsewhere the rest of the time.">
-        <div class="bt-m-lbl">Exposure</div>
-        <div class="bt-m-val">${exposure.toFixed(0)}%</div>
-        <div class="bt-m-note">${barsInPos}/${totalBars} days</div></div>
-      <div class="bt-metric" data-tip="Return on Time Invested — the same growth annualized over ONLY the days capital was deployed. This is the metric that ranks +10% earned in 2 days above +20% earned over a year. Treat it as the return rate you could theoretically compound at IF you could find an equally good setup every time you are in cash.">
-        <div class="bt-m-lbl">RoTI (invested)</div>
-        <div class="bt-m-val" style="color:${rotiCol}">${fR.txt}</div>
-        ${fR.warn?`<div class="bt-m-note warn">extrapolated</div>`:""}</div>
-      <div class="bt-metric" data-tip="Average number of trading days a position was held, across all completed trades.">
-        <div class="bt-m-lbl">Avg Hold</div>
-        <div class="bt-m-val">${avgHold!=null?avgHold.toFixed(0)+"d":"—"}</div></div>
-      <div class="bt-metric" data-tip="Mean percentage gain per day held, averaged across trades. A simple, non-compounding way to compare trade velocity — higher means each day in the market earned more.">
-        <div class="bt-m-lbl">Return / Day Held</div>
-        <div class="bt-m-val" style="color:${retPerDay!=null&&retPerDay>=0?"var(--accent)":"var(--red)"}">${retPerDay!=null?(retPerDay>=0?"+":"")+retPerDay.toFixed(2)+"%":"—"}</div></div>
-      <div class="bt-metric" data-tip="Calmar ratio — annualized return divided by maximum drawdown. Above 1.0 means the strategy earned more per year than its worst peak-to-trough loss. A pain-adjusted counterpart to Sharpe.">
-        <div class="bt-m-lbl">Calmar</div>
-        <div class="bt-m-val" style="color:${calmar!=null&&calmar>1?"var(--accent)":calmar!=null&&calmar>0?"var(--yellow)":"var(--red)"}">${calmar!=null?calmar.toFixed(2):"—"}</div></div>
-      <div class="bt-metric" data-tip="Whether annualizing over invested days only reveals a materially higher rate than the calendar CAGR. When it does, the strategy is time-efficient: it made its money in concentrated bursts and left the capital idle otherwise.">
-        <div class="bt-m-lbl">Time Efficiency</div>
-        <div class="bt-m-val" style="color:${rotiEdge?"var(--accent)":"var(--dim)"}">${rotiEdge?"▲ high":"— flat"}</div></div>
+    <div class="bt-cmp-wrap">
+    <table class="bt-cmp">
+      <thead><tr><th>Metric</th><th>Strategy</th><th>Buy &amp; Hold</th><th>Edge</th></tr></thead>
+      <tbody>
+        <tr data-tip="CAGR — total return expressed as a constant annual rate across the whole window, including time sitting in cash. This is the number you actually earn.">
+          <td class="bt-cmp-k">CAGR (calendar)</td>
+          <td style="color:${cagrCol}">${fC.txt}</td>
+          <td>${fB.txt}</td>
+          <td style="color:${edgeCol(cagrEdge)}">${pts(cagrEdge)}</td></tr>
+        <tr data-tip="Return on Time Invested — the same growth annualized over ONLY the bars capital was deployed. Buy &amp; hold is invested 100% of the time, so its RoTI is identical to its CAGR; that identity is exactly why a selective strategy can win here while losing on calendar CAGR.">
+          <td class="bt-cmp-k">RoTI (invested only)</td>
+          <td style="color:${rotiCol}">${fR.txt}${fR.warn?` <span class="bt-cmp-warn">extrap.</span>`:""}</td>
+          <td>${fBR.txt}</td>
+          <td style="color:${edgeCol(rotiEdgePts)}">${pts(rotiEdgePts)}</td></tr>
+        <tr data-tip="Share of the window holding a position. Buy &amp; hold is 100% by definition.">
+          <td class="bt-cmp-k">Exposure</td>
+          <td>${exposure.toFixed(0)}%<span class="bt-cmp-sub"> (${barsInPos}/${totalBars} ${barLabel}s)</span></td>
+          <td>${bhExposure}%</td>
+          <td style="color:${edgeCol(bhExposure-exposure)}">${(bhExposure-exposure).toFixed(0)} pts less</td></tr>
+        <tr data-tip="Mean percentage gain per bar held. For buy &amp; hold it is the whole move spread evenly across every bar in the window.">
+          <td class="bt-cmp-k">Return / ${barLabel} held</td>
+          <td style="color:${retPerDay!=null&&retPerDay>=0?"var(--accent)":"var(--red)"}">${pct(retPerDay)}</td>
+          <td>${pct(bhRetPerDay)}</td>
+          <td style="color:${edgeCol(retPerDay!=null&&bhRetPerDay!=null?retPerDay-bhRetPerDay:null)}">${retPerDay!=null&&bhRetPerDay!=null?pct(retPerDay-bhRetPerDay):"—"}</td></tr>
+        <tr data-tip="Worst peak-to-trough loss. A strategy that sidesteps crashes should show a materially smaller drawdown than buy &amp; hold.">
+          <td class="bt-cmp-k">Max Drawdown</td>
+          <td style="color:var(--red)">-${maxDD}%</td>
+          <td style="color:var(--red)">-${bhMaxDD}%</td>
+          <td style="color:${edgeCol(+bhMaxDD-+maxDD)}">${(+bhMaxDD-+maxDD).toFixed(1)} pts</td></tr>
+        <tr data-tip="Calmar ratio — annualized return divided by maximum drawdown. Above 1.0 means a year of gains exceeds the worst loss endured to get them.">
+          <td class="bt-cmp-k">Calmar</td>
+          <td style="color:${calmar!=null&&calmar>1?"var(--accent)":calmar!=null&&calmar>0?"var(--yellow)":"var(--red)"}">${calmar!=null?calmar.toFixed(2):"—"}</td>
+          <td>${bhCalmar!=null?bhCalmar.toFixed(2):"—"}</td>
+          <td style="color:${edgeCol(calmar!=null&&bhCalmar!=null?calmar-bhCalmar:null)}">${calmar!=null&&bhCalmar!=null?(calmar-bhCalmar>=0?"+":"")+(calmar-bhCalmar).toFixed(2):"—"}</td></tr>
+        <tr data-tip="Average number of bars a position was held across completed trades. Buy &amp; hold holds the entire window as a single trade.">
+          <td class="bt-cmp-k">Avg Hold</td>
+          <td>${avgHold!=null?avgHold.toFixed(0)+" "+barLabel+"s":"—"}</td>
+          <td>${totalBars} ${barLabel}s</td>
+          <td class="bt-cmp-sub">${avgHold!=null?(totalBars/avgHold).toFixed(0)+"× shorter":"—"}</td></tr>
+      </tbody>
+    </table>
     </div>
     <div class="bt-time-note">${
       exposure>=97
-        ? `This strategy is invested <strong>${exposure.toFixed(0)}%</strong> of the time, so RoTI and CAGR converge — there is no idle capital to redeploy and no time-efficiency edge to capture.`
+        ? `This strategy is invested <strong>${exposure.toFixed(0)}%</strong> of the time, so its RoTI and CAGR converge and it is effectively competing with buy &amp; hold on equal time. The <strong>${pts(cagrEdge)}</strong> CAGR edge is the whole story — there is no idle capital to redeploy.`
         : rotiEdge
-          ? `Capital was deployed only <strong>${exposure.toFixed(0)}%</strong> of the window, so the same profit was earned in a fraction of the time — an annualized <strong>${fR.txt}</strong> while invested versus <strong>${fC.txt}</strong> across the calendar. That edge is only realisable if the idle <strong>${(100-exposure).toFixed(0)}%</strong> can be put to work at a comparable rate; otherwise the calendar CAGR is what you actually earn.`
-          : `Exposure was <strong>${exposure.toFixed(0)}%</strong> but the invested-only rate is no better than the calendar rate — the strategy was out of the market during periods that would not have hurt it much anyway.`
+          ? `Capital was deployed only <strong>${exposure.toFixed(0)}%</strong> of the window. Against buy &amp; hold the strategy ${cagrEdge>=0?"leads":"trails"} by <strong>${pts(cagrEdge)}</strong> on calendar CAGR, but earns at <strong>${fR.txt}</strong> annualized while actually invested versus <strong>${fBR.txt}</strong> for buy &amp; hold — a <strong>${pts(rotiEdgePts)}</strong> gap in rate-of-work. That gap is only bankable if the idle <strong>${(100-exposure).toFixed(0)}%</strong> can be put to work at a comparable rate; if it sits in cash, the calendar CAGR is what you keep.`
+          : `Exposure was <strong>${exposure.toFixed(0)}%</strong>, yet the invested-only rate is no better than the calendar rate — the strategy sat out periods that would not have hurt it much anyway, so it gives up <strong>${pts(cagrEdge)}</strong> against buy &amp; hold without buying a higher rate of work in exchange.`
     }</div>
   </div>`;
 
@@ -3051,11 +3141,30 @@ async function fetchFromGitHub(){
 }
 
 /* GitHub OHLCV — called by fetchOHLCVCached before Yahoo fallback */
+/* The nightly job writes two files per ticker: 2 years of daily bars, and
+   full history at weekly resolution. Anything past 2 years has to come from
+   the long file or it would be silently truncated. */
+const LONG_RANGES=new Set(["5y","10y","15y","20y","max"]);
+
 async function fetchOHLCVGitHub(ticker,range){
-  const res=await fetch(`${GH_RAW}/ohlcv/${encodeURIComponent(ticker)}.json`,{cache:"no-store"});
-  if(!res.ok)throw new Error(`GH ohlcv ${res.status}`);
-  const rows=await res.json();
-  /* filter to requested range */
+  const enc=encodeURIComponent(ticker);
+  const wantsLong=LONG_RANGES.has(range);
+  const dirs=wantsLong?["ohlcv-long","ohlcv"]:["ohlcv"];
+  let rows=null,usedDir=null,lastErr=null;
+  for(const dir of dirs){
+    try{
+      const res=await fetch(`${GH_RAW}/${dir}/${enc}.json`,{cache:"no-store"});
+      if(!res.ok){lastErr=new Error(`GH ${dir} ${res.status}`);continue;}
+      const parsed=await res.json();
+      if(Array.isArray(parsed)&&parsed.length>10){rows=parsed;usedDir=dir;break;}
+    }catch(e){lastErr=e;}
+  }
+  if(!rows)throw lastErr||new Error("GH ohlcv unavailable");
+  /* The daily file only holds 2 years. Serving it for a 10y+ request would
+     silently truncate the window, so reject and let Stooq/Yahoo supply the
+     real history instead. */
+  if(wantsLong&&usedDir==="ohlcv")
+    throw new Error("GH long history unavailable — falling through");
   const cutoff=rangeToStartDate(range);
   return rows.filter(r=>!cutoff||r.time>=cutoff);
 }
@@ -3063,7 +3172,7 @@ async function fetchOHLCVGitHub(ticker,range){
 function rangeToStartDate(range){
   const d=new Date();
   const m={"1mo":1,"3mo":3,"6mo":6};
-  const y={"1y":1,"2y":2,"5y":5,"10y":10};
+  const y={"1y":1,"2y":2,"5y":5,"10y":10,"15y":15,"20y":20};
   if(m[range])d.setMonth(d.getMonth()-m[range]);
   else if(y[range])d.setFullYear(d.getFullYear()-y[range]);
   else return null; /* max */

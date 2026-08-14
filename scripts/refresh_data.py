@@ -61,20 +61,67 @@ raw_hist = yf.download(
 )
 print("  download complete")
 
+# ── Batch long-history download (full history, weekly) ───────────────────
+# Daily bars for 20+ years would be ~140 MB across all tickers and the file
+# set is rewritten on every nightly run, so long history is stored weekly.
+# ~1k rows per ticker instead of ~5k, at a resolution that is appropriate
+# for multi-year charting and backtesting anyway.
+
+print("Downloading full-history weekly OHLCV (batch)…")
+try:
+    raw_long = yf.download(
+        tickers,
+        period="max",
+        interval="1wk",
+        auto_adjust=True,
+        threads=True,
+        progress=False,
+    )
+    print("  long-history download complete")
+except Exception as e:
+    print(f"  long-history download FAILED: {e}")
+    raw_long = None
+
 # yf.download returns MultiIndex (metric, ticker) when >1 tickers
 multi = len(tickers) > 1
 
-def get_series(metric, ticker):
+def _series(frame, metric, ticker):
     try:
+        if frame is None:
+            return pd.Series(dtype=float)
         if multi:
-            return raw_hist[metric][ticker].dropna()
-        return raw_hist[metric].dropna()
+            return frame[metric][ticker].dropna()
+        return frame[metric].dropna()
     except Exception:
         return pd.Series(dtype=float)
+
+def get_series(metric, ticker):
+    return _series(raw_hist, metric, ticker)
+
+def get_long_series(metric, ticker):
+    return _series(raw_long, metric, ticker)
+
+def build_rows(closes_s, opens_s, highs_s, lows_s, vols_s):
+    """Assemble OHLCV dicts, skipping bars with no usable close."""
+    out = []
+    for dt, c in closes_s.items():
+        cl = safe(c, 2)
+        if cl is None:
+            continue
+        out.append({
+            "time": dt.strftime("%Y-%m-%d"),
+            "open": safe(opens_s.get(dt), 2) or cl,
+            "high": safe(highs_s.get(dt), 2) or cl,
+            "low": safe(lows_s.get(dt), 2) or cl,
+            "close": cl,
+            "volume": int(vols_s.get(dt, 0) or 0),
+        })
+    return out
 
 # ── Per-ticker fundamentals (individual Ticker.info) ─────────────────────
 
 Path("public/ohlcv").mkdir(parents=True, exist_ok=True)
+Path("public/ohlcv-long").mkdir(parents=True, exist_ok=True)
 
 quotes = {}
 ohlcv_errors = []
@@ -89,23 +136,24 @@ for i, ticker in enumerate(tickers):
 
         close_list = closes_s.tolist()
 
-        # ── OHLCV file ────────────────────────────────────────────────────
-        rows = []
-        for dt, c in closes_s.items():
-            date_str = dt.strftime("%Y-%m-%d")
-            o = safe(opens_s.get(dt), 2)
-            h = safe(highs_s.get(dt), 2)
-            l = safe(lows_s.get(dt), 2)
-            cl = safe(c, 2)
-            v = int(vols_s.get(dt, 0) or 0)
-            if cl is None:
-                continue
-            rows.append({"time": date_str, "open": o or cl,
-                         "high": h or cl, "low": l or cl,
-                         "close": cl, "volume": v})
+        # ── OHLCV file (2y daily) ─────────────────────────────────────────
+        rows = build_rows(closes_s, opens_s, highs_s, lows_s, vols_s)
         if rows:
             Path(f"public/ohlcv/{ticker}.json").write_text(
                 json.dumps(rows, separators=(",", ":")), encoding="utf-8"
+            )
+
+        # ── Long-history file (max weekly) ────────────────────────────────
+        long_rows = build_rows(
+            get_long_series("Close",  ticker),
+            get_long_series("Open",   ticker),
+            get_long_series("High",   ticker),
+            get_long_series("Low",    ticker),
+            get_long_series("Volume", ticker),
+        )
+        if len(long_rows) > 26:
+            Path(f"public/ohlcv-long/{ticker}.json").write_text(
+                json.dumps(long_rows, separators=(",", ":")), encoding="utf-8"
             )
 
         # ── Fundamentals ──────────────────────────────────────────────────
