@@ -1,0 +1,30 @@
+name: Leveraged study data
+
+on:
+  workflow_dispatch:          # manual only — this is research data, not a feed
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install yfinance pandas
+
+      - name: Fetch leveraged study data
+        run: python scripts/fetch_leveraged_study.py
+
+      - name: Commit study data
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: refresh leveraged study data [skip ci]"
+          file_pattern: "public/study/**"
