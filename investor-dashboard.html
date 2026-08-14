@@ -332,7 +332,11 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
 
 /* Backtest pane */
 .bt-controls{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin-bottom:.35rem;}
-.bt-mode-row{grid-column:1/-1;display:flex;align-items:center;gap:.5rem;margin-bottom:.1rem;}
+.bt-mode-row{grid-column:1/-1;display:flex;align-items:center;gap:.5rem;margin-bottom:.1rem;flex-wrap:wrap;}
+.bt-rot-wrap{grid-column:1/-1;background:var(--bg);border:1px solid var(--card-b);border-left:3px solid var(--purple);border-radius:5px;padding:.55rem .65rem;margin:.15rem 0 .1rem;}
+.bt-rot-hd{font-size:.62rem;text-transform:uppercase;letter-spacing:.05em;color:var(--purple);font-weight:600;margin-bottom:.45rem;}
+.bt-rot-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:.5rem;}
+.bt-rot-note{font-size:.66rem;line-height:1.5;color:var(--dim);margin-top:.5rem;padding-top:.45rem;border-top:1px solid var(--line);}
 .bt-mode-lbl{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);white-space:nowrap;}
 .bt-mode-toggle{display:flex;gap:0;border:1px solid var(--card-b);border-radius:5px;overflow:hidden;}
 .bt-mode-btn{padding:.24rem .6rem;font-size:.68rem;font-weight:600;background:transparent;border:none;color:var(--dim);cursor:pointer;font-family:inherit;transition:all .12s;}
@@ -717,6 +721,36 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
         <div class="bt-mode-toggle">
           <button class="bt-mode-btn on" id="btModeSingle">Single</button>
           <button class="bt-mode-btn" id="btModeCombine">Combine ✕2</button>
+          <button class="bt-mode-btn" id="btModeRotate" data-tip="Rotate between a 3× leveraged fund and a defensive leg using signals computed on the unlevered index. Ignores the ticker you opened the drawer on — always trades the QQQ family.">Rotate TQQQ ⇄ QQQ</button>
+        </div>
+      </div>
+      <!-- Rotation controls (hidden unless rotate mode) -->
+      <div class="bt-rot-wrap" id="bt-rot-wrap" style="display:none">
+        <div class="bt-rot-hd">Two-instrument rotation · signals on QQQ, executed on TQQQ</div>
+        <div class="bt-rot-row">
+          <div class="bt-sel-wrap">
+            <span class="bt-sel-lbl">Defensive leg</span>
+            <select class="bt-sel" id="bt-rot-def">
+              <option value="cash">Cash — flat when the signal is off</option>
+              <option value="QQQ">QQQ 1× — stay invested unlevered</option>
+            </select>
+          </div>
+          <div class="bt-sel-wrap">
+            <span class="bt-sel-lbl">Volatility brake</span>
+            <select class="bt-sel" id="bt-rot-vol">
+              <option value="0">Off — trend signal only</option>
+              <option value="0.25">Stand down above 25% realized vol</option>
+              <option value="0.30">Stand down above 30% realized vol</option>
+              <option value="0.35" selected>Stand down above 35% realized vol</option>
+              <option value="0.40">Stand down above 40% realized vol</option>
+            </select>
+          </div>
+        </div>
+        <div class="bt-rot-note">
+          SQQQ is not offered as a leg. Across 1999–2026 every short configuration
+          tested returned less than simply holding cash — the −3× fund is down
+          99.999% since inception, and a false short in a rising market costs far
+          more at −3× than an early exit to cash does.
         </div>
       </div>
       <!-- Strategy A -->
@@ -2192,24 +2226,22 @@ const BT_STRAT_META={
 
 /* ── Mode toggle (Single / Combine) ─────────────────── */
 let btMode="single";
-document.getElementById("btModeSingle").addEventListener("click",()=>{
-  btMode="single";
-  document.getElementById("btModeSingle").classList.add("on");
-  document.getElementById("btModeCombine").classList.remove("on");
-  document.getElementById("bt-strat-b-wrap").style.display="none";
-  document.getElementById("bt-logic-wrap").style.display="none";
-  document.getElementById("bt-a-lbl").textContent="Strategy";
+function setBtMode(mode){
+  btMode=mode;
+  const ids={single:"btModeSingle",combine:"btModeCombine",rotate:"btModeRotate"};
+  for(const[m,id]of Object.entries(ids))
+    document.getElementById(id).classList.toggle("on",m===mode);
+  const combo=mode==="combine";
+  document.getElementById("bt-strat-b-wrap").style.display=combo?"flex":"none";
+  document.getElementById("bt-logic-wrap").style.display=combo?"block":"none";
+  document.getElementById("bt-rot-wrap").style.display=mode==="rotate"?"block":"none";
+  document.getElementById("bt-a-lbl").textContent=
+    combo?"Strategy A":mode==="rotate"?"Trend signal (on QQQ)":"Strategy";
   updateStratDesc();
-});
-document.getElementById("btModeCombine").addEventListener("click",()=>{
-  btMode="combine";
-  document.getElementById("btModeCombine").classList.add("on");
-  document.getElementById("btModeSingle").classList.remove("on");
-  document.getElementById("bt-strat-b-wrap").style.display="flex";
-  document.getElementById("bt-logic-wrap").style.display="block";
-  document.getElementById("bt-a-lbl").textContent="Strategy A";
-  updateStratDesc();
-});
+}
+document.getElementById("btModeSingle").addEventListener("click",()=>setBtMode("single"));
+document.getElementById("btModeCombine").addEventListener("click",()=>setBtMode("combine"));
+document.getElementById("btModeRotate").addEventListener("click",()=>setBtMode("rotate"));
 
 /* ── Strategy detail panel ───────────────────────────── */
 let detailExpanded=false;
@@ -2248,21 +2280,49 @@ document.getElementById("bt-strategy").addEventListener("change",updateStratDesc
 updateStratDesc();
 
 document.getElementById("bt-run-btn").addEventListener("click",async()=>{
-  if(!drawerTicker)return;
+  const out=document.getElementById("bt-output");
+  const msg=(t,c)=>out.innerHTML=`<div style="color:${c||"var(--dim)"};font-size:.8rem;text-align:center;padding:2rem">${t}</div>`;
   const strat=document.getElementById("bt-strategy").value;
   const stratB=btMode==="combine"?document.getElementById("bt-strategy-b").value:null;
   const combineLogic=btMode==="combine"?document.getElementById("bt-combine-logic").value:"none";
   const period=document.getElementById("bt-period").value;
-  const label=btMode==="combine"?`${BT_STRAT_META[strat]?.name||strat} ${combineLogic.toUpperCase()} ${BT_STRAT_META[stratB]?.name||stratB}`:(BT_STRAT_META[strat]?.name||strat);
-  document.getElementById("bt-output").innerHTML='<div style="color:var(--dim);font-size:.8rem;text-align:center;padding:2rem">Running backtest…</div>';
+  const stratName=BT_STRAT_META[strat]?.name||strat;
+  msg("Running backtest…");
   try{
     await ensureLWC();
+
+    if(btMode==="rotate"){
+      const defLeg=document.getElementById("bt-rot-def").value;
+      const volMax=parseFloat(document.getElementById("bt-rot-vol").value)||0;
+      const [baseRaw,levRaw]=await Promise.all([
+        fetchOHLCVCached("QQQ",period),
+        fetchOHLCVCached("TQQQ",period)
+      ]);
+      let [baseRows,levRows]=alignRows(baseRaw,levRaw);
+      if(baseRows.length<60){
+        msg("Not enough overlapping QQQ/TQQQ history for this period. TQQQ starts in February 2010.");
+        return;
+      }
+      let defRows=null;
+      if(defLeg==="QQQ")defRows=baseRows;
+      const result=runRotation(strat,baseRows,levRows,defRows,volMax,stratB,combineLogic);
+      const bits=[stratName,defLeg==="cash"?"→ cash":"→ QQQ 1×"];
+      if(volMax)bits.push(`vol brake ${Math.round(volMax*100)}%`);
+      renderBacktest(result,baseRows,`TQQQ ⇄ ${defLeg==="cash"?"Cash":"QQQ"} · ${bits.join(" · ")}`,
+                     {rotate:true,defLeg,volMax});
+      return;
+    }
+
+    if(!drawerTicker)return;
+    const label=btMode==="combine"
+      ?`${stratName} ${combineLogic.toUpperCase()} ${BT_STRAT_META[stratB]?.name||stratB}`
+      :stratName;
     const rows=await fetchOHLCV(drawerTicker,period);
-    if(rows.length<30){document.getElementById("bt-output").innerHTML='<div style="color:var(--dim);font-size:.8rem;text-align:center;padding:2rem">Not enough data for backtest.</div>';return;}
+    if(rows.length<30){msg("Not enough data for backtest.");return;}
     const result=runBacktest(strat,rows,stratB,combineLogic);
     renderBacktest(result,rows,label);
   }catch(e){
-    document.getElementById("bt-output").innerHTML=`<div style="color:var(--red);font-size:.8rem;text-align:center;padding:2rem">Error: ${e.message}</div>`;
+    msg(`Error: ${e.message}`,"var(--red)");
   }
 });
 
@@ -2432,7 +2492,116 @@ function runBacktest(strat,rows,stratB=null,combineLogic="none"){
     cash+=shares*rows[last].close;shares=0;
   }
 
-  const startP=rows[0].close,endP=rows[rows.length-1].close;
+  return perfMetrics({equity,trades,holds,barsInPos,rows,benchCloses:rows.map(r=>r.close)});
+}
+
+/* ── Two-instrument rotation ─────────────────────────────
+   Signals are computed on the unlevered underlying (QQQ) and executed on the
+   leveraged fund (TQQQ), because a 3x fund's own price series is too noisy
+   for a trend filter — its moving averages whipsaw far more than the index's.
+   The defensive leg is cash or the 1x fund; SQQQ is deliberately not offered
+   (see research/study.py — every short configuration underperformed cash). */
+
+const ROT_COST=0.0005;   /* 5 bps per unit traded: spread + commission */
+
+/* Annualized realized volatility of the underlying, in bar-native units. */
+function calcRealizedVol(closes,n,barsYr){
+  const out=new Array(closes.length).fill(null);
+  const lr=[0];
+  for(let i=1;i<closes.length;i++)lr.push(Math.log(closes[i]/closes[i-1]));
+  for(let i=n;i<closes.length;i++){
+    const w=lr.slice(i-n+1,i+1);
+    const m=w.reduce((a,b)=>a+b,0)/n;
+    const v=w.reduce((a,b)=>a+(b-m)*(b-m),0)/(n-1);
+    out[i]=Math.sqrt(v*barsYr);
+  }
+  return out;
+}
+
+/* Align two OHLCV series onto their common dates. */
+function alignRows(a,b){
+  const mb=new Map(b.map(r=>[r.time,r]));
+  const ra=[],rb=[];
+  for(const r of a){const m=mb.get(r.time);if(m){ra.push(r);rb.push(m);}}
+  return[ra,rb];
+}
+
+/* baseRows drives the signal; levRows is the offensive instrument.
+   defRows is the defensive instrument, or null for cash. */
+function runRotation(strat,baseRows,levRows,defRows,volMax,stratB,combineLogic){
+  let signals=computeSignals(strat,baseRows);
+  if(stratB&&combineLogic&&combineLogic!=="none"){
+    signals=combineSignals(signals,computeSignals(stratB,baseRows),combineLogic);
+  }
+  const closes=baseRows.map(r=>r.close);
+  const BARS_YR=barsPerYear(baseRows);
+  const vol=volMax?calcRealizedVol(closes,Math.max(5,barsFor(20,baseRows)),BARS_YR):null;
+
+  /* Edge signals -> a held regime: 1 = offensive, 0 = defensive. */
+  const regime=new Array(baseRows.length).fill(0);
+  let on=false;
+  for(let i=0;i<baseRows.length;i++){
+    if(signals[i]===1)on=true;else if(signals[i]===-1)on=false;
+    /* Volatility brake: stand down whenever the underlying is too wild,
+       regardless of what the trend signal says. */
+    let want=on;
+    if(want&&vol){const v=vol[i];if(v==null||v>=volMax)want=false;}
+    regime[i]=want?1:0;
+  }
+
+  let eq=10000,heldOff=false;
+  const equity=[{time:baseRows[0].time,value:10000}];
+  const trades=[],holds=[];
+  let entryVal=0,entryIdx=0,barsInPos=0;
+
+  for(let i=0;i<baseRows.length-1;i++){
+    const want=regime[i]===1;
+    if(want!==heldOff){
+      eq*=(1-ROT_COST*2);                 /* sell one leg, buy the other */
+      if(want){
+        entryVal=eq;entryIdx=i;
+        trades.push({type:"BUY",date:baseRows[i].time,price:levRows[i].close,shares:0});
+      }else if(entryVal){
+        const held=Math.max(1,i-entryIdx);
+        holds.push({bars:held,ret:eq/entryVal});
+        trades.push({type:"SELL",date:baseRows[i].time,price:levRows[i].close,
+                     shares:0,pnl:+(eq-entryVal).toFixed(2),bars:held});
+      }
+      heldOff=want;
+    }
+    /* hold the chosen leg over the next bar */
+    const r=want
+      ? levRows[i+1].close/levRows[i].close-1
+      : (defRows?defRows[i+1].close/defRows[i].close-1:0);
+    eq*=(1+r);
+    if(want)barsInPos++;
+    equity.push({time:baseRows[i+1].time,value:+eq.toFixed(2)});
+  }
+  if(heldOff&&entryVal){
+    const last=baseRows.length-1,held=Math.max(1,last-entryIdx);
+    holds.push({bars:held,ret:eq/entryVal});
+  }
+
+  /* Benchmark is the leveraged fund itself — the thing we are trying to beat. */
+  const m=perfMetrics({equity,trades,holds,barsInPos,rows:baseRows,
+                       benchCloses:levRows.map(r=>r.close)});
+
+  /* Second benchmark: plain 1x buy & hold, for context. */
+  const base=baseRows.map(r=>r.close);
+  const yrs=baseRows.length/BARS_YR;
+  const baseGrowth=base[base.length-1]/base[0];
+  m.baseReturn=((baseGrowth-1)*100).toFixed(1);
+  m.baseCagr=yrs>0&&baseGrowth>0?((Math.pow(baseGrowth,1/yrs)-1)*100):null;
+  m.baseMaxDD=calcMaxDD(base);
+  m.regime=regime;
+  return m;
+}
+
+/* Shared metric block: used by the single/combine engine and by the
+   two-instrument rotation engine, so both report identically.
+   `benchCloses` is the buy & hold comparison series. */
+function perfMetrics({equity,trades,holds,barsInPos,rows,benchCloses}){
+  const startP=benchCloses[0],endP=benchCloses[benchCloses.length-1];
   const bh=10000*(endP/startP);
   const finalEq=equity[equity.length-1].value;
   const totalReturn=((finalEq-10000)/10000*100).toFixed(1);
@@ -2487,7 +2656,7 @@ function runBacktest(strat,rows,stratB=null,combineLogic="none"){
 
   /* Calmar: annualized return per unit of worst drawdown */
   const calmar=cagr!=null&&+maxDD>0?(cagr/+maxDD):null;
-  const bhMaxDD=calcMaxDD(rows.map(r=>r.close));
+  const bhMaxDD=calcMaxDD(benchCloses);
   const bhCalmar=bhCagr!=null&&+bhMaxDD>0?(bhCagr/+bhMaxDD):null;
 
   const barLabel=BARS_YR>=200?"day":BARS_YR>=40?"week":"month";
@@ -2512,12 +2681,16 @@ function fmtAnnual(v){
   return{txt:(v>=0?"+":"")+v.toFixed(1)+"%",warn:false};
 }
 
-function renderBacktest(result,rows){
+function renderBacktest(result,rows,label,opts){
   const{equity,trades,totalReturn,bhReturn,winRate,maxDD,sharpe,finalEq,
         cagr,bhCagr,exposure,roti,avgHold,retPerDay,calmar,barsInPos,totalBars,
-        bhRoti,bhExposure,cagrEdge,rotiEdgePts,bhRetPerDay,bhMaxDD,bhCalmar,barLabel}=result;
+        bhRoti,bhExposure,cagrEdge,rotiEdgePts,bhRetPerDay,bhMaxDD,bhCalmar,barLabel,
+        baseReturn,baseCagr,baseMaxDD}=result;
+  const rot=opts&&opts.rotate;
+  /* In rotation mode the benchmark is TQQQ itself, not the traded ticker. */
+  const bhName=rot?"TQQQ Buy &amp; Hold":"Buy &amp; Hold";
   const positive=+totalReturn>=0;
-  const vsLabel=+totalReturn>=+bhReturn?"▲ beats B&H":"▼ lags B&H";
+  const vsLabel=+totalReturn>=+bhReturn?(rot?"▲ beats TQQQ":"▲ beats B&H"):(rot?"▼ lags TQQQ":"▼ lags B&H");
   const vsColor=+totalReturn>=+bhReturn?"var(--accent)":"var(--red)";
 
   const fC=fmtAnnual(cagr),fB=fmtAnnual(bhCagr),fR=fmtAnnual(roti);
@@ -2527,16 +2700,21 @@ function renderBacktest(result,rows){
   const rotiEdge=roti!=null&&cagr!=null&&roti>cagr+0.5;
 
   let html=`<div class="bt-result">
-    <div style="font-size:.78rem;font-weight:600;margin-bottom:.2rem">Strategy Result vs Buy &amp; Hold</div>
+    <div style="font-size:.78rem;font-weight:600;margin-bottom:.2rem">${label?label+" — ":""}Strategy Result vs ${rot?"TQQQ":"Buy &amp; Hold"}</div>
     <div class="bt-metric-grid">
       <div class="bt-metric"><div class="bt-m-lbl">Strategy Return</div><div class="bt-m-val" style="color:${positive?"var(--accent)":"var(--red)"}">${positive?"+":""}${totalReturn}%</div></div>
-      <div class="bt-metric"><div class="bt-m-lbl">Buy &amp; Hold</div><div class="bt-m-val">+${bhReturn}%</div></div>
+      <div class="bt-metric"><div class="bt-m-lbl">${bhName}</div><div class="bt-m-val">${+bhReturn>=0?"+":""}${bhReturn}%</div></div>
+      ${rot?`<div class="bt-metric" data-tip="Plain unlevered QQQ over the same window, for context — the return you get with no leverage and no timing."><div class="bt-m-lbl">QQQ 1× Buy &amp; Hold</div><div class="bt-m-val">${+baseReturn>=0?"+":""}${baseReturn}%</div><div class="bt-m-note">CAGR ${fmtAnnual(baseCagr).txt} · DD -${baseMaxDD}%</div></div>`:""}
       <div class="bt-metric"><div class="bt-m-lbl">Win Rate</div><div class="bt-m-val">${winRate}%</div></div>
       <div class="bt-metric"><div class="bt-m-lbl">Max Drawdown</div><div class="bt-m-val" style="color:var(--red)">-${maxDD}%</div></div>
-      <div class="bt-metric"><div class="bt-m-lbl">Trades</div><div class="bt-m-val">${trades.length}</div></div>
+      <div class="bt-metric"><div class="bt-m-lbl">${rot?"Switches":"Trades"}</div><div class="bt-m-val">${trades.length}</div></div>
       <div class="bt-metric"><div class="bt-m-lbl">Sharpe Ratio</div><div class="bt-m-val" style="color:${sharpe!=null&&+sharpe>1?"var(--accent)":sharpe!=null&&+sharpe>0?"var(--yellow)":"var(--red)"}">${sharpe??'—'}</div></div>
       <div class="bt-metric"><div class="bt-m-lbl">vs Benchmark</div><div class="bt-m-val" style="color:${vsColor}">${vsLabel}</div></div>
     </div>
+    ${rot?`<div class="bt-rot-note" style="margin-top:.4rem;border-top:1px solid var(--line);padding-top:.45rem">
+      Signals computed on QQQ and executed on TQQQ. Costs: 5 bps per unit traded on each switch, on top of the expense ratio and financing already embedded in TQQQ's price.
+      ${opts.defLeg==="cash"?"Out of the market the position sits in cash earning nothing.":"Out of the market the position holds QQQ 1×."}
+    </div>`:""}
   </div>`;
 
   /* ---- time-efficiency panel: strategy vs buy & hold, head to head ---- */
