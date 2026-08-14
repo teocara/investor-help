@@ -332,14 +332,36 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
 
 /* Backtest pane */
 .bt-controls{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin-bottom:.35rem;}
-.bt-strat-desc{font-size:.67rem;color:var(--dim);font-style:italic;background:var(--bg);border-radius:4px;padding:.32rem .55rem;margin-bottom:.5rem;line-height:1.55;min-height:1.8rem;border-left:2px solid var(--blue);display:none;}
+.bt-mode-row{grid-column:1/-1;display:flex;align-items:center;gap:.5rem;margin-bottom:.1rem;}
+.bt-mode-lbl{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);white-space:nowrap;}
+.bt-mode-toggle{display:flex;gap:0;border:1px solid var(--card-b);border-radius:5px;overflow:hidden;}
+.bt-mode-btn{padding:.24rem .6rem;font-size:.68rem;font-weight:600;background:transparent;border:none;color:var(--dim);cursor:pointer;font-family:inherit;transition:all .12s;}
+.bt-mode-btn.on{background:rgba(88,166,255,.15);color:var(--blue);}
+.bt-sel-wrap{display:flex;flex-direction:column;gap:.18rem;}
+.bt-sel-lbl{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);}
+.bt-combine-logic-wrap{display:flex;flex-direction:column;gap:.18rem;grid-column:1/-1;}
+.bt-strat-desc{font-size:.67rem;color:var(--dim);font-style:italic;background:var(--bg);border-radius:4px;padding:.32rem .55rem;margin-bottom:.35rem;line-height:1.55;border-left:2px solid var(--blue);display:none;}
 .bt-strat-desc.show{display:block;}
+.bt-detail-card{background:var(--card);border:1px solid var(--card-b);border-radius:7px;padding:.6rem .75rem;margin-bottom:.5rem;display:none;}
+.bt-detail-card.show{display:block;}
+.bt-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:.35rem .75rem;margin-top:.4rem;}
+.bt-detail-row{display:flex;flex-direction:column;gap:.08rem;}
+.bt-detail-lbl{font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--dim);}
+.bt-detail-val{font-size:.72rem;color:var(--text);line-height:1.45;}
+.bt-detail-full{grid-column:1/-1;}
+.bt-detail-tag{display:inline-block;font-size:.6rem;padding:.06rem .35rem;border-radius:3px;border:1px solid var(--card-b);color:var(--dim);margin:.06rem .1rem 0 0;}
+.bt-detail-tag.cat-ma{border-color:var(--blue);color:var(--blue);}
+.bt-detail-tag.cat-mom{border-color:var(--yellow);color:var(--yellow);}
+.bt-detail-tag.cat-vol{border-color:var(--purple);color:var(--purple);}
+.bt-detail-hdr{display:flex;align-items:center;justify-content:space-between;gap:.5rem;}
+.bt-detail-name{font-size:.75rem;font-weight:700;color:var(--text);}
+.bt-detail-toggle{font-size:.62rem;color:var(--blue);background:none;border:none;cursor:pointer;font-family:inherit;padding:0;}
 .bt-sel{background:var(--card);border:1px solid var(--card-b);color:var(--text);padding:.32rem .45rem;border-radius:5px;font-size:.75rem;font-family:inherit;width:100%;}
 .bt-sel:focus{outline:none;border-color:var(--blue);}
 .bt-run{grid-column:1/-1;padding:.38rem;border-radius:5px;border:none;background:var(--blue);color:#fff;font-size:.78rem;font-weight:600;cursor:pointer;font-family:inherit;}
 .bt-run:hover{opacity:.88;}
 .bt-result{background:var(--card);border:1px solid var(--card-b);border-radius:6px;padding:.65rem .75rem;margin-bottom:.5rem;}
-.bt-metric-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem;margin:.5rem 0;}
+.bt-metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem;margin:.5rem 0;}
 .bt-metric{background:var(--bg);border-radius:4px;padding:.4rem .5rem;}
 .bt-m-lbl{font-size:.58rem;text-transform:uppercase;letter-spacing:.04em;color:var(--dim);}
 .bt-m-val{font-size:.9rem;font-weight:700;margin-top:.05rem;}
@@ -669,39 +691,119 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
   <!-- Backtest pane -->
   <div class="dr-pane" id="pane-backtest">
     <div class="bt-controls">
-      <select class="bt-sel" id="bt-strategy">
-        <optgroup label="── Moving Average ──">
-          <option value="sma_cross">SMA Crossover 20/50</option>
-          <option value="sma_50_200">Golden Cross 50/200</option>
-          <option value="ma_250_trend">250-Day MA Trend</option>
-          <option value="ema_cross">EMA Crossover 12/26</option>
-          <option value="triple_ma">Triple MA 20/50/200</option>
-          <option value="sma_envelope">SMA 20 Envelope ±5%</option>
-        </optgroup>
-        <optgroup label="── Momentum ──">
-          <option value="rsi_mean">RSI Mean Reversion</option>
-          <option value="rsi_trend">RSI 50-Level Trend</option>
-          <option value="macd_signal">MACD Signal Line</option>
-          <option value="macd_zero">MACD Zero Cross</option>
-          <option value="stoch_cross">Stochastic %K/%D</option>
-        </optgroup>
-        <optgroup label="── Volatility / Breakout ──">
-          <option value="bb_bounce">Bollinger Band Bounce</option>
-          <option value="bb_breakout">Bollinger Band Breakout</option>
-          <option value="donchian_20">Donchian Channel 20-Day</option>
-          <option value="donchian_50">Donchian Channel 50-Day</option>
-        </optgroup>
-      </select>
-      <select class="bt-sel" id="bt-period">
-        <option value="1y">1 Year</option>
-        <option value="2y">2 Years</option>
-        <option value="5y">5 Years</option>
-        <option value="10y">10 Years</option>
-        <option value="max">Max History</option>
-      </select>
+      <!-- Mode row -->
+      <div class="bt-mode-row">
+        <span class="bt-mode-lbl">Mode:</span>
+        <div class="bt-mode-toggle">
+          <button class="bt-mode-btn on" id="btModeSingle">Single</button>
+          <button class="bt-mode-btn" id="btModeCombine">Combine ✕2</button>
+        </div>
+      </div>
+      <!-- Strategy A -->
+      <div class="bt-sel-wrap">
+        <span class="bt-sel-lbl" id="bt-a-lbl">Strategy</span>
+        <select class="bt-sel" id="bt-strategy">
+          <optgroup label="── Moving Average ──">
+            <option value="sma_cross">SMA Crossover 20/50</option>
+            <option value="sma_50_200">Golden Cross 50/200</option>
+            <option value="ma_250_trend">250-Day MA Trend</option>
+            <option value="ema_cross">EMA Crossover 12/26</option>
+            <option value="triple_ma">Triple MA 20/50/200</option>
+            <option value="sma_envelope">SMA 20 Envelope ±5%</option>
+            <option value="supertrend">SuperTrend (ATR×3)</option>
+          </optgroup>
+          <optgroup label="── Momentum ──">
+            <option value="rsi_mean">RSI Mean Reversion</option>
+            <option value="rsi_trend">RSI 50-Level Trend</option>
+            <option value="macd_signal">MACD Signal Line</option>
+            <option value="macd_zero">MACD Zero Cross</option>
+            <option value="stoch_cross">Stochastic %K/%D</option>
+            <option value="cci_rev">CCI Reversal (±100)</option>
+            <option value="price_mom">12-1 Month Momentum</option>
+          </optgroup>
+          <optgroup label="── Volatility / Breakout ──">
+            <option value="bb_bounce">Bollinger Band Bounce</option>
+            <option value="bb_breakout">Bollinger Band Breakout</option>
+            <option value="keltner">Keltner Channel</option>
+            <option value="donchian_20">Donchian Channel 20-Day</option>
+            <option value="donchian_50">Donchian Channel 50-Day</option>
+            <option value="atr_breakout">ATR Channel Breakout</option>
+          </optgroup>
+          <optgroup label="── Statistical ──">
+            <option value="zscore_rev">Z-Score Mean Reversion</option>
+            <option value="parabolic_sar">Parabolic SAR</option>
+          </optgroup>
+        </select>
+      </div>
+      <!-- Strategy B (hidden in single mode) -->
+      <div class="bt-sel-wrap" id="bt-strat-b-wrap" style="display:none">
+        <span class="bt-sel-lbl">Strategy B</span>
+        <select class="bt-sel" id="bt-strategy-b">
+          <optgroup label="── Moving Average ──">
+            <option value="sma_cross">SMA Crossover 20/50</option>
+            <option value="sma_50_200">Golden Cross 50/200</option>
+            <option value="ma_250_trend">250-Day MA Trend</option>
+            <option value="ema_cross">EMA Crossover 12/26</option>
+            <option value="triple_ma">Triple MA 20/50/200</option>
+            <option value="sma_envelope">SMA 20 Envelope ±5%</option>
+            <option value="supertrend">SuperTrend (ATR×3)</option>
+          </optgroup>
+          <optgroup label="── Momentum ──">
+            <option value="rsi_mean">RSI Mean Reversion</option>
+            <option value="rsi_trend">RSI 50-Level Trend</option>
+            <option value="macd_signal">MACD Signal Line</option>
+            <option value="macd_zero">MACD Zero Cross</option>
+            <option value="stoch_cross">Stochastic %K/%D</option>
+            <option value="cci_rev">CCI Reversal (±100)</option>
+            <option value="price_mom">12-1 Month Momentum</option>
+          </optgroup>
+          <optgroup label="── Volatility / Breakout ──">
+            <option value="bb_bounce">Bollinger Band Bounce</option>
+            <option value="bb_breakout">Bollinger Band Breakout</option>
+            <option value="keltner">Keltner Channel</option>
+            <option value="donchian_20">Donchian Channel 20-Day</option>
+            <option value="donchian_50">Donchian Channel 50-Day</option>
+            <option value="atr_breakout">ATR Channel Breakout</option>
+          </optgroup>
+          <optgroup label="── Statistical ──">
+            <option value="zscore_rev">Z-Score Mean Reversion</option>
+            <option value="parabolic_sar">Parabolic SAR</option>
+          </optgroup>
+        </select>
+      </div>
+      <!-- Combine logic -->
+      <div class="bt-combine-logic-wrap" id="bt-logic-wrap" style="display:none">
+        <span class="bt-sel-lbl">Combine Logic</span>
+        <select class="bt-sel" id="bt-combine-logic">
+          <option value="and">AND — both signals must agree (fewer, higher-conviction trades)</option>
+          <option value="or">OR — either signal triggers (more trades, more exposure)</option>
+          <option value="filter">FILTER — A sets entry/exit, B must confirm direction</option>
+        </select>
+      </div>
+      <!-- Period -->
+      <div class="bt-sel-wrap">
+        <span class="bt-sel-lbl">Period</span>
+        <select class="bt-sel" id="bt-period">
+          <option value="1y">1 Year</option>
+          <option value="2y">2 Years</option>
+          <option value="5y">5 Years</option>
+          <option value="10y">10 Years</option>
+          <option value="max">Max History</option>
+        </select>
+      </div>
       <button class="bt-run" id="bt-run-btn">▶ Run Backtest</button>
     </div>
+    <!-- Description + detail card -->
     <div class="bt-strat-desc" id="bt-strat-desc"></div>
+    <div class="bt-detail-card" id="bt-detail-card">
+      <div class="bt-detail-hdr">
+        <span class="bt-detail-name" id="bt-detail-name"></span>
+        <button class="bt-detail-toggle" id="bt-detail-toggle">▾ show details</button>
+      </div>
+      <div id="bt-detail-body" style="display:none">
+        <div class="bt-detail-grid" id="bt-detail-grid"></div>
+      </div>
+    </div>
     <div id="bt-output"><div style="color:var(--dim);font-size:.8rem;text-align:center;padding:2rem">Select a strategy and click Run.</div></div>
   </div>
 
@@ -1702,6 +1804,64 @@ function calcATR(rows,n=14){
   for(let i=n+1;i<rows.length;i++)atr[i]=(atr[i-1]*(n-1)+trs[i])/n;
   return atr;
 }
+function calcCCI(highs,lows,closes,n=20){
+  return closes.map((_,i)=>{
+    if(i<n-1)return null;
+    const tp=closes.slice(i-n+1,i+1).map((c,j)=>(c+(highs[i-n+1+j]||c)+(lows[i-n+1+j]||c))/3);
+    const mean=tp.reduce((a,b)=>a+b,0)/n;
+    const md=tp.reduce((a,b)=>a+Math.abs(b-mean),0)/n;
+    return md===0?0:+(((tp[tp.length-1]-mean)/(0.015*md))).toFixed(2);
+  });
+}
+function calcZScore(closes,n=20){
+  return closes.map((_,i)=>{
+    if(i<n-1)return null;
+    const sl=closes.slice(i-n+1,i+1);
+    const mean=sl.reduce((a,b)=>a+b,0)/n;
+    const std=Math.sqrt(sl.reduce((a,b)=>a+(b-mean)**2,0)/n);
+    return std===0?0:+((closes[i]-mean)/std).toFixed(3);
+  });
+}
+function calcSuperTrend(rows,n=10,mult=3){
+  const atr=calcATR(rows,n);
+  const result=new Array(rows.length).fill(null);
+  let dir=1,upper=0,lower=0;
+  for(let i=n;i<rows.length;i++){
+    const hl2=(rows[i].high+rows[i].low)/2;
+    const bU=hl2+mult*atr[i];
+    const bL=hl2-mult*atr[i];
+    upper=i>n&&bU<upper?bU:(i>n&&rows[i-1].close>upper?bU:Math.min(bU,upper));
+    lower=i>n&&bL>lower?bL:(i>n&&rows[i-1].close<lower?bL:Math.max(bL,lower));
+    if(i>n){
+      if(result[i-1]&&result[i-1].dir===(-1)&&rows[i].close>upper)dir=1;
+      else if(result[i-1]&&result[i-1].dir===1&&rows[i].close<lower)dir=-1;
+    }
+    result[i]={dir,line:dir===1?lower:upper};
+  }
+  return result;
+}
+function calcParabolicSAR(rows,initAF=0.02,maxAF=0.2){
+  const sar=new Array(rows.length).fill(null);
+  if(rows.length<2)return sar;
+  let bull=true,af=initAF,ep=rows[0].high,sarVal=rows[0].low;
+  for(let i=1;i<rows.length;i++){
+    sarVal=sarVal+af*(ep-sarVal);
+    if(bull){
+      if(rows[i].low<sarVal){bull=false;sarVal=ep;ep=rows[i].low;af=initAF;}
+      else{if(rows[i].high>ep){ep=rows[i].high;af=Math.min(af+initAF,maxAF);}sarVal=Math.min(sarVal,rows[i-1].low,i>1?rows[i-2].low:rows[i-1].low);}
+    }else{
+      if(rows[i].high>sarVal){bull=true;sarVal=ep;ep=rows[i].high;af=initAF;}
+      else{if(rows[i].low<ep){ep=rows[i].low;af=Math.min(af+initAF,maxAF);}sarVal=Math.max(sarVal,rows[i-1].high,i>1?rows[i-2].high:rows[i-1].high);}
+    }
+    sar[i]={sar:sarVal,bull};
+  }
+  return sar;
+}
+function calcKeltner(closes,highs,lows,n=20,mult=2){
+  const ema=calcEMA(closes,n);
+  const atr=calcATR(closes.map((_,i)=>({high:highs[i]||closes[i],low:lows[i]||closes[i],close:closes[i]})),n);
+  return closes.map((_,i)=>atr[i]==null?null:{upper:+(ema[i]+mult*atr[i]).toFixed(2),lower:+(ema[i]-mult*atr[i]).toFixed(2),mid:+ema[i].toFixed(2)});
+}
 
 async function loadTACharts(ticker){
   document.getElementById("priceChart").innerHTML='<div class="chart-loading">Loading…</div>';
@@ -1949,23 +2109,60 @@ async function loadNews(ticker){
    TAB 4 — BACKTESTER
    Runs strategy on fetched OHLCV data and renders equity curve
    ══════════════════════════════════════════════════════ */
-const BT_STRAT_DESC={
-  sma_cross:"SMA 20/50 Crossover — Buy when the fast 20-day average crosses above the 50-day; sell when it crosses below. Classic swing-trade signal, best in trending markets.",
-  sma_50_200:"Golden / Death Cross — Buy on 50-day crossing above 200-day (Golden Cross); sell on the reverse (Death Cross). Slower and fewer trades, but widely followed by institutions.",
-  ma_250_trend:"250-Day MA Trend Filter — Stay long while price is above the 250-day average (≈1 year), exit when it falls below. Warren Buffett's 'market is above its average' concept applied mechanically.",
-  ema_cross:"EMA 12/26 Crossover — Uses exponential (weighted) averages so recent prices count more. Faster than SMA crossover; generates more trades and reacts quicker to reversals.",
-  triple_ma:"Triple MA 20/50/200 — Enter only when all three averages are aligned bullishly (20 > 50 > 200). High-conviction filter that reduces false signals but may miss early moves.",
-  sma_envelope:"SMA 20 Envelope ±5% — Buy when price dips 5% below its 20-day average (mean-reversion entry); sell when it rises 5% above. Works well in range-bound conditions.",
-  rsi_mean:"RSI Mean Reversion — Buy when RSI bounces back above 30 from oversold; sell when it falls back below 70 from overbought. Counter-trend strategy, works best in ranging markets.",
-  rsi_trend:"RSI 50 Trend Follow — Buy when RSI crosses above 50 (momentum turning positive); sell when it crosses below. Trend-following with RSI as a momentum filter.",
-  macd_signal:"MACD Signal Line — Buy when MACD line crosses above its 9-day signal line; sell on the reverse cross. The most widely used momentum crossover after SMA.",
-  macd_zero:"MACD Zero Cross — Buy when MACD crosses above zero (bullish momentum confirmed); sell when it falls below zero. Slower than signal-line cross but fewer whipsaws.",
-  stoch_cross:"Stochastic %K/%D — Buy when %K crosses above %D in the oversold zone (<45); sell when %K crosses below %D in overbought zone (>55). Oscillator timing strategy.",
-  bb_bounce:"Bollinger Band Bounce — Buy when price bounces back inside the lower band; sell when it falls back inside the upper band. Mean-reversion play using volatility bands.",
-  bb_breakout:"Bollinger Band Breakout — Buy when price breaks above the upper band (momentum breakout); sell when it breaks below the lower band. Trend-riding, opposite of BB Bounce.",
-  donchian_20:"Donchian Channel 20-Day — Buy on a new 20-day price high (breakout); sell on a new 20-day low. Classic turtle-trading signal, systematic trend-following.",
-  donchian_50:"Donchian Channel 50-Day — Same as Donchian 20 but using 50-day highs/lows. Fewer trades, better for capturing larger multi-week trends with less noise.",
+/* ── Strategy metadata ────────────────────────────────── */
+const BT_STRAT_META={
+  sma_cross:{name:"SMA Crossover 20/50",cat:"Moving Average",catCls:"cat-ma",type:"Trend Following",params:["Fast MA: 20 days","Slow MA: 50 days"],entry:"BUY when 20-day SMA crosses above 50-day. SELL on reverse cross.",exit:"Opposite crossover",bestIn:"Trending markets, bull or bear phases with momentum",caveats:"Lagging — late entries/exits. Whipsaws badly in choppy/sideways markets.",sharpeHint:"Historical Sharpe 0.4–0.8 on US large-cap in sustained trends.",desc:"Classic swing-trade crossover. The 20-day MA reacts faster; when it rises above the 50-day the short-term trend has overtaken the medium-term, signalling upward momentum."},
+  sma_50_200:{name:"Golden / Death Cross 50/200",cat:"Moving Average",catCls:"cat-ma",type:"Trend Following",params:["Fast MA: 50 days","Slow MA: 200 days"],entry:"BUY on Golden Cross (50>200). SELL on Death Cross (50<200).",exit:"Opposite cross",bestIn:"Long multi-month trends, institutional-driven moves",caveats:"Very slow. Often enters after 20–30% move already made. Few trades per year.",sharpeHint:"Sharpe ~0.5–0.9 historically; low trade frequency masks drawdowns.",desc:"The most institutionally watched crossover. Widely triggers algorithmic buying/selling creating self-fulfilling momentum. Best applied on weekly charts or for annual portfolio tilts."},
+  ma_250_trend:{name:"250-Day MA Trend Filter",cat:"Moving Average",catCls:"cat-ma",type:"Trend Following",params:["MA period: 250 days (≈1 trading year)"],entry:"BUY when price crosses above 250-day SMA. SELL when it crosses below.",exit:"Price crosses opposite side of 250-day line",bestIn:"Long secular bull markets, avoiding major bear phases",caveats:"Requires ≥2 years of data. Exits can be very late in a fast crash.",sharpeHint:"Classic 'above/below annual average' rule: Sharpe ~0.6–1.1 on indices.",desc:"Approximates the classic annual average filter. Keeps you long in structural bull markets and flat in bears. Popularised by trend-following funds and widely used in ETF rotation systems."},
+  ema_cross:{name:"EMA Crossover 12/26",cat:"Moving Average",catCls:"cat-ma",type:"Trend Following",params:["Fast EMA: 12 days","Slow EMA: 26 days"],entry:"BUY when 12-EMA crosses above 26-EMA. SELL on reverse.",exit:"Opposite EMA crossover",bestIn:"Moderately trending markets with smooth momentum",caveats:"More sensitive than SMA — more false signals in low-volatility chop.",sharpeHint:"Underpins the MACD; standalone crossover Sharpe 0.3–0.7.",desc:"Uses exponential weighting so recent prices matter more than old ones. Reacts faster than the equivalent SMA crossover, catching turns earlier but generating more whipsaw trades."},
+  triple_ma:{name:"Triple MA 20/50/200",cat:"Moving Average",catCls:"cat-ma",type:"Trend Following — High Conviction",params:["MA1: 20 days","MA2: 50 days","MA3: 200 days"],entry:"BUY only when 20>50>200 (all aligned bullishly). SELL when 20<50<200.",exit:"Bearish alignment of all three MAs",bestIn:"Strong sustained bull markets",caveats:"Very few signals. May sit in cash for long stretches. Misses early-stage moves.",sharpeHint:"High precision, low recall. When it fires, accuracy is high. Sharpe 0.7–1.2.",desc:"The strictest MA filter: requires all three timeframes to be in harmony before committing capital. Produces far fewer trades than any single crossover but with significantly lower false-positive rate."},
+  sma_envelope:{name:"SMA 20 Envelope ±5%",cat:"Moving Average",catCls:"cat-ma",type:"Mean Reversion",params:["MA period: 20 days","Band width: ±5%"],entry:"BUY when price dips ≥5% below 20-day SMA then bounces back. SELL when it rises ≥5% above.",exit:"Price re-enters the envelope from outside",bestIn:"Range-bound, low-volatility markets. Dividend stocks, utilities.",caveats:"In trending markets will sell too early; in high-vol markets bands are too narrow.",sharpeHint:"Works best on low-beta stocks; Sharpe 0.4–0.7 in ranging regimes.",desc:"Draws percentage-based channels above and below a moving average. When price reverts from outside the channel it signals mean-reversion opportunity. Adjust the ±% to match the stock's typical volatility."},
+  supertrend:{name:"SuperTrend (ATR×3)",cat:"Moving Average",catCls:"cat-ma",type:"Trend Following",params:["ATR period: 10 days","Multiplier: 3×ATR"],entry:"BUY when price crosses above the SuperTrend line. SELL on cross below.",exit:"Price crosses opposite side of the dynamic band",bestIn:"Volatile trending instruments, commodity-linked stocks, momentum plays",caveats:"Whipsaws in low-ATR environments. Signals can lag on explosive moves.",sharpeHint:"Popular in crypto/commodities. Equity Sharpe 0.5–1.0 in trending phases.",desc:"Plots a dynamic trailing band using Average True Range. In an uptrend the lower band acts as a rising stop; the direction flips when price breaks through the band. Self-adjusts to volatility automatically."},
+  rsi_mean:{name:"RSI Mean Reversion",cat:"Momentum",catCls:"cat-mom",type:"Counter-Trend",params:["RSI period: 14 days","Oversold: 30","Overbought: 70"],entry:"BUY when RSI rises back above 30 (bounce from oversold). SELL when RSI falls back below 70.",exit:"RSI exits the extreme zone",bestIn:"Range-bound markets, sector rotation, post-earnings overshoots",caveats:"In strong downtrends RSI can stay below 30 indefinitely. Never use alone in trending markets.",sharpeHint:"Works well on large-cap defensive stocks; Sharpe 0.4–0.8 in ranging conditions.",desc:"Classic oscillator-based mean reversion. The RSI measures speed of price change on a 0–100 scale. Readings below 30 indicate selling has been excessive relative to recent history; above 70 = overbought. The signal fires when price starts recovering from these extremes."},
+  rsi_trend:{name:"RSI 50-Level Trend",cat:"Momentum",catCls:"cat-mom",type:"Trend Following",params:["RSI period: 14 days","Level: 50"],entry:"BUY when RSI crosses above 50 (momentum turning positive). SELL when it crosses below 50.",exit:"RSI crosses opposite side of 50",bestIn:"Trending markets where momentum is the driver",caveats:"Generates more signals than RSI 30/70. False signals common in sideways markets.",sharpeHint:"Acts as a momentum filter; Sharpe 0.3–0.7 combined with a trend filter.",desc:"Uses the RSI midpoint as a regime indicator. RSI > 50 means upward momentum is dominant; < 50 means downward. Crossing 50 is a regime change signal rather than an extreme-condition signal."},
+  macd_signal:{name:"MACD Signal Line",cat:"Momentum",catCls:"cat-mom",type:"Trend Following",params:["Fast EMA: 12","Slow EMA: 26","Signal: 9-day EMA of MACD"],entry:"BUY when MACD line crosses above 9-day signal line. SELL on reverse.",exit:"Signal line crossover in opposite direction",bestIn:"Medium-term trending markets. Equity indices and growth stocks.",caveats:"Lags at turning points. Prone to false signals in sideways markets.",sharpeHint:"Most-used momentum indicator; Sharpe 0.4–0.8 across market regimes.",desc:"MACD = difference between two EMAs. The signal line smooths MACD to reduce noise. A bullish cross means short-term momentum is accelerating faster than medium-term — the most widely used momentum crossover signal in professional trading."},
+  macd_zero:{name:"MACD Zero Cross",cat:"Momentum",catCls:"cat-mom",type:"Trend Following",params:["MACD = EMA12 − EMA26"],entry:"BUY when MACD line crosses above 0. SELL when it crosses below 0.",exit:"MACD crosses zero in opposite direction",bestIn:"Sustained directional moves; confirmation after signal-line entry",caveats:"Slower than signal-line cross. Enters and exits later with fewer but higher-quality signals.",sharpeHint:"Lower trade count, higher per-trade quality. Sharpe 0.5–0.9 on large-cap equities.",desc:"The MACD crossing zero means the fast EMA has overtaken the slow EMA — trend direction has changed at the medium-term level. This is a later and more decisive signal than the signal-line cross, trading off speed for reliability."},
+  stoch_cross:{name:"Stochastic %K/%D",cat:"Momentum",catCls:"cat-mom",type:"Counter-Trend / Oscillator",params:["K period: 14 days","D period: 3-day SMA of K","Buy zone: K < 45","Sell zone: K > 55"],entry:"BUY when %K crosses above %D while both are in the oversold zone (<45). SELL when %K crosses below %D in overbought zone (>55).",exit:"Opposite oscillator crossover in the extreme zone",bestIn:"Range-bound stocks, mean-reverting sectors like utilities and consumer staples",caveats:"Slow in trending markets. Overbought can stay overbought for weeks in a bull run.",sharpeHint:"Strong in ranging regimes; degrades sharply in strong trends. Sharpe 0.3–0.6.",desc:"The stochastic measures where the closing price sits within the recent high-low range. %K is raw; %D smooths it. A cross of %K above %D while both are low indicates momentum is building from an oversold extreme."},
+  cci_rev:{name:"CCI Reversal (±100)",cat:"Momentum",catCls:"cat-mom",type:"Counter-Trend / Oscillator",params:["Period: 20 days","Buy threshold: −100","Sell threshold: +100"],entry:"BUY when CCI crosses above −100 (exiting oversold). SELL when CCI crosses below +100.",exit:"CCI exits the extreme zone",bestIn:"Commodity-linked stocks, cyclicals, mean-reverting large-caps",caveats:"CCI can stay extreme longer than expected in strong trends. Whipsaws in low-vol markets.",sharpeHint:"Developed for commodities; equity Sharpe 0.3–0.6 in ranging conditions.",desc:"Commodity Channel Index measures how far price has deviated from its statistical mean, normalised by mean absolute deviation. Originally developed for commodity markets but applied successfully to equities and ETFs in ranging regimes."},
+  price_mom:{name:"12-1 Month Momentum",cat:"Momentum",catCls:"cat-mom",type:"Trend Following",params:["Lookback: 252 days (12 months)","Skip last 21 days (1 month)"],entry:"BUY when 12-month return (excluding last month) is positive — upward momentum confirmed. SELL when negative.",exit:"Rolling momentum turns negative/positive",bestIn:"Cross-asset momentum rotation, growth stocks in bull phases",caveats:"Skips last month to avoid short-term reversal. Requires ≥14 months of data.",sharpeHint:"Jegadeesh-Titman (1993) documented 1% monthly alpha; Sharpe ~0.7–1.0 historically.",desc:"Based on the academic cross-sectional momentum anomaly: stocks that outperformed over the past year (ex-last-month) tend to continue outperforming. This version applies it as an on/off filter for a single stock rather than a long-short portfolio."},
+  bb_bounce:{name:"Bollinger Band Bounce",cat:"Volatility",catCls:"cat-vol",type:"Mean Reversion",params:["MA period: 20 days","Bands: ±2 standard deviations"],entry:"BUY when price re-enters from below the lower band. SELL when it re-enters from above the upper band.",exit:"Price crosses opposite band",bestIn:"Range-bound, choppy markets; stocks with stable volatility",caveats:"In a strong trend price can 'walk' along the band without reverting. Do not use in breakouts.",sharpeHint:"Classic mean-reversion setup; Sharpe 0.4–0.8 in choppy markets.",desc:"Bollinger Bands expand in high-volatility environments and contract in quiet ones. When price touches or crosses the outer band and then snaps back, it suggests the move was overextended relative to recent volatility — a mean-reversion entry."},
+  bb_breakout:{name:"Bollinger Band Breakout",cat:"Volatility",catCls:"cat-vol",type:"Trend Following / Breakout",params:["MA period: 20 days","Bands: ±2 standard deviations"],entry:"BUY when price closes above upper band (momentum breakout). SELL when it closes below lower band.",exit:"Opposite band break",bestIn:"Trending markets after volatility contraction (squeeze); earnings momentum",caveats:"High false-positive rate. Best preceded by a Bollinger Squeeze (bands narrowing).",sharpeHint:"Works well post-squeeze; Sharpe 0.3–0.7. Often combined with volume confirmation.",desc:"The opposite philosophy to BB Bounce: treats a band break as confirmation of a new trend rather than an overshoot. Particularly powerful when a prolonged period of narrow bands (squeeze) precedes the break — volatility tends to expand in the direction of the breakout."},
+  keltner:{name:"Keltner Channel",cat:"Volatility",catCls:"cat-vol",type:"Trend Following",params:["EMA period: 20 days","ATR period: 20 days","Multiplier: 2×ATR"],entry:"BUY when price rises above upper Keltner channel. SELL when it falls below lower channel.",exit:"Price crosses opposite channel boundary",bestIn:"Trending markets; used to detect breakouts from inside BB-Keltner squeeze",caveats:"Like BB Breakout, prone to whipsaws. Works better as a filter than standalone.",sharpeHint:"Best combined with MACD or RSI trend filter; standalone Sharpe 0.3–0.6.",desc:"Similar to Bollinger Bands but uses ATR instead of standard deviation, giving a smoother channel that doesn't expand as aggressively on price gaps. The Keltner-Bollinger squeeze (BB inside KC) is a widely used setup for detecting low-volatility compression before major moves."},
+  donchian_20:{name:"Donchian Channel 20-Day",cat:"Volatility",catCls:"cat-vol",type:"Trend Following / Breakout",params:["Lookback: 20 days for high/low"],entry:"BUY when price closes above the 20-day high. SELL when it closes below the 20-day low.",exit:"Price breaks opposite channel boundary",bestIn:"Trending markets, commodities, momentum-driven growth stocks",caveats:"Many false breakouts in sideways markets. Whipsaws in high-noise environments.",sharpeHint:"Original Turtle Trading system used 20-day Donchian; Sharpe ~0.5–0.9 in trends.",desc:"The core of Richard Dennis's legendary Turtle Trading system. Any new n-day high signals the start of a potential trend; any new low signals the opposite. Simple, mechanical, and remarkably effective in genuine trends despite frequent false starts."},
+  donchian_50:{name:"Donchian Channel 50-Day",cat:"Volatility",catCls:"cat-vol",type:"Trend Following / Breakout",params:["Lookback: 50 days for high/low"],entry:"BUY on new 50-day high. SELL on new 50-day low.",exit:"Opposite channel break",bestIn:"Multi-week to multi-month trending instruments",caveats:"Even slower than Donchian 20. Very few trades per year. Needs a long period.",sharpeHint:"Higher per-trade quality than Donchian 20 but lower trade frequency; Sharpe 0.6–1.0.",desc:"The Turtle Trading slow system. Trades only occur at 50-day price extremes, so each signal carries significantly more informational weight. Produces far fewer but typically larger trades than the 20-day version."},
+  atr_breakout:{name:"ATR Channel Breakout",cat:"Volatility",catCls:"cat-vol",type:"Trend Following / Breakout",params:["SMA period: 20 days","ATR period: 14 days","Band: ±1.5× ATR"],entry:"BUY when price closes more than 1.5 ATR above 20-day SMA. SELL when it drops 1.5 ATR below.",exit:"Price reverts inside the ATR channel",bestIn:"Volatile trending stocks; post-earnings momentum; momentum ETFs",caveats:"ATR bands widen after big moves, making subsequent signals rarer. Adjust multiplier for each instrument.",sharpeHint:"Adapts to market volatility automatically; Sharpe 0.4–0.8 in trending environments.",desc:"Draws a channel around a moving average using Average True Range as the width. Unlike fixed percentage envelopes, this channel automatically widens when the market is volatile and narrows in calm periods — producing signals that are always calibrated to current conditions."},
+  zscore_rev:{name:"Z-Score Mean Reversion",cat:"Statistical",catCls:"cat-vol",type:"Statistical Mean Reversion",params:["Lookback: 20 days","Entry: Z-score < −2.0","Exit: Z-score > +2.0"],entry:"BUY when price is >2 standard deviations below its 20-day mean (Z < −2). SELL when price is >2 SD above (Z > +2).",exit:"Z-score crosses opposite threshold",bestIn:"Pairs trading, sector ETFs, mean-reverting large-caps",caveats:"Mean reversion fails in trending environments — a stock can stay at Z < −3 for weeks in a downtrend.",sharpeHint:"Strong in market-neutral contexts; single-stock Sharpe 0.3–0.7 in ranging periods.",desc:"Converts price to a statistical Z-score relative to its recent distribution. A Z-score of −2 means price is 2 standard deviations below the 20-day mean — historically a low-probability event that tends to revert. Uses the same logic as statistical arbitrage without requiring a pair."},
+  parabolic_sar:{name:"Parabolic SAR",cat:"Statistical",catCls:"cat-vol",type:"Trend Following / Trailing Stop",params:["Initial AF: 0.02","Max AF: 0.20"],entry:"BUY when price is above the SAR dot (SAR flips bullish). SELL when price crosses below SAR (SAR flips bearish).",exit:"Price crosses the SAR in the opposite direction",bestIn:"Trending markets; useful as a dynamic trailing stop alongside other strategies",caveats:"Very sensitive in sideways markets — whipsaws continuously. Best as a stop mechanism, not standalone.",sharpeHint:"Used as a trailing stop increases Sharpe of other strategies by 0.1–0.3; standalone Sharpe 0.2–0.5.",desc:"The Parabolic SAR plots a trailing stop dot that accelerates as the trend matures — it starts slow and catches up quickly to a mature trend, then flips to the other side when breached. Developed by Welles Wilder (also RSI, ATR). The accelerating factor means it locks in profits progressively."},
 };
+
+/* ── Mode toggle (Single / Combine) ─────────────────── */
+let btMode="single";
+document.getElementById("btModeSingle").addEventListener("click",()=>{
+  btMode="single";
+  document.getElementById("btModeSingle").classList.add("on");
+  document.getElementById("btModeCombine").classList.remove("on");
+  document.getElementById("bt-strat-b-wrap").style.display="none";
+  document.getElementById("bt-logic-wrap").style.display="none";
+  document.getElementById("bt-a-lbl").textContent="Strategy";
+  updateStratDesc();
+});
+document.getElementById("btModeCombine").addEventListener("click",()=>{
+  btMode="combine";
+  document.getElementById("btModeCombine").classList.add("on");
+  document.getElementById("btModeSingle").classList.remove("on");
+  document.getElementById("bt-strat-b-wrap").style.display="flex";
+  document.getElementById("bt-logic-wrap").style.display="block";
+  document.getElementById("bt-a-lbl").textContent="Strategy A";
+  updateStratDesc();
+});
+
+/* ── Strategy detail panel ───────────────────────────── */
+let detailExpanded=false;
+document.getElementById("bt-detail-toggle").addEventListener("click",()=>{
+  detailExpanded=!detailExpanded;
+  document.getElementById("bt-detail-body").style.display=detailExpanded?"block":"none";
+  document.getElementById("bt-detail-toggle").textContent=detailExpanded?"▴ hide details":"▾ show details";
+});
 
 function resetBacktest(){
   document.getElementById("bt-output").innerHTML='<div style="color:var(--dim);font-size:.8rem;text-align:center;padding:2rem">Select a strategy and click Run.</div>';
@@ -1973,11 +2170,23 @@ function resetBacktest(){
 }
 
 function updateStratDesc(){
-  const sel=document.getElementById("bt-strategy");
+  const strat=document.getElementById("bt-strategy").value;
+  const meta=BT_STRAT_META[strat];
   const descEl=document.getElementById("bt-strat-desc");
-  const txt=BT_STRAT_DESC[sel?.value];
-  if(txt){descEl.textContent=txt;descEl.classList.add("show");}
-  else descEl.classList.remove("show");
+  const cardEl=document.getElementById("bt-detail-card");
+  if(!meta){descEl.classList.remove("show");cardEl.classList.remove("show");return;}
+  descEl.textContent=meta.desc;
+  descEl.classList.add("show");
+  document.getElementById("bt-detail-name").innerHTML=`<span class="bt-detail-tag ${meta.catCls}">${meta.cat}</span><span class="bt-detail-tag" style="margin-left:.2rem">${meta.type}</span>`;
+  document.getElementById("bt-detail-grid").innerHTML=`
+    <div class="bt-detail-row"><div class="bt-detail-lbl">Parameters</div><div class="bt-detail-val">${meta.params.join("<br>")}</div></div>
+    <div class="bt-detail-row"><div class="bt-detail-lbl">Entry Signal</div><div class="bt-detail-val">${meta.entry}</div></div>
+    <div class="bt-detail-row"><div class="bt-detail-lbl">Exit Signal</div><div class="bt-detail-val">${meta.exit}</div></div>
+    <div class="bt-detail-row"><div class="bt-detail-lbl">Best Market</div><div class="bt-detail-val">${meta.bestIn}</div></div>
+    <div class="bt-detail-row bt-detail-full"><div class="bt-detail-lbl">Caveats</div><div class="bt-detail-val" style="color:var(--yellow)">${meta.caveats}</div></div>
+    <div class="bt-detail-row bt-detail-full"><div class="bt-detail-lbl">Sharpe Benchmark</div><div class="bt-detail-val" style="color:var(--dim)">${meta.sharpeHint}</div></div>`;
+  cardEl.classList.add("show");
+  if(detailExpanded)document.getElementById("bt-detail-body").style.display="block";
 }
 
 document.getElementById("bt-strategy").addEventListener("change",updateStratDesc);
@@ -1986,141 +2195,154 @@ updateStratDesc();
 document.getElementById("bt-run-btn").addEventListener("click",async()=>{
   if(!drawerTicker)return;
   const strat=document.getElementById("bt-strategy").value;
+  const stratB=btMode==="combine"?document.getElementById("bt-strategy-b").value:null;
+  const combineLogic=btMode==="combine"?document.getElementById("bt-combine-logic").value:"none";
   const period=document.getElementById("bt-period").value;
+  const label=btMode==="combine"?`${BT_STRAT_META[strat]?.name||strat} ${combineLogic.toUpperCase()} ${BT_STRAT_META[stratB]?.name||stratB}`:(BT_STRAT_META[strat]?.name||strat);
   document.getElementById("bt-output").innerHTML='<div style="color:var(--dim);font-size:.8rem;text-align:center;padding:2rem">Running backtest…</div>';
   try{
     await ensureLWC();
     const rows=await fetchOHLCV(drawerTicker,period);
     if(rows.length<30){document.getElementById("bt-output").innerHTML='<div style="color:var(--dim);font-size:.8rem;text-align:center;padding:2rem">Not enough data for backtest.</div>';return;}
-    const result=runBacktest(strat,rows);
-    renderBacktest(result,rows);
+    const result=runBacktest(strat,rows,stratB,combineLogic);
+    renderBacktest(result,rows,label);
   }catch(e){
     document.getElementById("bt-output").innerHTML=`<div style="color:var(--red);font-size:.8rem;text-align:center;padding:2rem">Error: ${e.message}</div>`;
   }
 });
 
-function runBacktest(strat,rows){
+/* ── Signal computation ─────────────────────────────── */
+function computeSignals(strat,rows){
   const closes=rows.map(r=>r.close);
   const highs=rows.map(r=>r.high||r.close);
   const lows=rows.map(r=>r.low||r.close);
-  let signals=new Array(rows.length).fill(0); /* 1=buy,-1=sell,0=hold */
+  const sig=new Array(rows.length).fill(0);
 
   if(strat==="sma_cross"){
     const s20=calcSMA(closes,20),s50=calcSMA(closes,50);
     for(let i=1;i<rows.length;i++){
-      if(s20[i]!=null&&s50[i]!=null&&s20[i-1]!=null&&s50[i-1]!=null){
-        if(s20[i]>s50[i]&&s20[i-1]<=s50[i-1])signals[i]=1;
-        else if(s20[i]<s50[i]&&s20[i-1]>=s50[i-1])signals[i]=-1;
-      }
+      if(s20[i]!=null&&s50[i]!=null){if(s20[i]>s50[i]&&s20[i-1]<=s50[i-1])sig[i]=1;else if(s20[i]<s50[i]&&s20[i-1]>=s50[i-1])sig[i]=-1;}
     }
   }else if(strat==="sma_50_200"){
     const s50=calcSMA(closes,50),s200=calcSMA(closes,200);
     for(let i=1;i<rows.length;i++){
-      if(s50[i]!=null&&s200[i]!=null&&s50[i-1]!=null&&s200[i-1]!=null){
-        if(s50[i]>s200[i]&&s50[i-1]<=s200[i-1])signals[i]=1;
-        else if(s50[i]<s200[i]&&s50[i-1]>=s200[i-1])signals[i]=-1;
-      }
+      if(s50[i]!=null&&s200[i]!=null){if(s50[i]>s200[i]&&s50[i-1]<=s200[i-1])sig[i]=1;else if(s50[i]<s200[i]&&s50[i-1]>=s200[i-1])sig[i]=-1;}
     }
   }else if(strat==="ma_250_trend"){
-    const s250=calcSMA(closes,250);
-    let wasAbove=null;
+    const s250=calcSMA(closes,250);let wasAbove=null;
     for(let i=1;i<rows.length;i++){
-      if(s250[i]==null)continue;
-      const above=closes[i]>s250[i];
+      if(s250[i]==null)continue;const above=closes[i]>s250[i];
       if(wasAbove===null){wasAbove=above;continue;}
-      if(above&&!wasAbove)signals[i]=1;
-      else if(!above&&wasAbove)signals[i]=-1;
-      wasAbove=above;
+      if(above&&!wasAbove)sig[i]=1;else if(!above&&wasAbove)sig[i]=-1;wasAbove=above;
     }
   }else if(strat==="ema_cross"){
     const e12=calcEMA(closes,12),e26=calcEMA(closes,26);
-    for(let i=1;i<rows.length;i++){
-      if(e12[i-1]<=e26[i-1]&&e12[i]>e26[i])signals[i]=1;
-      else if(e12[i-1]>=e26[i-1]&&e12[i]<e26[i])signals[i]=-1;
-    }
+    for(let i=1;i<rows.length;i++){if(e12[i-1]<=e26[i-1]&&e12[i]>e26[i])sig[i]=1;else if(e12[i-1]>=e26[i-1]&&e12[i]<e26[i])sig[i]=-1;}
   }else if(strat==="triple_ma"){
-    const s20=calcSMA(closes,20),s50=calcSMA(closes,50),s200=calcSMA(closes,200);
-    let wasAligned=false;
+    const s20=calcSMA(closes,20),s50=calcSMA(closes,50),s200=calcSMA(closes,200);let wasAligned=false;
     for(let i=1;i<rows.length;i++){
       if(s20[i]==null||s50[i]==null||s200[i]==null)continue;
-      const bull=s20[i]>s50[i]&&s50[i]>s200[i];
-      const bear=s20[i]<s50[i]&&s50[i]<s200[i];
-      if(bull&&!wasAligned)signals[i]=1;
-      else if(bear&&wasAligned)signals[i]=-1;
+      const bull=s20[i]>s50[i]&&s50[i]>s200[i];const bear=s20[i]<s50[i]&&s50[i]<s200[i];
+      if(bull&&!wasAligned)sig[i]=1;else if(bear&&wasAligned)sig[i]=-1;
       if(bull)wasAligned=true;else if(bear)wasAligned=false;
     }
   }else if(strat==="sma_envelope"){
     const s20=calcSMA(closes,20);
-    for(let i=1;i<rows.length;i++){
-      if(s20[i]==null)continue;
-      const lo=s20[i]*0.95,hi=s20[i]*1.05;
-      if(closes[i-1]<lo&&closes[i]>=lo)signals[i]=1;
-      else if(closes[i-1]>hi&&closes[i]<=hi)signals[i]=-1;
-    }
+    for(let i=1;i<rows.length;i++){if(s20[i]==null)continue;const lo=s20[i]*0.95,hi=s20[i]*1.05;if(closes[i-1]<lo&&closes[i]>=lo)sig[i]=1;else if(closes[i-1]>hi&&closes[i]<=hi)sig[i]=-1;}
+  }else if(strat==="supertrend"){
+    const st=calcSuperTrend(rows);
+    for(let i=1;i<rows.length;i++){if(!st[i]||!st[i-1])continue;if(st[i-1].dir===-1&&st[i].dir===1)sig[i]=1;else if(st[i-1].dir===1&&st[i].dir===-1)sig[i]=-1;}
   }else if(strat==="rsi_mean"){
     const rsi=calcRSI(closes);
-    for(let i=1;i<rows.length;i++){
-      if(rsi[i]!=null&&rsi[i-1]!=null){
-        if(rsi[i-1]<30&&rsi[i]>=30)signals[i]=1;
-        else if(rsi[i-1]>70&&rsi[i]<=70)signals[i]=-1;
-      }
-    }
+    for(let i=1;i<rows.length;i++){if(rsi[i]!=null&&rsi[i-1]!=null){if(rsi[i-1]<30&&rsi[i]>=30)sig[i]=1;else if(rsi[i-1]>70&&rsi[i]<=70)sig[i]=-1;}}
   }else if(strat==="rsi_trend"){
     const rsi=calcRSI(closes);
-    for(let i=1;i<rows.length;i++){
-      if(rsi[i]==null||rsi[i-1]==null)continue;
-      if(rsi[i-1]<50&&rsi[i]>=50)signals[i]=1;
-      else if(rsi[i-1]>50&&rsi[i]<=50)signals[i]=-1;
-    }
+    for(let i=1;i<rows.length;i++){if(rsi[i]==null||rsi[i-1]==null)continue;if(rsi[i-1]<50&&rsi[i]>=50)sig[i]=1;else if(rsi[i-1]>50&&rsi[i]<=50)sig[i]=-1;}
   }else if(strat==="macd_signal"){
     const{m,s}=calcMACD(closes);
-    for(let i=1;i<rows.length;i++){
-      if(m[i-1]<s[i-1]&&m[i]>=s[i])signals[i]=1;
-      else if(m[i-1]>s[i-1]&&m[i]<=s[i])signals[i]=-1;
-    }
+    for(let i=1;i<rows.length;i++){if(m[i-1]<s[i-1]&&m[i]>=s[i])sig[i]=1;else if(m[i-1]>s[i-1]&&m[i]<=s[i])sig[i]=-1;}
   }else if(strat==="macd_zero"){
     const{m}=calcMACD(closes);
-    for(let i=1;i<rows.length;i++){
-      if(m[i-1]<0&&m[i]>=0)signals[i]=1;
-      else if(m[i-1]>0&&m[i]<=0)signals[i]=-1;
-    }
+    for(let i=1;i<rows.length;i++){if(m[i-1]<0&&m[i]>=0)sig[i]=1;else if(m[i-1]>0&&m[i]<=0)sig[i]=-1;}
   }else if(strat==="stoch_cross"){
     const st=calcStoch(highs,lows,closes);
-    for(let i=1;i<rows.length;i++){
-      const p=st[i-1],c=st[i];
-      if(!p||!c)continue;
-      if(p.k<p.d&&c.k>=c.d&&c.k<45)signals[i]=1;
-      else if(p.k>p.d&&c.k<=c.d&&c.k>55)signals[i]=-1;
+    for(let i=1;i<rows.length;i++){const p=st[i-1],c=st[i];if(!p||!c)continue;if(p.k<p.d&&c.k>=c.d&&c.k<45)sig[i]=1;else if(p.k>p.d&&c.k<=c.d&&c.k>55)sig[i]=-1;}
+  }else if(strat==="cci_rev"){
+    const cci=calcCCI(highs,lows,closes);
+    for(let i=1;i<rows.length;i++){if(cci[i]==null||cci[i-1]==null)continue;if(cci[i-1]<-100&&cci[i]>=-100)sig[i]=1;else if(cci[i-1]>100&&cci[i]<=100)sig[i]=-1;}
+  }else if(strat==="price_mom"){
+    const yr=252,mo=21;
+    for(let i=yr;i<rows.length;i++){
+      const ret=(closes[i-mo]-closes[i-yr])/closes[i-yr];
+      const retPrev=(closes[Math.max(0,i-mo-1)]-closes[Math.max(0,i-yr-1)])/closes[Math.max(0,i-yr-1)];
+      if(retPrev<=0&&ret>0)sig[i]=1;else if(retPrev>=0&&ret<0)sig[i]=-1;
     }
   }else if(strat==="bb_bounce"){
     const bb=calcBB(closes);
-    for(let i=1;i<rows.length;i++){
-      if(bb[i]==null)continue;
-      if(closes[i-1]<bb[i].lower&&closes[i]>=bb[i].lower)signals[i]=1;
-      else if(closes[i-1]>bb[i].upper&&closes[i]<=bb[i].upper)signals[i]=-1;
-    }
+    for(let i=1;i<rows.length;i++){if(bb[i]==null)continue;if(closes[i-1]<bb[i].lower&&closes[i]>=bb[i].lower)sig[i]=1;else if(closes[i-1]>bb[i].upper&&closes[i]<=bb[i].upper)sig[i]=-1;}
   }else if(strat==="bb_breakout"){
     const bb=calcBB(closes);
-    for(let i=1;i<rows.length;i++){
-      const pb=bb[i-1],cb=bb[i];
-      if(!pb||!cb)continue;
-      if(closes[i-1]<=pb.upper&&closes[i]>cb.upper)signals[i]=1;
-      else if(closes[i-1]>=pb.lower&&closes[i]<cb.lower)signals[i]=-1;
-    }
+    for(let i=1;i<rows.length;i++){const pb=bb[i-1],cb=bb[i];if(!pb||!cb)continue;if(closes[i-1]<=pb.upper&&closes[i]>cb.upper)sig[i]=1;else if(closes[i-1]>=pb.lower&&closes[i]<cb.lower)sig[i]=-1;}
+  }else if(strat==="keltner"){
+    const kc=calcKeltner(closes,highs,lows);
+    for(let i=1;i<rows.length;i++){const pk=kc[i-1],ck=kc[i];if(!pk||!ck)continue;if(closes[i-1]<=pk.upper&&closes[i]>ck.upper)sig[i]=1;else if(closes[i-1]>=pk.lower&&closes[i]<ck.lower)sig[i]=-1;}
   }else if(strat==="donchian_20"){
     const dc=calcDonchian(highs,lows,20);
-    for(let i=1;i<rows.length;i++){
-      if(!dc[i]||!dc[i-1])continue;
-      if(closes[i-1]<=dc[i-1].upper&&closes[i]>dc[i].upper)signals[i]=1;
-      else if(closes[i-1]>=dc[i-1].lower&&closes[i]<dc[i].lower)signals[i]=-1;
-    }
+    for(let i=1;i<rows.length;i++){if(!dc[i]||!dc[i-1])continue;if(closes[i-1]<=dc[i-1].upper&&closes[i]>dc[i].upper)sig[i]=1;else if(closes[i-1]>=dc[i-1].lower&&closes[i]<dc[i].lower)sig[i]=-1;}
   }else if(strat==="donchian_50"){
     const dc=calcDonchian(highs,lows,50);
+    for(let i=1;i<rows.length;i++){if(!dc[i]||!dc[i-1])continue;if(closes[i-1]<=dc[i-1].upper&&closes[i]>dc[i].upper)sig[i]=1;else if(closes[i-1]>=dc[i-1].lower&&closes[i]<dc[i].lower)sig[i]=-1;}
+  }else if(strat==="atr_breakout"){
+    const atr=calcATR(rows),sma=calcSMA(closes,20);
     for(let i=1;i<rows.length;i++){
-      if(!dc[i]||!dc[i-1])continue;
-      if(closes[i-1]<=dc[i-1].upper&&closes[i]>dc[i].upper)signals[i]=1;
-      else if(closes[i-1]>=dc[i-1].lower&&closes[i]<dc[i].lower)signals[i]=-1;
+      if(atr[i]==null||sma[i]==null)continue;
+      const hi=sma[i]+1.5*atr[i],lo=sma[i]-1.5*atr[i];
+      if(closes[i-1]<=sma[i]+1.5*(atr[i-1]||atr[i])&&closes[i]>hi)sig[i]=1;
+      else if(closes[i-1]>=sma[i]-1.5*(atr[i-1]||atr[i])&&closes[i]<lo)sig[i]=-1;
     }
+  }else if(strat==="zscore_rev"){
+    const z=calcZScore(closes);
+    for(let i=1;i<rows.length;i++){if(z[i]==null||z[i-1]==null)continue;if(z[i-1]<-2&&z[i]>=-2)sig[i]=1;else if(z[i-1]>2&&z[i]<=2)sig[i]=-1;}
+  }else if(strat==="parabolic_sar"){
+    const sar=calcParabolicSAR(rows);
+    for(let i=1;i<rows.length;i++){if(!sar[i]||!sar[i-1])continue;if(!sar[i-1].bull&&sar[i].bull)sig[i]=1;else if(sar[i-1].bull&&!sar[i].bull)sig[i]=-1;}
+  }
+  return sig;
+}
+
+/* ── Combine two signal arrays ──────────────────────── */
+function combineSignals(sA,sB,logic){
+  const n=sA.length;
+  const combined=new Array(n).fill(0);
+  // Track regime for each strategy (1=long, -1=flat/short)
+  let regA=0,regB=0;
+  for(let i=0;i<n;i++){
+    if(sA[i]===1)regA=1;else if(sA[i]===-1)regA=-1;
+    if(sB[i]===1)regB=1;else if(sB[i]===-1)regB=-1;
+    if(logic==="and"){
+      // Both must be in same direction
+      if(regA===1&&regB===1&&(sA[i]===1||sB[i]===1))combined[i]=1;
+      else if((regA===-1||regB===-1)&&(sA[i]===-1||sB[i]===-1))combined[i]=-1;
+    }else if(logic==="or"){
+      // Either triggers
+      if(sA[i]===1||sB[i]===1)combined[i]=1;
+      else if(sA[i]===-1||sB[i]===-1)combined[i]=-1;
+    }else if(logic==="filter"){
+      // A fires entry/exit, B must confirm direction
+      if(sA[i]===1&&regB===1)combined[i]=1;
+      else if(sA[i]===-1&&regB===-1)combined[i]=-1;
+      else if(sA[i]===1&&regB!==1)combined[i]=0; // A wants to buy but B disagrees — hold off
+      else if(sA[i]===-1&&regB!==-1)combined[i]=0;
+    }
+  }
+  return combined;
+}
+
+function runBacktest(strat,rows,stratB=null,combineLogic="none"){
+  let signals=computeSignals(strat,rows);
+  if(stratB&&combineLogic!=="none"){
+    const sigB=computeSignals(stratB,rows);
+    signals=combineSignals(signals,sigB,combineLogic);
   }
 
   /* simulate */
@@ -2131,13 +2353,11 @@ function runBacktest(strat,rows){
 
   for(let i=0;i<rows.length;i++){
     if(signals[i]===1&&!inPos){
-      shares=Math.floor(cash/rows[i].close);
-      cash-=shares*rows[i].close;
+      shares=Math.floor(cash/rows[i].close);cash-=shares*rows[i].close;
       entryPrice=rows[i].close;inPos=true;
       trades.push({type:"BUY",date:rows[i].time,price:rows[i].close,shares});
     }else if(signals[i]===-1&&inPos){
-      const proceeds=shares*rows[i].close;
-      const pnl=proceeds-shares*entryPrice;
+      const proceeds=shares*rows[i].close;const pnl=proceeds-shares*entryPrice;
       cash+=proceeds;
       trades.push({type:"SELL",date:rows[i].time,price:rows[i].close,shares,pnl:+pnl.toFixed(2)});
       shares=0;inPos=false;
@@ -2146,11 +2366,8 @@ function runBacktest(strat,rows){
   }
   if(inPos&&shares>0){cash+=shares*rows[rows.length-1].close;shares=0;}
 
-  /* buy & hold benchmark */
   const startP=rows[0].close,endP=rows[rows.length-1].close;
   const bh=10000*(endP/startP);
-
-  /* metrics */
   const finalEq=equity[equity.length-1].value;
   const totalReturn=((finalEq-10000)/10000*100).toFixed(1);
   const bhReturn=((bh-10000)/10000*100).toFixed(1);
@@ -2159,7 +2376,6 @@ function runBacktest(strat,rows){
   const winRate=totalSells?Math.round(wins/totalSells*100):0;
   const maxDD=calcMaxDD(equity.map(e=>e.value));
   const sharpe=calcSharpe(equity.map(e=>e.value));
-
   return{equity,trades,totalReturn,bhReturn,winRate,maxDD,sharpe,finalEq};
 }
 
