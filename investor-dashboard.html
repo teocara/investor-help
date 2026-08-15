@@ -387,6 +387,12 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
 .bt-cmp-sub{font-size:.6rem;font-weight:400;color:var(--dim);}
 .bt-cmp-warn{font-size:.55rem;color:var(--yellow);font-weight:400;}
 .bt-cost-panel{border-color:var(--purple);border-left:3px solid var(--purple);}
+.bt-rung-bar{margin:.45rem 0 .1rem;}
+.bt-rung-row{display:flex;height:7px;border-radius:4px;overflow:hidden;background:var(--bg);}
+.bt-rung-seg{display:block;min-width:1px;}
+.bt-rung-key{display:flex;flex-wrap:wrap;gap:.15rem .8rem;margin-top:.3rem;font-size:.62rem;color:var(--dim);}
+.bt-rung-key span{display:flex;align-items:center;gap:.28rem;}
+.bt-rung-key i{width:8px;height:8px;border-radius:2px;flex:none;}
 .bt-cmp tr.bt-cmp-total td{border-top:2px solid var(--card-b);border-bottom:none;font-weight:700;padding-top:.45rem;}
 .bt-cmp tr.bt-cmp-total td:first-child{color:var(--text);}
 .bt-chart-wrap{background:var(--card);border:1px solid var(--card-b);border-radius:6px;margin-bottom:.5rem;}
@@ -742,7 +748,14 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
             <span class="bt-sel-lbl">Defensive leg</span>
             <select class="bt-sel" id="bt-rot-def">
               <option value="cash">Cash — flat when the signal is off</option>
-              <option value="QQQ">QQQ 1× — stay invested unlevered</option>
+              <option value="QQQ" selected>QQQ 1× — stay invested unlevered</option>
+            </select>
+          </div>
+          <div class="bt-sel-wrap">
+            <span class="bt-sel-lbl">Allocation</span>
+            <select class="bt-sel" id="bt-rot-alloc" data-tip="Binary switches straight between the geared fund and the defensive leg. Ladder uses two strategies as a conviction score: both bullish holds the geared fund, one bullish steps down to plain QQQ, neither falls back to the defensive leg — so an ambiguous market moves you to standard Nasdaq rather than out of the market.">
+              <option value="binary" selected>Binary — geared ⇄ defensive leg</option>
+              <option value="ladder">Ladder — both signals → geared, one → QQQ 1×, none → defensive</option>
             </select>
           </div>
           <div class="bt-sel-wrap">
@@ -2266,14 +2279,27 @@ function setBtMode(mode){
   const ids={single:"btModeSingle",combine:"btModeCombine",rotate:"btModeRotate"};
   for(const[m,id]of Object.entries(ids))
     document.getElementById(id).classList.toggle("on",m===mode);
-  const combo=mode==="combine";
-  document.getElementById("bt-strat-b-wrap").style.display=combo?"flex":"none";
+  const combo=mode==="combine",rot=mode==="rotate";
+  /* Rotation can also use two strategies — either combined into one signal,
+     or as the two rungs of the ladder. */
+  document.getElementById("bt-strat-b-wrap").style.display=(combo||rot)?"flex":"none";
   document.getElementById("bt-logic-wrap").style.display=combo?"block":"none";
-  document.getElementById("bt-rot-wrap").style.display=mode==="rotate"?"block":"none";
+  document.getElementById("bt-rot-wrap").style.display=rot?"block":"none";
   document.getElementById("bt-a-lbl").textContent=
-    combo?"Strategy A":mode==="rotate"?"Trend signal (on QQQ)":"Strategy";
+    combo?"Strategy A":rot?"Signal A (on QQQ)":"Strategy";
+  const bLbl=document.querySelector("#bt-strat-b-wrap .bt-sel-lbl");
+  if(bLbl)bLbl.textContent=rot?"Signal B (on QQQ)":"Strategy B";
+  if(rot)syncRotAlloc();
   updateStratDesc();
 }
+/* In binary rotation the combine logic applies; in ladder mode the two
+   signals are the rungs, so the logic selector would be misleading. */
+function syncRotAlloc(){
+  const ladder=document.getElementById("bt-rot-alloc").value==="ladder";
+  document.getElementById("bt-logic-wrap").style.display=
+    (btMode==="rotate"&&!ladder)?"block":(btMode==="combine"?"block":"none");
+}
+document.getElementById("bt-rot-alloc").addEventListener("change",syncRotAlloc);
 document.getElementById("btModeSingle").addEventListener("click",()=>setBtMode("single"));
 document.getElementById("btModeCombine").addEventListener("click",()=>setBtMode("combine"));
 document.getElementById("btModeRotate").addEventListener("click",()=>setBtMode("rotate"));
@@ -2318,8 +2344,9 @@ document.getElementById("bt-run-btn").addEventListener("click",async()=>{
   const out=document.getElementById("bt-output");
   const msg=(t,c)=>out.innerHTML=`<div style="color:${c||"var(--dim)"};font-size:.8rem;text-align:center;padding:2rem">${t}</div>`;
   const strat=document.getElementById("bt-strategy").value;
-  const stratB=btMode==="combine"?document.getElementById("bt-strategy-b").value:null;
-  const combineLogic=btMode==="combine"?document.getElementById("bt-combine-logic").value:"none";
+  const usesB=btMode==="combine"||btMode==="rotate";
+  const stratB=usesB?document.getElementById("bt-strategy-b").value:null;
+  const combineLogic=usesB?document.getElementById("bt-combine-logic").value:"none";
   const period=document.getElementById("bt-period").value;
   const stratName=BT_STRAT_META[strat]?.name||strat;
   msg("Running backtest…");
@@ -2361,15 +2388,23 @@ document.getElementById("bt-run-btn").addEventListener("click",async()=>{
       }
       let defRows=null;
       if(defLeg==="QQQ")defRows=baseRows;
+      const ladder=document.getElementById("bt-rot-alloc").value==="ladder";
       const result=runRotation(strat,baseRows,levRows,defRows,volMax,stratB,combineLogic,
-                               {cost:tCost,taxRate,execLag:lm.lag,levMult:lm.mult});
-      const bits=[stratName,defLeg==="cash"?"→ cash":"→ QQQ 1×"];
+                               {cost:tCost,taxRate,execLag:lm.lag,levMult:lm.mult,ladder});
+      const nameB=BT_STRAT_META[stratB]?.name||stratB;
+      const bits=[];
+      if(ladder)bits.push(`${stratName} + ${nameB}`);
+      else if(stratB&&combineLogic!=="none")bits.push(`${stratName} ${combineLogic.toUpperCase()} ${nameB}`);
+      else bits.push(stratName);
       if(volMax)bits.push(`vol brake ${Math.round(volMax*100)}%`);
-      if(lm.lag)bits.push(`+${lm.lag}d execution lag`);
+      if(lm.lag)bits.push(`+${lm.lag}d lag`);
       if(lm.ccy!=="USD")bits.push(`${lm.ccy} terms`);
-      renderBacktest(result,baseRows,`${lm.name} ⇄ ${defLeg==="cash"?"Cash":"QQQ"} · ${bits.join(" · ")}`,
+      const chain=ladder
+        ? `${lm.name} → QQQ 1× → ${defLeg==="cash"?"Cash":"QQQ"}`
+        : `${lm.name} ⇄ ${defLeg==="cash"?"Cash":"QQQ"}`;
+      renderBacktest(result,baseRows,`${chain} · ${bits.join(" · ")}`,
                      {rotate:true,defLeg,volMax,levName:lm.name,levMult:lm.mult,
-                      execLag:lm.lag,ccy:lm.ccy});
+                      execLag:lm.lag,ccy:lm.ccy,ladder});
       return;
     }
 
@@ -2671,65 +2706,101 @@ function runRotation(strat,baseRows,levRows,defRows,volMax,stratB,combineLogic,o
      Paris-listed fund signalled off the US close cannot trade until the next
      session, so lag=1 there; a US fund trades on the same close, lag=0. */
   const lag=opts&&opts.execLag?opts.execLag:0;
-  let signals=computeSignals(strat,baseRows);
-  if(stratB&&combineLogic&&combineLogic!=="none"){
-    signals=combineSignals(signals,computeSignals(stratB,baseRows),combineLogic);
-  }
+  /* Ladder mode: rather than a binary in/out, conviction sets the rung.
+     Both strategies bullish -> the geared fund; only one -> plain QQQ;
+     neither -> the defensive leg. Stepping down to 1x instead of selling
+     keeps the capital compounding through the ambiguous stretches. */
+  const ladder=!!(opts&&opts.ladder&&stratB);
   const closes=baseRows.map(r=>r.close);
   const BARS_YR=barsPerYear(baseRows);
   const vol=volMax?calcRealizedVol(closes,Math.max(5,barsFor(20,baseRows)),BARS_YR):null;
 
-  /* Edge signals -> a held regime: 1 = offensive, 0 = defensive. */
-  const regime=new Array(baseRows.length).fill(0);
-  let on=false;
-  for(let i=0;i<baseRows.length;i++){
-    if(signals[i]===1)on=true;else if(signals[i]===-1)on=false;
-    /* Volatility brake: stand down whenever the underlying is too wild,
-       regardless of what the trend signal says. */
-    let want=on;
-    if(want&&vol){const v=vol[i];if(v==null||v>=volMax)want=false;}
-    regime[i]=want?1:0;
+  /* Turn edge signals (+1 buy / -1 sell) into a held on/off regime. */
+  const holdRegime=sig=>{
+    const out=new Array(baseRows.length).fill(0);
+    let on=false;
+    for(let i=0;i<baseRows.length;i++){
+      if(sig[i]===1)on=true;else if(sig[i]===-1)on=false;
+      out[i]=on?1:0;
+    }
+    return out;
+  };
+
+  const sigA=computeSignals(strat,baseRows);
+  const sigB=stratB?computeSignals(stratB,baseRows):null;
+
+  /* level: 2 = geared, 1 = plain index, 0 = defensive leg (cash or QQQ) */
+  const level=new Array(baseRows.length).fill(0);
+  if(ladder){
+    const rA=holdRegime(sigA),rB=holdRegime(sigB);
+    for(let i=0;i<baseRows.length;i++){
+      let lv=rA[i]+rB[i];                       /* 0, 1 or 2 */
+      /* The volatility brake demotes one rung rather than forcing a full
+         exit — high volatility argues against leverage, not against equities. */
+      if(vol&&lv>0){const v=vol[i];if(v==null||v>=volMax)lv=Math.max(0,lv-1);}
+      level[i]=lv;
+    }
+  }else{
+    let signals=sigA;
+    if(sigB&&combineLogic&&combineLogic!=="none")
+      signals=combineSignals(sigA,sigB,combineLogic);
+    const r=holdRegime(signals);
+    for(let i=0;i<baseRows.length;i++){
+      let on=r[i]===1;
+      if(on&&vol){const v=vol[i];if(v==null||v>=volMax)on=false;}
+      level[i]=on?2:0;
+    }
   }
+  const regime=level.map(l=>l===2?1:0);
 
   /* Runs the same regime twice — once with frictions, once without — so the
      trading-cost and tax components can be attributed rather than assumed. */
+  /* Which instrument each rung holds. Rung 1 is the plain index, which only
+     exists as a distinct rung in ladder mode. */
+  const legFor=lv=>lv===2?levRows:lv===1?baseRows:defRows;
+
   function simulate(tradeCost,tax){
-    let eq=10000,onLeg=false;
+    let eq=10000,cur=-1;
     const equity=[{time:baseRows[0].time,value:10000}];
     const trades=[],holds=[];
     let entryVal=0,entryIdx=0,barsInPos=0,taxPaid=0,costPaid=0;
+    const bars=[0,0,0];
     for(let i=0;i<baseRows.length-1-lag;i++){
-      const want=regime[i]===1;
-      if(want!==onLeg){
-        const before=eq;
-        eq*=(1-tradeCost*2);               /* sell one leg, buy the other */
-        costPaid+=before-eq;
-        if(want){
+      const lv=level[i];
+      if(lv!==cur){
+        if(cur>=0){
+          /* Turnover: leaving a held position and entering another costs both
+             legs; moving to or from cash costs only the one. */
+          const legsTraded=(cur>0?1:0)+(lv>0||defRows?1:0);
+          const before=eq;
+          eq*=(1-tradeCost*legsTraded);
+          costPaid+=before-eq;
+        }
+        /* Tax and trade records track the geared leg specifically. */
+        if(lv===2){
           entryVal=eq;entryIdx=i;
           trades.push({type:"BUY",date:baseRows[i].time,price:levRows[i].close,shares:0});
-        }else if(entryVal){
+        }else if(cur===2&&entryVal){
           const held=Math.max(1,i-entryIdx);
           const gain=eq-entryVal;
-          /* short-term gains are realized on every exit; losses are assumed
-             to offset other gains at the same rate */
           if(tax){const t=gain*tax;eq-=t;taxPaid+=t;}
           holds.push({bars:held,ret:eq/entryVal});
           trades.push({type:"SELL",date:baseRows[i].time,price:levRows[i].close,
                        shares:0,pnl:+gain.toFixed(2),bars:held});
         }
-        onLeg=want;
+        cur=lv;
       }
       /* Signal read at bar i, position held from bar i+lag to i+lag+1. */
       const k=i+lag;
-      const r=want
-        ? levRows[k+1].close/levRows[k].close-1
-        : (defRows?defRows[k+1].close/defRows[k].close-1:0);
+      const leg=legFor(lv);
+      const r=leg?leg[k+1].close/leg[k].close-1:0;
       eq*=(1+r);
-      if(want)barsInPos++;
+      bars[lv]++;
+      if(lv===2)barsInPos++;
       equity.push({time:baseRows[k+1].time,value:+eq.toFixed(2)});
     }
-    if(onLeg&&entryVal)holds.push({bars:Math.max(1,baseRows.length-1-entryIdx),ret:eq/entryVal});
-    return{equity,trades,holds,barsInPos,taxPaid,costPaid,finalEq:eq};
+    if(cur===2&&entryVal)holds.push({bars:Math.max(1,baseRows.length-1-entryIdx),ret:eq/entryVal});
+    return{equity,trades,holds,barsInPos,taxPaid,costPaid,finalEq:eq,bars};
   }
 
   const gross=simulate(0,0);              /* frictionless reference */
@@ -2748,6 +2819,13 @@ function runRotation(strat,baseRows,levRows,defRows,volMax,stratB,combineLogic,o
   m.baseCagr=yrs>0&&baseGrowth>0?((Math.pow(baseGrowth,1/yrs)-1)*100):null;
   m.baseMaxDD=calcMaxDD(base);
   m.regime=regime;
+  /* Time spent on each rung, for the ladder breakdown */
+  const tb=net.bars.reduce((a,b)=>a+b,0)||1;
+  m.rungs={ladder,
+           geared:net.bars[2]/tb*100,
+           index:net.bars[1]/tb*100,
+           defensive:net.bars[0]/tb*100,
+           bars:net.bars,total:tb};
 
   /* ---- full cost attribution ---- */
   const ann=g=>g>0&&yrs>0?(Math.pow(g,1/yrs)-1)*100:null;
@@ -2887,9 +2965,23 @@ function renderBacktest(result,rows,label,opts){
       <div class="bt-metric"><div class="bt-m-lbl">Sharpe Ratio</div><div class="bt-m-val" style="color:${sharpe!=null&&+sharpe>1?"var(--accent)":sharpe!=null&&+sharpe>0?"var(--yellow)":"var(--red)"}">${sharpe??'—'}</div></div>
       <div class="bt-metric"><div class="bt-m-lbl">vs Benchmark</div><div class="bt-m-val" style="color:${vsColor}">${vsLabel}</div></div>
     </div>
+    ${rot&&result.rungs&&result.rungs.ladder?`<div class="bt-rung-bar" data-tip="Share of the test window spent on each rung. Time on QQQ 1× is time the binary version would have spent in the defensive leg instead.">
+      <div class="bt-rung-row">
+        <span class="bt-rung-seg" style="flex:${Math.max(0.001,result.rungs.geared)};background:var(--accent)"></span>
+        <span class="bt-rung-seg" style="flex:${Math.max(0.001,result.rungs.index)};background:var(--blue)"></span>
+        <span class="bt-rung-seg" style="flex:${Math.max(0.001,result.rungs.defensive)};background:var(--dim);opacity:.5"></span>
+      </div>
+      <div class="bt-rung-key">
+        <span><i style="background:var(--accent)"></i>${levName} ${result.rungs.geared.toFixed(0)}%</span>
+        <span><i style="background:var(--blue)"></i>QQQ 1× ${result.rungs.index.toFixed(0)}%</span>
+        <span><i style="background:var(--dim)"></i>${opts.defLeg==="cash"?"Cash":"QQQ"} ${result.rungs.defensive.toFixed(0)}%</span>
+      </div>
+    </div>`:""}
     ${rot?`<div class="bt-rot-note" style="margin-top:.4rem;border-top:1px solid var(--line);padding-top:.45rem">
       Signals computed on QQQ and executed on ${levName}. Costs are charged per unit traded on each switch, on top of the expense ratio and financing already embedded in ${levName}'s price.${opts.execLag?` A ${opts.execLag}-day execution lag is applied because Paris closes before New York.`:""}
-      ${opts.defLeg==="cash"?"Out of the market the position sits in cash earning nothing.":"Out of the market the position holds QQQ 1×."}
+      ${opts.ladder
+        ?`Ladder allocation: both signals bullish holds ${levName}, one bullish steps down to plain QQQ 1×, neither falls back to ${opts.defLeg==="cash"?"cash":"QQQ"}. The volatility brake demotes one rung rather than forcing a full exit.`
+        :(opts.defLeg==="cash"?"Out of the market the position sits in cash earning nothing.":"Out of the market the position holds QQQ 1×.")}
     </div>`:""}
   </div>`;
 
