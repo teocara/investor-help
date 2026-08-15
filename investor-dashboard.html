@@ -386,6 +386,9 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
 .bt-cmp-k{text-align:left!important;font-weight:500!important;color:var(--dim);}
 .bt-cmp-sub{font-size:.6rem;font-weight:400;color:var(--dim);}
 .bt-cmp-warn{font-size:.55rem;color:var(--yellow);font-weight:400;}
+.bt-cost-panel{border-color:var(--purple);border-left:3px solid var(--purple);}
+.bt-cmp tr.bt-cmp-total td{border-top:2px solid var(--card-b);border-bottom:none;font-weight:700;padding-top:.45rem;}
+.bt-cmp tr.bt-cmp-total td:first-child{color:var(--text);}
 .bt-chart-wrap{background:var(--card);border:1px solid var(--card-b);border-radius:6px;margin-bottom:.5rem;}
 #btChart{height:160px;}
 .bt-trades{margin-top:.5rem;}
@@ -743,6 +746,26 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
               <option value="0.30">Stand down above 30% realized vol</option>
               <option value="0.35" selected>Stand down above 35% realized vol</option>
               <option value="0.40">Stand down above 40% realized vol</option>
+            </select>
+          </div>
+          <div class="bt-sel-wrap">
+            <span class="bt-sel-lbl">Spread + commission</span>
+            <select class="bt-sel" id="bt-rot-cost">
+              <option value="0">0 bps — frictionless (reference only)</option>
+              <option value="0.0002">2 bps — tight retail spread</option>
+              <option value="0.0005" selected>5 bps — typical retail</option>
+              <option value="0.002">20 bps — wide spread / small account</option>
+              <option value="0.005">50 bps — stress test</option>
+            </select>
+          </div>
+          <div class="bt-sel-wrap">
+            <span class="bt-sel-lbl">Tax on realized gains</span>
+            <select class="bt-sel" id="bt-rot-tax">
+              <option value="0" selected>0% — tax-sheltered account</option>
+              <option value="0.15">15% — long-term / low bracket</option>
+              <option value="0.26">26% — Italy capital gains</option>
+              <option value="0.35">35% — US short-term, mid bracket</option>
+              <option value="0.45">45% — US short-term, top bracket</option>
             </select>
           </div>
         </div>
@@ -2294,6 +2317,8 @@ document.getElementById("bt-run-btn").addEventListener("click",async()=>{
     if(btMode==="rotate"){
       const defLeg=document.getElementById("bt-rot-def").value;
       const volMax=parseFloat(document.getElementById("bt-rot-vol").value)||0;
+      const tCost=parseFloat(document.getElementById("bt-rot-cost").value)||0;
+      const taxRate=parseFloat(document.getElementById("bt-rot-tax").value)||0;
       const [baseRaw,levRaw]=await Promise.all([
         fetchOHLCVCached("QQQ",period),
         fetchOHLCVCached("TQQQ",period)
@@ -2305,7 +2330,8 @@ document.getElementById("bt-run-btn").addEventListener("click",async()=>{
       }
       let defRows=null;
       if(defLeg==="QQQ")defRows=baseRows;
-      const result=runRotation(strat,baseRows,levRows,defRows,volMax,stratB,combineLogic);
+      const result=runRotation(strat,baseRows,levRows,defRows,volMax,stratB,combineLogic,
+                               {cost:tCost,taxRate});
       const bits=[stratName,defLeg==="cash"?"→ cash":"→ QQQ 1×"];
       if(volMax)bits.push(`vol brake ${Math.round(volMax*100)}%`);
       renderBacktest(result,baseRows,`TQQQ ⇄ ${defLeg==="cash"?"Cash":"QQQ"} · ${bits.join(" · ")}`,
@@ -2502,7 +2528,65 @@ function runBacktest(strat,rows,stratB=null,combineLogic="none"){
    The defensive leg is cash or the 1x fund; SQQQ is deliberately not offered
    (see research/study.py — every short configuration underperformed cash). */
 
-const ROT_COST=0.0005;   /* 5 bps per unit traded: spread + commission */
+const ROT_COST=0.0005;   /* default 5 bps per unit traded: spread + commission */
+
+/* ── Cost attribution for a geared fund ───────────────────
+   Isolates the two internal costs of a 3x ETF by building a reference chain:
+
+   frictionless  the index's compound growth raised to the power of 3 — what
+                 constant 3x exposure would return with no rebalancing drag.
+                 This is the correct reference for isolating decay. Comparing
+                 instead against 3x the index's SIMPLE total return conflates
+                 decay with compounding, which over a long uptrend flatters
+                 the fund rather than penalising it.
+   decayOnly     daily-reset 3x with zero fees — the gap from the line above
+                 is pure volatility decay: resetting exposure every day means
+                 a loss shrinks the base the next gain compounds on. Theory
+                 puts it at -(L^2-L)/2 * sigma^2, which is -3*sigma^2 at 3x.
+   actual        the real fund — adds the expense ratio and the financing
+                 cost of carrying 2x borrowed notional. */
+function gearingCosts(baseCloses,levCloses,barsYr){
+  const n=baseCloses.length;
+  if(n<3)return null;
+  const yrs=n/barsYr;
+  const baseGrowth=baseCloses[n-1]/baseCloses[0];
+  const frictionless=Math.pow(baseGrowth,3);
+
+  let decayOnly=1;
+  for(let i=1;i<n;i++)decayOnly*=(1+3*(baseCloses[i]/baseCloses[i-1]-1));
+  if(decayOnly<0)decayOnly=0;
+
+  const actual=levCloses[n-1]/levCloses[0];
+  const ann=g=>g>0?Math.pow(g,1/yrs)-1:null;
+
+  const lr=[];
+  for(let i=1;i<n;i++)lr.push(Math.log(baseCloses[i]/baseCloses[i-1]));
+  const m=lr.reduce((a,b)=>a+b,0)/lr.length;
+  const variance=lr.reduce((a,b)=>a+(b-m)*(b-m),0)/(lr.length-1);
+  const sigma=Math.sqrt(variance*barsYr);
+
+  const aB=ann(baseGrowth),aF=ann(frictionless),aD=ann(decayOnly),aA=ann(actual);
+  /* Drag is the annualized RATIO of two growth multiples, not the difference
+     of their CAGRs. Costs compound multiplicatively, so differencing CAGRs
+     overstates them badly once the multiples get large. */
+  const drag=(g1,g0)=>(g0>0&&g1>0&&yrs>0)?(Math.pow(g1/g0,1/yrs)-1)*100:null;
+  /* the naive expectation people actually hold, kept for contrast */
+  const naive=1+3*(baseGrowth-1);
+  return{
+    yrs,sigma:sigma*100,
+    baseGrowth,frictionlessGrowth:frictionless,decayGrowth:decayOnly,
+    actualGrowth:actual,naiveGrowth:naive,
+    baseCagr:aB==null?null:aB*100,
+    frictionlessCagr:aF==null?null:aF*100,
+    decayCagr:aD==null?null:aD*100,
+    actualCagr:aA==null?null:aA*100,
+    decayDrag:drag(decayOnly,frictionless),
+    feeDrag:drag(actual,decayOnly),
+    totalDrag:drag(actual,frictionless),
+    /* textbook approximation, for comparison with the measured figure */
+    theoryDecay:-3*sigma*sigma*100
+  };
+}
 
 /* Annualized realized volatility of the underlying, in bar-native units. */
 function calcRealizedVol(closes,n,barsYr){
@@ -2528,7 +2612,9 @@ function alignRows(a,b){
 
 /* baseRows drives the signal; levRows is the offensive instrument.
    defRows is the defensive instrument, or null for cash. */
-function runRotation(strat,baseRows,levRows,defRows,volMax,stratB,combineLogic){
+function runRotation(strat,baseRows,levRows,defRows,volMax,stratB,combineLogic,opts){
+  const cost=opts&&opts.cost!=null?opts.cost:ROT_COST;
+  const taxRate=opts&&opts.taxRate?opts.taxRate:0;
   let signals=computeSignals(strat,baseRows);
   if(stratB&&combineLogic&&combineLogic!=="none"){
     signals=combineSignals(signals,computeSignals(stratB,baseRows),combineLogic);
@@ -2549,38 +2635,48 @@ function runRotation(strat,baseRows,levRows,defRows,volMax,stratB,combineLogic){
     regime[i]=want?1:0;
   }
 
-  let eq=10000,heldOff=false;
-  const equity=[{time:baseRows[0].time,value:10000}];
-  const trades=[],holds=[];
-  let entryVal=0,entryIdx=0,barsInPos=0;
-
-  for(let i=0;i<baseRows.length-1;i++){
-    const want=regime[i]===1;
-    if(want!==heldOff){
-      eq*=(1-ROT_COST*2);                 /* sell one leg, buy the other */
-      if(want){
-        entryVal=eq;entryIdx=i;
-        trades.push({type:"BUY",date:baseRows[i].time,price:levRows[i].close,shares:0});
-      }else if(entryVal){
-        const held=Math.max(1,i-entryIdx);
-        holds.push({bars:held,ret:eq/entryVal});
-        trades.push({type:"SELL",date:baseRows[i].time,price:levRows[i].close,
-                     shares:0,pnl:+(eq-entryVal).toFixed(2),bars:held});
+  /* Runs the same regime twice — once with frictions, once without — so the
+     trading-cost and tax components can be attributed rather than assumed. */
+  function simulate(tradeCost,tax){
+    let eq=10000,onLeg=false;
+    const equity=[{time:baseRows[0].time,value:10000}];
+    const trades=[],holds=[];
+    let entryVal=0,entryIdx=0,barsInPos=0,taxPaid=0,costPaid=0;
+    for(let i=0;i<baseRows.length-1;i++){
+      const want=regime[i]===1;
+      if(want!==onLeg){
+        const before=eq;
+        eq*=(1-tradeCost*2);               /* sell one leg, buy the other */
+        costPaid+=before-eq;
+        if(want){
+          entryVal=eq;entryIdx=i;
+          trades.push({type:"BUY",date:baseRows[i].time,price:levRows[i].close,shares:0});
+        }else if(entryVal){
+          const held=Math.max(1,i-entryIdx);
+          const gain=eq-entryVal;
+          /* short-term gains are realized on every exit; losses are assumed
+             to offset other gains at the same rate */
+          if(tax){const t=gain*tax;eq-=t;taxPaid+=t;}
+          holds.push({bars:held,ret:eq/entryVal});
+          trades.push({type:"SELL",date:baseRows[i].time,price:levRows[i].close,
+                       shares:0,pnl:+gain.toFixed(2),bars:held});
+        }
+        onLeg=want;
       }
-      heldOff=want;
+      const r=want
+        ? levRows[i+1].close/levRows[i].close-1
+        : (defRows?defRows[i+1].close/defRows[i].close-1:0);
+      eq*=(1+r);
+      if(want)barsInPos++;
+      equity.push({time:baseRows[i+1].time,value:+eq.toFixed(2)});
     }
-    /* hold the chosen leg over the next bar */
-    const r=want
-      ? levRows[i+1].close/levRows[i].close-1
-      : (defRows?defRows[i+1].close/defRows[i].close-1:0);
-    eq*=(1+r);
-    if(want)barsInPos++;
-    equity.push({time:baseRows[i+1].time,value:+eq.toFixed(2)});
+    if(onLeg&&entryVal)holds.push({bars:Math.max(1,baseRows.length-1-entryIdx),ret:eq/entryVal});
+    return{equity,trades,holds,barsInPos,taxPaid,costPaid,finalEq:eq};
   }
-  if(heldOff&&entryVal){
-    const last=baseRows.length-1,held=Math.max(1,last-entryIdx);
-    holds.push({bars:held,ret:eq/entryVal});
-  }
+
+  const gross=simulate(0,0);              /* frictionless reference */
+  const net=simulate(cost,taxRate);
+  const {equity,trades,holds,barsInPos}=net;
 
   /* Benchmark is the leveraged fund itself — the thing we are trying to beat. */
   const m=perfMetrics({equity,trades,holds,barsInPos,rows:baseRows,
@@ -2594,6 +2690,26 @@ function runRotation(strat,baseRows,levRows,defRows,volMax,stratB,combineLogic){
   m.baseCagr=yrs>0&&baseGrowth>0?((Math.pow(baseGrowth,1/yrs)-1)*100):null;
   m.baseMaxDD=calcMaxDD(base);
   m.regime=regime;
+
+  /* ---- full cost attribution ---- */
+  const ann=g=>g>0&&yrs>0?(Math.pow(g,1/yrs)-1)*100:null;
+  const grossCagr=ann(gross.finalEq/10000);
+  const netCagr=ann(net.finalEq/10000);
+  m.costs=gearingCosts(base,levRows.map(r=>r.close),BARS_YR);
+  /* Same convention as gearingCosts: annualized ratio of growth multiples, so
+     the components compose multiplicatively instead of by subtraction. */
+  const drag=(g1,g0)=>(g0>0&&g1>0&&yrs>0)?(Math.pow(g1/g0,1/yrs)-1)*100:null;
+  const gG=gross.finalEq/10000;
+  const cG=simulate(cost,0).finalEq/10000;   /* trading costs, no tax */
+  const nG=net.finalEq/10000;
+  m.friction={
+    grossCagr,netCagr,grossGrowth:gG,
+    tradeDrag:drag(cG,gG),
+    taxDrag:taxRate?drag(nG,cG):null,
+    totalDrag:drag(nG,gG),
+    costPaid:net.costPaid,taxPaid:net.taxPaid,
+    costBps:cost*1e4,taxRate:taxRate*100,switches:net.trades.length
+  };
   return m;
 }
 
@@ -2716,6 +2832,73 @@ function renderBacktest(result,rows,label,opts){
       ${opts.defLeg==="cash"?"Out of the market the position sits in cash earning nothing.":"Out of the market the position holds QQQ 1×."}
     </div>`:""}
   </div>`;
+
+  /* ---- cost & decay attribution (rotation mode only) ---- */
+  if(rot&&result.costs&&result.friction){
+    const c=result.costs,f=result.friction;
+    const pp=v=>v==null||!isFinite(v)?"—":(v>=0?"+":"")+v.toFixed(2)+" pts";
+    const cg=v=>v==null||!isFinite(v)?"—":(v>=0?"+":"")+v.toFixed(1)+"%";
+    const mult=g=>g==null?"—":(g>=10?Math.round(g)+"×":g.toFixed(2)+"×");
+    html+=`<div class="bt-result bt-cost-panel">
+      <div class="bt-time-hd">
+        <span>🧮 Where the leverage went</span>
+        <span class="bt-time-sub">every cost between 3× the index and what you actually keep</span>
+      </div>
+      <div class="bt-cmp-wrap">
+      <table class="bt-cmp">
+        <thead><tr><th>Stage</th><th>Growth</th><th>CAGR</th><th>Cost of this step</th></tr></thead>
+        <tbody>
+          <tr data-tip="The unlevered index over the same window — the starting point everything below is built from.">
+            <td class="bt-cmp-k">QQQ 1× <span class="bt-cmp-sub">(the index)</span></td>
+            <td>${mult(c.baseGrowth)}</td><td>${cg(c.baseCagr)}</td><td class="bt-cmp-sub">—</td></tr>
+          <tr data-tip="The index's compound growth raised to the power of 3 — what holding constant 3x exposure would return with no rebalancing drag. Not achievable in practice, but it is the correct reference for isolating decay. (Comparing against 3x the index's simple total return instead would mix decay up with compounding, which over a long uptrend flatters the fund rather than penalising it.)">
+            <td class="bt-cmp-k">3× exposure, no daily reset <span class="bt-cmp-sub">(reference)</span></td>
+            <td>${mult(c.frictionlessGrowth)}</td><td>${cg(c.frictionlessCagr)}</td>
+            <td class="bt-cmp-sub">reference</td></tr>
+          <tr data-tip="Daily-reset 3x with zero fees. The gap from the reference is pure volatility decay: because exposure is rebalanced to 3x every day, a loss shrinks the base that the next gain compounds on. It scales with the SQUARE of volatility, so it bites hardest in turbulent markets — exactly when a 3x fund is already losing.">
+            <td class="bt-cmp-k">− Volatility decay <span class="bt-cmp-sub">(daily reset)</span></td>
+            <td>${mult(c.decayGrowth)}</td><td>${cg(c.decayCagr)}</td>
+            <td style="color:var(--red)">${pp(c.decayDrag)}/yr</td></tr>
+          <tr data-tip="The real fund. The gap from the line above is the 0.95% expense ratio plus the financing cost of carrying 2x borrowed notional, which rises and falls with short-term interest rates.">
+            <td class="bt-cmp-k">− Expense ratio + financing</td>
+            <td>${mult(c.actualGrowth)}</td><td>${cg(c.actualCagr)}</td>
+            <td style="color:var(--red)">${pp(c.feeDrag)}/yr</td></tr>
+          <tr data-tip="Running this strategy frictionlessly — the leveraged fund's internal costs are already included above, this is before your own trading costs.">
+            <td class="bt-cmp-k">Strategy, no trading costs</td>
+            <td>${mult(f.grossGrowth)}</td><td>${cg(f.grossCagr)}</td>
+            <td class="bt-cmp-sub">—</td></tr>
+          <tr data-tip="Spread and commission charged on both legs of every switch.">
+            <td class="bt-cmp-k">− Spread + commission <span class="bt-cmp-sub">(${f.costBps.toFixed(0)} bps × ${f.switches})</span></td>
+            <td class="bt-cmp-sub">−$${Math.round(f.costPaid).toLocaleString()}</td><td></td>
+            <td style="color:${f.tradeDrag<0?"var(--red)":"var(--dim)"}">${pp(f.tradeDrag)}/yr</td></tr>
+          ${f.taxRate?`<tr data-tip="Tax paid on gains realized at each exit. Buy-and-hold defers this entirely until you sell, which is a real and often decisive advantage for the passive side.">
+            <td class="bt-cmp-k">− Tax on realized gains <span class="bt-cmp-sub">(${f.taxRate.toFixed(0)}%)</span></td>
+            <td class="bt-cmp-sub">−$${Math.round(f.taxPaid).toLocaleString()}</td><td></td>
+            <td style="color:var(--red)">${pp(f.taxDrag)}/yr</td></tr>`:""}
+          <tr class="bt-cmp-total" data-tip="What the strategy actually returns after every cost above.">
+            <td class="bt-cmp-k">= Net result</td>
+            <td>${mult(finalEq/10000)}</td>
+            <td style="color:${cagr>=0?"var(--accent)":"var(--red)"}">${cg(cagr)}</td>
+            <td class="bt-cmp-sub">${pp(f.totalDrag)}/yr vs frictionless</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <div class="bt-time-note">
+        QQQ realized <strong>${c.sigma.toFixed(1)}%</strong> annualized volatility over this window.
+        Measured decay is <strong>${pp(c.decayDrag)}</strong> a year against constant 3× exposure;
+        the textbook −3σ² approximation predicts <strong>${c.theoryDecay.toFixed(1)} pts</strong>,
+        so the two agree closely. Expenses and financing cost a further
+        <strong>${pp(c.feeDrag)}</strong>, for a total wrapper drag of
+        <strong>${pp(c.totalDrag)}</strong> a year before you place a single trade.
+        For contrast, 3× the index's simple total return would be
+        <strong>${mult(c.naiveGrowth)}</strong> — the figure most people picture, and
+        neither what the fund targets nor what it delivers.
+        ${opts.volMax
+          ? `The volatility brake exists precisely because decay scales with σ² — standing down above ${Math.round(opts.volMax*100)}% avoids the regime where the wrapper is most expensive.`
+          : `With the volatility brake off, the strategy holds TQQQ through high-σ regimes where this decay is at its worst.`}
+      </div>
+    </div>`;
+  }
 
   /* ---- time-efficiency panel: strategy vs buy & hold, head to head ---- */
   const fBR=fmtAnnual(bhRoti);
