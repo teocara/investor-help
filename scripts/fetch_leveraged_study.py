@@ -22,6 +22,13 @@ TICKERS = {
     "PSQ":  "ProShares Short QQQ (-1x)",
     "^IRX": "13-week T-bill discount rate (financing proxy)",
     "^VXN": "Nasdaq-100 volatility index",
+    # European UCITS equivalents — the only leveraged Nasdaq exposure an
+    # EU/EEA retail investor can actually buy (TQQQ has no PRIIPs KID).
+    "LQQ.PA":  "Amundi Nasdaq-100 Daily (2x) Leveraged UCITS ETF, EUR (Paris)",
+    "LQQ.MI":  "Same fund, Milan listing",
+    "CL2.PA":  "Amundi MSCI USA Daily (2x) Leveraged UCITS ETF, EUR",
+    "EURUSD=X": "EUR/USD spot — DKK is pegged to EUR, so this is the FX leg",
+    "DKKUSD=X": "DKK/USD spot",
 }
 
 out = {}
