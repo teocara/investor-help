@@ -31,6 +31,45 @@ TICKERS = {
     "DKKUSD=X": "DKK/USD spot",
 }
 
+def despike(rows, thresh=0.45):
+    """Drop isolated bad prints — an extreme move undone by the next bar.
+    Several Euronext listings carry these; rescaling around them as if they
+    were splits corrupts the entire series."""
+    n = 0
+    for i in range(1, len(rows) - 1):
+        a, b, c = rows[i-1]["c"], rows[i]["c"], rows[i+1]["c"]
+        if min(a, b, c) <= 0:
+            continue
+        r1, r2 = b/a - 1, c/b - 1
+        if abs(r1) > thresh and abs(r2) > thresh and r1*r2 < 0 and abs(c/a - 1) < 0.25:
+            rows[i]["c"] = round((a + c)/2, 6)
+            n += 1
+    return n
+
+
+def fix_splits(rows, ref, thresh=0.45):
+    """Repair share splits yfinance failed to adjust. LQQ.PA carries an
+    unadjusted ~205:1 split on 2015-01-02 which, left alone, reads as a 99.5%
+    single-day loss. A real move shows up in the underlying index too, so the
+    index is used to tell corporate actions from price action."""
+    notes = []
+    for i in range(1, len(rows)):
+        prev, cur = rows[i-1]["c"], rows[i]["c"]
+        if min(prev, cur) <= 0:
+            continue
+        r = cur/prev - 1
+        if abs(r) < thresh:
+            continue
+        a, b = ref.get(rows[i]["t"]), ref.get(rows[i-1]["t"])
+        if a and b and abs(a/b - 1) > abs(r)/4:
+            continue                      # corroborated by the index: real
+        factor = cur/prev
+        for j in range(i):
+            rows[j]["c"] = round(rows[j]["c"]*factor, 6)
+        notes.append({"date": rows[i]["t"], "ratio": round(1/factor, 4)})
+    return notes
+
+
 out = {}
 
 for ticker, desc in TICKERS.items():
@@ -52,7 +91,21 @@ for ticker, desc in TICKERS.items():
             {"t": dt.strftime("%Y-%m-%d"), "c": round(float(v), 4)}
             for dt, v in close.items()
         ]
-        out[ticker] = {"desc": desc, "rows": rows}
+        entry = {"desc": desc, "rows": rows}
+        # QQQ is the reference and is clean; repair the rest against it
+        if ticker != "QQQ" and "QQQ" in out and not ticker.endswith("=X"):
+            ref = {r["t"]: r["c"] for r in out["QQQ"]["rows"]}
+            spikes = despike(rows)
+            splits = fix_splits(rows, ref)
+            if spikes:
+                entry["despiked"] = spikes
+            if splits:
+                entry["split_adjusted"] = splits
+                for s in splits:
+                    print(f"    repaired {s['ratio']}:1 split on {s['date']}")
+            if spikes:
+                print(f"    removed {spikes} isolated bad tick(s)")
+        out[ticker] = entry
         print(f"  {ticker}: {len(rows)} rows  {rows[0]['t']} -> {rows[-1]['t']}")
     except Exception as e:
         print(f"  {ticker}: FAILED {e}")

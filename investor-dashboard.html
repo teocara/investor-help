@@ -729,8 +729,15 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
       </div>
       <!-- Rotation controls (hidden unless rotate mode) -->
       <div class="bt-rot-wrap" id="bt-rot-wrap" style="display:none">
-        <div class="bt-rot-hd">Two-instrument rotation · signals on QQQ, executed on TQQQ</div>
+        <div class="bt-rot-hd">Two-instrument rotation · signals on QQQ, executed on the geared leg</div>
         <div class="bt-rot-row">
+          <div class="bt-sel-wrap">
+            <span class="bt-sel-lbl">Geared leg</span>
+            <select class="bt-sel" id="bt-rot-lev">
+              <option value="TQQQ" selected>TQQQ 3× — US, not sellable to EU retail</option>
+              <option value="LQQ.PA">LQQ 2× — Amundi UCITS, Paris (EUR)</option>
+            </select>
+          </div>
           <div class="bt-sel-wrap">
             <span class="bt-sel-lbl">Defensive leg</span>
             <select class="bt-sel" id="bt-rot-def">
@@ -774,6 +781,11 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
           tested returned less than simply holding cash — the −3× fund is down
           99.999% since inception, and a false short in a rising market costs far
           more at −3× than an early exit to cash does.
+          <br><br>
+          <strong style="color:var(--text)">LQQ trades in Paris</strong>, which closes 4.5 hours before New York,
+          so a signal taken from the US close cannot be acted on until the next
+          session. That one-day execution lag is applied automatically — without
+          it the backtest would be reading tomorrow's news today.
         </div>
       </div>
       <!-- Strategy A -->
@@ -2315,27 +2327,49 @@ document.getElementById("bt-run-btn").addEventListener("click",async()=>{
     await ensureLWC();
 
     if(btMode==="rotate"){
+      const levTicker=document.getElementById("bt-rot-lev").value;
       const defLeg=document.getElementById("bt-rot-def").value;
       const volMax=parseFloat(document.getElementById("bt-rot-vol").value)||0;
       const tCost=parseFloat(document.getElementById("bt-rot-cost").value)||0;
       const taxRate=parseFloat(document.getElementById("bt-rot-tax").value)||0;
+      const LEV_META={
+        "TQQQ":{name:"TQQQ 3×",mult:3,lag:0,start:"February 2010",ccy:"USD"},
+        "LQQ.PA":{name:"LQQ 2×",mult:2,lag:1,start:"January 2009",ccy:"EUR"}
+      };
+      const lm=LEV_META[levTicker];
       const [baseRaw,levRaw]=await Promise.all([
         fetchOHLCVCached("QQQ",period),
-        fetchOHLCVCached("TQQQ",period)
+        fetchOHLCVCached(levTicker,period)
       ]);
-      let [baseRows,levRows]=alignRows(baseRaw,levRaw);
+      let baseUsd=baseRaw;
+      if(lm.ccy==="EUR"){
+        /* Restate the USD index in EUR so the geared leg and its benchmark
+           share a currency; otherwise EUR/USD drift pollutes every metric. */
+        try{
+          const fx=await fetchOHLCVCached("EURUSD=X",period);
+          if(fx&&fx.length>30)baseUsd=toEUR(baseRaw,fx);
+        }catch(e){
+          msg("EUR/USD history unavailable, so a EUR-quoted fund cannot be compared "
+             +"to a USD index without currency drift contaminating the result.","var(--yellow)");
+          return;
+        }
+      }
+      let [baseRows,levRows]=alignRows(baseUsd,levRaw);
       if(baseRows.length<60){
-        msg("Not enough overlapping QQQ/TQQQ history for this period. TQQQ starts in February 2010.");
+        msg(`Not enough overlapping QQQ/${lm.name} history for this period. ${lm.name} starts in ${lm.start}.`);
         return;
       }
       let defRows=null;
       if(defLeg==="QQQ")defRows=baseRows;
       const result=runRotation(strat,baseRows,levRows,defRows,volMax,stratB,combineLogic,
-                               {cost:tCost,taxRate});
+                               {cost:tCost,taxRate,execLag:lm.lag,levMult:lm.mult});
       const bits=[stratName,defLeg==="cash"?"→ cash":"→ QQQ 1×"];
       if(volMax)bits.push(`vol brake ${Math.round(volMax*100)}%`);
-      renderBacktest(result,baseRows,`TQQQ ⇄ ${defLeg==="cash"?"Cash":"QQQ"} · ${bits.join(" · ")}`,
-                     {rotate:true,defLeg,volMax});
+      if(lm.lag)bits.push(`+${lm.lag}d execution lag`);
+      if(lm.ccy!=="USD")bits.push(`${lm.ccy} terms`);
+      renderBacktest(result,baseRows,`${lm.name} ⇄ ${defLeg==="cash"?"Cash":"QQQ"} · ${bits.join(" · ")}`,
+                     {rotate:true,defLeg,volMax,levName:lm.name,levMult:lm.mult,
+                      execLag:lm.lag,ccy:lm.ccy});
       return;
     }
 
@@ -2545,15 +2579,16 @@ const ROT_COST=0.0005;   /* default 5 bps per unit traded: spread + commission *
                  puts it at -(L^2-L)/2 * sigma^2, which is -3*sigma^2 at 3x.
    actual        the real fund — adds the expense ratio and the financing
                  cost of carrying 2x borrowed notional. */
-function gearingCosts(baseCloses,levCloses,barsYr){
+function gearingCosts(baseCloses,levCloses,barsYr,L){
+  L=L||3;
   const n=baseCloses.length;
   if(n<3)return null;
   const yrs=n/barsYr;
   const baseGrowth=baseCloses[n-1]/baseCloses[0];
-  const frictionless=Math.pow(baseGrowth,3);
+  const frictionless=Math.pow(baseGrowth,L);
 
   let decayOnly=1;
-  for(let i=1;i<n;i++)decayOnly*=(1+3*(baseCloses[i]/baseCloses[i-1]-1));
+  for(let i=1;i<n;i++)decayOnly*=(1+L*(baseCloses[i]/baseCloses[i-1]-1));
   if(decayOnly<0)decayOnly=0;
 
   const actual=levCloses[n-1]/levCloses[0];
@@ -2571,7 +2606,7 @@ function gearingCosts(baseCloses,levCloses,barsYr){
      overstates them badly once the multiples get large. */
   const drag=(g1,g0)=>(g0>0&&g1>0&&yrs>0)?(Math.pow(g1/g0,1/yrs)-1)*100:null;
   /* the naive expectation people actually hold, kept for contrast */
-  const naive=1+3*(baseGrowth-1);
+  const naive=1+L*(baseGrowth-1);
   return{
     yrs,sigma:sigma*100,
     baseGrowth,frictionlessGrowth:frictionless,decayGrowth:decayOnly,
@@ -2584,7 +2619,9 @@ function gearingCosts(baseCloses,levCloses,barsYr){
     feeDrag:drag(actual,decayOnly),
     totalDrag:drag(actual,frictionless),
     /* textbook approximation, for comparison with the measured figure */
-    theoryDecay:-3*sigma*sigma*100
+    /* -(L^2-L)/2 * sigma^2 : 3x gives up three times what 2x does */
+    theoryDecay:-(L*L-L)/2*sigma*sigma*100,
+    L
   };
 }
 
@@ -2602,6 +2639,21 @@ function calcRealizedVol(closes,n,barsYr){
   return out;
 }
 
+/* Restate a USD series in EUR so a euro-quoted fund can be compared against
+   it like for like. Without this the FX drift over the window lands in the
+   cost attribution and shows up as a bogus fee number. */
+function toEUR(rows,fxRows){
+  const fx=new Map(fxRows.map(r=>[r.time,r.close]));   /* USD per 1 EUR */
+  const out=[];
+  for(const r of rows){
+    const f=fx.get(r.time);
+    if(!f)continue;
+    out.push({time:r.time,open:r.open/f,high:r.high/f,low:r.low/f,
+              close:r.close/f,volume:r.volume});
+  }
+  return out;
+}
+
 /* Align two OHLCV series onto their common dates. */
 function alignRows(a,b){
   const mb=new Map(b.map(r=>[r.time,r]));
@@ -2615,6 +2667,10 @@ function alignRows(a,b){
 function runRotation(strat,baseRows,levRows,defRows,volMax,stratB,combineLogic,opts){
   const cost=opts&&opts.cost!=null?opts.cost:ROT_COST;
   const taxRate=opts&&opts.taxRate?opts.taxRate:0;
+  /* Bars of delay between seeing a signal and being able to act on it. A
+     Paris-listed fund signalled off the US close cannot trade until the next
+     session, so lag=1 there; a US fund trades on the same close, lag=0. */
+  const lag=opts&&opts.execLag?opts.execLag:0;
   let signals=computeSignals(strat,baseRows);
   if(stratB&&combineLogic&&combineLogic!=="none"){
     signals=combineSignals(signals,computeSignals(stratB,baseRows),combineLogic);
@@ -2642,7 +2698,7 @@ function runRotation(strat,baseRows,levRows,defRows,volMax,stratB,combineLogic,o
     const equity=[{time:baseRows[0].time,value:10000}];
     const trades=[],holds=[];
     let entryVal=0,entryIdx=0,barsInPos=0,taxPaid=0,costPaid=0;
-    for(let i=0;i<baseRows.length-1;i++){
+    for(let i=0;i<baseRows.length-1-lag;i++){
       const want=regime[i]===1;
       if(want!==onLeg){
         const before=eq;
@@ -2663,12 +2719,14 @@ function runRotation(strat,baseRows,levRows,defRows,volMax,stratB,combineLogic,o
         }
         onLeg=want;
       }
+      /* Signal read at bar i, position held from bar i+lag to i+lag+1. */
+      const k=i+lag;
       const r=want
-        ? levRows[i+1].close/levRows[i].close-1
-        : (defRows?defRows[i+1].close/defRows[i].close-1:0);
+        ? levRows[k+1].close/levRows[k].close-1
+        : (defRows?defRows[k+1].close/defRows[k].close-1:0);
       eq*=(1+r);
       if(want)barsInPos++;
-      equity.push({time:baseRows[i+1].time,value:+eq.toFixed(2)});
+      equity.push({time:baseRows[k+1].time,value:+eq.toFixed(2)});
     }
     if(onLeg&&entryVal)holds.push({bars:Math.max(1,baseRows.length-1-entryIdx),ret:eq/entryVal});
     return{equity,trades,holds,barsInPos,taxPaid,costPaid,finalEq:eq};
@@ -2695,7 +2753,7 @@ function runRotation(strat,baseRows,levRows,defRows,volMax,stratB,combineLogic,o
   const ann=g=>g>0&&yrs>0?(Math.pow(g,1/yrs)-1)*100:null;
   const grossCagr=ann(gross.finalEq/10000);
   const netCagr=ann(net.finalEq/10000);
-  m.costs=gearingCosts(base,levRows.map(r=>r.close),BARS_YR);
+  m.costs=gearingCosts(base,levRows.map(r=>r.close),BARS_YR,opts&&opts.levMult||3);
   /* Same convention as gearingCosts: annualized ratio of growth multiples, so
      the components compose multiplicatively instead of by subtraction. */
   const drag=(g1,g0)=>(g0>0&&g1>0&&yrs>0)?(Math.pow(g1/g0,1/yrs)-1)*100:null;
@@ -2804,9 +2862,11 @@ function renderBacktest(result,rows,label,opts){
         baseReturn,baseCagr,baseMaxDD}=result;
   const rot=opts&&opts.rotate;
   /* In rotation mode the benchmark is TQQQ itself, not the traded ticker. */
-  const bhName=rot?"TQQQ Buy &amp; Hold":"Buy &amp; Hold";
+  const levName=rot&&opts.levName?opts.levName:"TQQQ";
+  const levMult=rot&&opts.levMult?opts.levMult:3;
+  const bhName=rot?`${levName} Buy &amp; Hold`:"Buy &amp; Hold";
   const positive=+totalReturn>=0;
-  const vsLabel=+totalReturn>=+bhReturn?(rot?"▲ beats TQQQ":"▲ beats B&H"):(rot?"▼ lags TQQQ":"▼ lags B&H");
+  const vsLabel=+totalReturn>=+bhReturn?(rot?`▲ beats ${levName}`:"▲ beats B&H"):(rot?`▼ lags ${levName}`:"▼ lags B&H");
   const vsColor=+totalReturn>=+bhReturn?"var(--accent)":"var(--red)";
 
   const fC=fmtAnnual(cagr),fB=fmtAnnual(bhCagr),fR=fmtAnnual(roti);
@@ -2816,7 +2876,7 @@ function renderBacktest(result,rows,label,opts){
   const rotiEdge=roti!=null&&cagr!=null&&roti>cagr+0.5;
 
   let html=`<div class="bt-result">
-    <div style="font-size:.78rem;font-weight:600;margin-bottom:.2rem">${label?label+" — ":""}Strategy Result vs ${rot?"TQQQ":"Buy &amp; Hold"}</div>
+    <div style="font-size:.78rem;font-weight:600;margin-bottom:.2rem">${label?label+" — ":""}Strategy Result vs ${rot?levName:"Buy &amp; Hold"}</div>
     <div class="bt-metric-grid">
       <div class="bt-metric"><div class="bt-m-lbl">Strategy Return</div><div class="bt-m-val" style="color:${positive?"var(--accent)":"var(--red)"}">${positive?"+":""}${totalReturn}%</div></div>
       <div class="bt-metric"><div class="bt-m-lbl">${bhName}</div><div class="bt-m-val">${+bhReturn>=0?"+":""}${bhReturn}%</div></div>
@@ -2828,7 +2888,7 @@ function renderBacktest(result,rows,label,opts){
       <div class="bt-metric"><div class="bt-m-lbl">vs Benchmark</div><div class="bt-m-val" style="color:${vsColor}">${vsLabel}</div></div>
     </div>
     ${rot?`<div class="bt-rot-note" style="margin-top:.4rem;border-top:1px solid var(--line);padding-top:.45rem">
-      Signals computed on QQQ and executed on TQQQ. Costs: 5 bps per unit traded on each switch, on top of the expense ratio and financing already embedded in TQQQ's price.
+      Signals computed on QQQ and executed on ${levName}. Costs are charged per unit traded on each switch, on top of the expense ratio and financing already embedded in ${levName}'s price.${opts.execLag?` A ${opts.execLag}-day execution lag is applied because Paris closes before New York.`:""}
       ${opts.defLeg==="cash"?"Out of the market the position sits in cash earning nothing.":"Out of the market the position holds QQQ 1×."}
     </div>`:""}
   </div>`;
@@ -2852,7 +2912,7 @@ function renderBacktest(result,rows,label,opts){
             <td class="bt-cmp-k">QQQ 1× <span class="bt-cmp-sub">(the index)</span></td>
             <td>${mult(c.baseGrowth)}</td><td>${cg(c.baseCagr)}</td><td class="bt-cmp-sub">—</td></tr>
           <tr data-tip="The index's compound growth raised to the power of 3 — what holding constant 3x exposure would return with no rebalancing drag. Not achievable in practice, but it is the correct reference for isolating decay. (Comparing against 3x the index's simple total return instead would mix decay up with compounding, which over a long uptrend flatters the fund rather than penalising it.)">
-            <td class="bt-cmp-k">3× exposure, no daily reset <span class="bt-cmp-sub">(reference)</span></td>
+            <td class="bt-cmp-k">${levMult}× exposure, no daily reset <span class="bt-cmp-sub">(reference)</span></td>
             <td>${mult(c.frictionlessGrowth)}</td><td>${cg(c.frictionlessCagr)}</td>
             <td class="bt-cmp-sub">reference</td></tr>
           <tr data-tip="Daily-reset 3x with zero fees. The gap from the reference is pure volatility decay: because exposure is rebalanced to 3x every day, a loss shrinks the base that the next gain compounds on. It scales with the SQUARE of volatility, so it bites hardest in turbulent markets — exactly when a 3x fund is already losing.">
@@ -2885,12 +2945,12 @@ function renderBacktest(result,rows,label,opts){
       </div>
       <div class="bt-time-note">
         QQQ realized <strong>${c.sigma.toFixed(1)}%</strong> annualized volatility over this window.
-        Measured decay is <strong>${pp(c.decayDrag)}</strong> a year against constant 3× exposure;
-        the textbook −3σ² approximation predicts <strong>${c.theoryDecay.toFixed(1)} pts</strong>,
+        Measured decay is <strong>${pp(c.decayDrag)}</strong> a year against constant ${levMult}× exposure;
+        the textbook −(L²−L)/2·σ² approximation predicts <strong>${c.theoryDecay.toFixed(1)} pts</strong>,
         so the two agree closely. Expenses and financing cost a further
         <strong>${pp(c.feeDrag)}</strong>, for a total wrapper drag of
         <strong>${pp(c.totalDrag)}</strong> a year before you place a single trade.
-        For contrast, 3× the index's simple total return would be
+        For contrast, ${levMult}× the index's simple total return would be
         <strong>${mult(c.naiveGrowth)}</strong> — the figure most people picture, and
         neither what the fund targets nor what it delivers.
         ${opts.volMax

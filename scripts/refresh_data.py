@@ -46,7 +46,15 @@ def range_to_cutoff(days):
 
 html = Path("investor-dashboard.html").read_text(encoding="utf-8")
 tickers = list(dict.fromkeys(re.findall(r'ticker:"([^"]+)"', html)))
-print(f"Found {len(tickers)} tickers")
+
+# Instruments the backtester needs that are not watchlist rows. LQQ is the
+# European 2x Nasdaq UCITS ETF — the only leveraged Nasdaq exposure an EU/EEA
+# retail investor can buy, since TQQQ has no PRIIPs KID.
+EXTRA_TICKERS = ["LQQ.PA", "EURUSD=X"]
+for t in EXTRA_TICKERS:
+    if t not in tickers:
+        tickers.append(t)
+print(f"Found {len(tickers)} tickers ({len(EXTRA_TICKERS)} extra)")
 
 # ── Batch OHLCV download (2 years daily) ─────────────────────────────────
 
@@ -101,6 +109,33 @@ def get_series(metric, ticker):
 def get_long_series(metric, ticker):
     return _series(raw_long, metric, ticker)
 
+def repair_rows(rows, ref, thresh=0.45):
+    """Fix data defects yfinance leaves in some non-US listings: isolated bad
+    prints, and share splits it failed to adjust (LQQ.PA carries a ~205:1
+    split on 2015-01-02 that otherwise reads as a 99.5% one-day loss).
+    A genuine price move is corroborated by the underlying index."""
+    for i in range(1, len(rows) - 1):                    # isolated bad ticks
+        a, b, c = rows[i-1]["close"], rows[i]["close"], rows[i+1]["close"]
+        if min(a, b, c) <= 0:
+            continue
+        r1, r2 = b/a - 1, c/b - 1
+        if abs(r1) > thresh and abs(r2) > thresh and r1*r2 < 0 and abs(c/a - 1) < 0.25:
+            mid = round((a + c)/2, 2)
+            rows[i].update(open=mid, high=mid, low=mid, close=mid)
+    for i in range(1, len(rows)):                        # unadjusted splits
+        prev, cur = rows[i-1]["close"], rows[i]["close"]
+        if min(prev, cur) <= 0 or abs(cur/prev - 1) < thresh:
+            continue
+        a, b = ref.get(rows[i]["time"]), ref.get(rows[i-1]["time"])
+        if a and b and abs(a/b - 1) > abs(cur/prev - 1)/4:
+            continue
+        f = cur/prev
+        for j in range(i):
+            for k in ("open", "high", "low", "close"):
+                rows[j][k] = round(rows[j][k]*f, 4)
+    return rows
+
+
 def build_rows(closes_s, opens_s, highs_s, lows_s, vols_s):
     """Assemble OHLCV dicts, skipping bars with no usable close."""
     out = []
@@ -126,6 +161,13 @@ Path("public/ohlcv-long").mkdir(parents=True, exist_ok=True)
 quotes = {}
 ohlcv_errors = []
 
+# QQQ is a clean US listing and serves as the reference for detecting
+# corporate actions in the non-US tickers.
+_qq = get_series("Close", "QQQ")
+QQQ_REF = {dt.strftime("%Y-%m-%d"): float(v) for dt, v in _qq.items()} if len(_qq) else {}
+_qql = get_long_series("Close", "QQQ")
+QQQ_REF_LONG = {dt.strftime("%Y-%m-%d"): float(v) for dt, v in _qql.items()} if len(_qql) else {}
+
 for i, ticker in enumerate(tickers):
     try:
         closes_s = get_series("Close", ticker)
@@ -138,6 +180,8 @@ for i, ticker in enumerate(tickers):
 
         # ── OHLCV file (2y daily) ─────────────────────────────────────────
         rows = build_rows(closes_s, opens_s, highs_s, lows_s, vols_s)
+        if rows and "." in ticker and QQQ_REF:
+            rows = repair_rows(rows, QQQ_REF)      # non-US listings only
         if rows:
             Path(f"public/ohlcv/{ticker}.json").write_text(
                 json.dumps(rows, separators=(",", ":")), encoding="utf-8"
@@ -151,6 +195,8 @@ for i, ticker in enumerate(tickers):
             get_long_series("Low",    ticker),
             get_long_series("Volume", ticker),
         )
+        if long_rows and "." in ticker and QQQ_REF_LONG:
+            long_rows = repair_rows(long_rows, QQQ_REF_LONG)
         if len(long_rows) > 26:
             Path(f"public/ohlcv-long/{ticker}.json").write_text(
                 json.dumps(long_rows, separators=(",", ":")), encoding="utf-8"
