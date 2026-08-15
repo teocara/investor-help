@@ -834,6 +834,8 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
           <optgroup label="── Statistical ──">
             <option value="zscore_rev">Z-Score Mean Reversion</option>
             <option value="parabolic_sar">Parabolic SAR</option>
+            <option value="ens_trend">Ensemble Trend 20/60/120/250 ★</option>
+            <option value="tsmom">Time-Series Momentum 12-1 ★</option>
           </optgroup>
         </select>
       </div>
@@ -870,6 +872,8 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
           <optgroup label="── Statistical ──">
             <option value="zscore_rev">Z-Score Mean Reversion</option>
             <option value="parabolic_sar">Parabolic SAR</option>
+            <option value="ens_trend">Ensemble Trend 20/60/120/250 ★</option>
+            <option value="tsmom">Time-Series Momentum 12-1 ★</option>
           </optgroup>
         </select>
       </div>
@@ -2269,6 +2273,8 @@ const BT_STRAT_META={
   donchian_50:{name:"Donchian Channel 50-Day",cat:"Volatility",catCls:"cat-vol",type:"Trend Following / Breakout",params:["Lookback: 50 days for high/low"],entry:"BUY on new 50-day high. SELL on new 50-day low.",exit:"Opposite channel break",bestIn:"Multi-week to multi-month trending instruments",caveats:"Even slower than Donchian 20. Very few trades per year. Needs a long period.",sharpeHint:"Higher per-trade quality than Donchian 20 but lower trade frequency; Sharpe 0.6–1.0.",desc:"The Turtle Trading slow system. Trades only occur at 50-day price extremes, so each signal carries significantly more informational weight. Produces far fewer but typically larger trades than the 20-day version."},
   atr_breakout:{name:"ATR Channel Breakout",cat:"Volatility",catCls:"cat-vol",type:"Trend Following / Breakout",params:["SMA period: 20 days","ATR period: 14 days","Band: ±1.5× ATR"],entry:"BUY when price closes more than 1.5 ATR above 20-day SMA. SELL when it drops 1.5 ATR below.",exit:"Price reverts inside the ATR channel",bestIn:"Volatile trending stocks; post-earnings momentum; momentum ETFs",caveats:"ATR bands widen after big moves, making subsequent signals rarer. Adjust multiplier for each instrument.",sharpeHint:"Adapts to market volatility automatically; Sharpe 0.4–0.8 in trending environments.",desc:"Draws a channel around a moving average using Average True Range as the width. Unlike fixed percentage envelopes, this channel automatically widens when the market is volatile and narrows in calm periods — producing signals that are always calibrated to current conditions."},
   zscore_rev:{name:"Z-Score Mean Reversion",cat:"Statistical",catCls:"cat-vol",type:"Statistical Mean Reversion",params:["Lookback: 20 days","Entry: Z-score < −2.0","Exit: Z-score > +2.0"],entry:"BUY when price is >2 standard deviations below its 20-day mean (Z < −2). SELL when price is >2 SD above (Z > +2).",exit:"Z-score crosses opposite threshold",bestIn:"Pairs trading, sector ETFs, mean-reverting large-caps",caveats:"Mean reversion fails in trending environments — a stock can stay at Z < −3 for weeks in a downtrend.",sharpeHint:"Strong in market-neutral contexts; single-stock Sharpe 0.3–0.7 in ranging periods.",desc:"Converts price to a statistical Z-score relative to its recent distribution. A Z-score of −2 means price is 2 standard deviations below the 20-day mean — historically a low-probability event that tends to revert. Uses the same logic as statistical arbitrage without requiring a pair."},
+  ens_trend:{name:"Ensemble Trend 20/60/120/250",cat:"Institutional",catCls:"cat-ma",type:"Trend Following — Multi-Timeframe",params:["Lookbacks: 20, 60, 120 and 250 days","Enter at 3 of 4 in agreement","Exit at 1 of 4 or fewer"],entry:"BUY when price is above at least 3 of the 4 moving averages. SELL when it holds above 1 or fewer.",exit:"Agreement falls to 1 of 4 or fewer — the gap between the two thresholds is deliberate hysteresis",bestIn:"Any trending market; designed to be robust rather than optimal on any one instrument",caveats:"Slower to react than a single fast average. On a single instrument it still usually trails buy-and-hold on return — measured across 264 instruments it beat buy-and-hold on CAGR only 12% of the time, while cutting drawdown in 87%.",sharpeHint:"Its value is robustness, not peak return: averaging lookbacks removes the parameter choice that makes single-MA backtests look better than they are.",desc:"How professional trend-followers actually build a signal. Rather than betting on one lookback, four horizons vote and the position is taken only on agreement. No single lookback is reliably best and which one wins changes by instrument and era, so averaging removes a choice that would otherwise be fitted in hindsight."},
+  tsmom:{name:"Time-Series Momentum 12-1",cat:"Institutional",catCls:"cat-mom",type:"Absolute Momentum",params:["Lookback: 12 months","Skip: most recent 1 month"],entry:"BUY when the trailing 12-month return excluding the last month is positive.",exit:"That same return turns negative",bestIn:"Futures, indices and commodities; the documented basis of managed-futures funds",caveats:"Slow — a full month of a decline can pass before it reacts. Documented on diversified futures baskets, not single stocks, and it transfers poorly to individual equities.",sharpeHint:"Moskowitz, Ooi and Pedersen (2012) document Sharpe near 1.0 across 58 futures markets. On one instrument expect roughly half that.",desc:"The signal behind the managed-futures industry: own an asset while its own trailing year has been positive, stand aside otherwise. The last month is skipped because short-horizon returns tend to reverse. Its published performance comes from applying it across dozens of weakly-correlated markets, not from accuracy on any single one."},
   parabolic_sar:{name:"Parabolic SAR",cat:"Statistical",catCls:"cat-vol",type:"Trend Following / Trailing Stop",params:["Initial AF: 0.02","Max AF: 0.20"],entry:"BUY when price is above the SAR dot (SAR flips bullish). SELL when price crosses below SAR (SAR flips bearish).",exit:"Price crosses the SAR in the opposite direction",bestIn:"Trending markets; useful as a dynamic trailing stop alongside other strategies",caveats:"Very sensitive in sideways markets — whipsaws continuously. Best as a stop mechanism, not standalone.",sharpeHint:"Used as a trailing stop increases Sharpe of other strategies by 0.1–0.3; standalone Sharpe 0.2–0.5.",desc:"The Parabolic SAR plots a trailing stop dot that accelerates as the trend matures — it starts slow and catches up quickly to a mature trend, then flips to the other side when breached. Developed by Welles Wilder (also RSI, ATR). The accelerating factor means it locks in profits progressively."},
 };
 
@@ -2516,6 +2522,29 @@ function computeSignals(strat,rows){
   }else if(strat==="zscore_rev"){
     const z=calcZScore(closes,B(20));
     for(let i=1;i<rows.length;i++){if(z[i]==null||z[i-1]==null)continue;if(z[i-1]<-2&&z[i]>=-2)sig[i]=1;else if(z[i-1]>2&&z[i]<=2)sig[i]=-1;}
+  }else if(strat==="ens_trend"){
+    /* Four lookbacks vote. Entering on 3-of-4 and leaving on 1-of-4 leaves a
+       deliberate dead band so the position does not flip on every wobble. */
+    const mas=[20,60,120,250].map(d=>calcSMA(closes,B(d)));
+    let on=false;
+    for(let i=1;i<rows.length;i++){
+      let votes=0,valid=0;
+      for(const ma of mas){if(ma[i]!=null){valid++;if(closes[i]>ma[i])votes++;}}
+      if(valid<2)continue;
+      const frac=votes/valid;
+      if(!on&&frac>=0.75){sig[i]=1;on=true;}
+      else if(on&&frac<=0.25){sig[i]=-1;on=false;}
+    }
+  }else if(strat==="tsmom"){
+    const yr=B(252),mo=B(21);
+    let on=false;
+    for(let i=yr;i<rows.length;i++){
+      const past=closes[i-yr],recent=closes[i-mo];
+      if(!past||!recent)continue;
+      const pos=(recent-past)/past>0;
+      if(pos&&!on){sig[i]=1;on=true;}
+      else if(!pos&&on){sig[i]=-1;on=false;}
+    }
   }else if(strat==="parabolic_sar"){
     const sar=calcParabolicSAR(rows);
     for(let i=1;i<rows.length;i++){if(!sar[i]||!sar[i-1])continue;if(!sar[i-1].bull&&sar[i].bull)sig[i]=1;else if(sar[i-1].bull&&!sar[i].bull)sig[i]=-1;}
