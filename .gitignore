@@ -1,1 +1,5 @@
 .DS_Store
+
+# Python bytecode — generated whenever a script is imported
+__pycache__/
+*.py[cod]
