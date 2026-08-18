@@ -387,6 +387,32 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
 .bt-cmp-sub{font-size:.6rem;font-weight:400;color:var(--dim);}
 .bt-cmp-warn{font-size:.55rem;color:var(--yellow);font-weight:400;}
 .bt-cost-panel{border-color:var(--purple);border-left:3px solid var(--purple);}
+.pp-wrap{padding:.4rem 0;}
+.pp-hd{display:flex;flex-wrap:wrap;align-items:baseline;gap:.5rem;margin-bottom:.5rem;}
+.pp-hd h3{font-size:.95rem;margin:0;font-weight:600;}
+.pp-sub{font-size:.68rem;color:var(--dim);}
+.pp-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.4rem;margin-bottom:.6rem;}
+.pp-kpi{background:var(--card);border:1px solid var(--card-b);border-radius:6px;padding:.5rem .6rem;}
+.pp-kpi.win{border-left:3px solid var(--accent);}
+.pp-kpi.lose{border-left:3px solid var(--red);}
+.pp-k{font-size:.58rem;text-transform:uppercase;letter-spacing:.05em;color:var(--dim);}
+.pp-v{font-size:1.15rem;font-weight:700;margin-top:.15rem;font-variant-numeric:tabular-nums;}
+.pp-n{font-size:.6rem;color:var(--dim);margin-top:.2rem;}
+.pp-chart{background:var(--card);border:1px solid var(--card-b);border-radius:6px;padding:.6rem;margin-bottom:.6rem;}
+.pp-chart canvas{display:block;width:100%;height:auto;}
+.pp-legend{display:flex;flex-wrap:wrap;gap:.2rem .9rem;font-size:.65rem;color:var(--dim);margin-top:.4rem;}
+.pp-legend span{display:flex;align-items:center;gap:.3rem;}
+.pp-legend i{width:12px;height:3px;border-radius:2px;}
+.pp-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:.6rem;}
+.pp-card{background:var(--card);border:1px solid var(--card-b);border-radius:6px;padding:.55rem .65rem;min-width:0;}
+.pp-card h4{font-size:.72rem;margin:0 0 .4rem;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:.05em;}
+.pp-row{display:flex;justify-content:space-between;gap:.5rem;font-size:.72rem;padding:.22rem 0;border-bottom:1px solid var(--line);white-space:nowrap;}
+.pp-row:last-child{border:none;}
+.pp-row b{font-weight:600;font-variant-numeric:tabular-nums;}
+.pp-tick{font-weight:600;cursor:pointer;}
+.pp-tick:hover{color:var(--blue);text-decoration:underline;}
+.pp-note{font-size:.66rem;line-height:1.5;color:var(--dim);background:var(--bg);border-radius:5px;padding:.5rem .6rem;margin-top:.6rem;}
+.pp-note strong{color:var(--text);}
 .bt-rung-bar{margin:.45rem 0 .1rem;}
 .bt-rung-row{display:flex;height:7px;border-radius:4px;overflow:hidden;background:var(--bg);}
 .bt-rung-seg{display:block;min-width:1px;}
@@ -586,6 +612,7 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
   </div>
   <div id="heatmap-pane"></div>
   <div id="alloc-pane"></div>
+  <div id="paper-pane"></div>
   <div id="scatter-pane">
     <div class="scatter-toolbar">
       <label>X axis</label>
@@ -1389,12 +1416,14 @@ function renderStats(){
       <button class="vt-btn ${viewMode==="scatter"?"on":""}" id="vtScatter">◉ Scatter</button>
       <button class="vt-btn ${viewMode==="heatmap"?"on":""}" id="vtHeatmap">⬡ Heatmap</button>
       <button class="vt-btn ${viewMode==="alloc"?"on":""}" id="vtAlloc">🎯 Allocate</button>
+      <button class="vt-btn ${viewMode==="paper"?"on":""}" id="vtPaper">🤖 Paper</button>
     </div>`;
   document.getElementById("resultsCount").textContent=`${n} results`;
   document.getElementById("vtTable").addEventListener("click",()=>{viewMode="table";renderView();});
   document.getElementById("vtScatter").addEventListener("click",()=>{viewMode="scatter";renderView();});
   document.getElementById("vtHeatmap").addEventListener("click",()=>{viewMode="heatmap";renderView();});
   document.getElementById("vtAlloc").addEventListener("click",()=>{viewMode="alloc";renderView();});
+  document.getElementById("vtPaper").addEventListener("click",()=>{viewMode="paper";renderView();});
 }
 
 function renderView(){
@@ -1402,9 +1431,11 @@ function renderView(){
   const scatterPane=document.getElementById("scatter-pane");
   const heatmapPane=document.getElementById("heatmap-pane");
   const allocPane=document.getElementById("alloc-pane");
+  const paperPane=document.getElementById("paper-pane");
   const pagination=document.getElementById("pagination");
   tableWrap.style.display="none";scatterPane.style.display="none";
-  heatmapPane.style.display="none";allocPane.style.display="none";pagination.style.display="none";
+  heatmapPane.style.display="none";allocPane.style.display="none";
+  paperPane.style.display="none";pagination.style.display="none";
   if(viewMode==="scatter"){
     scatterPane.style.display="flex";
     renderScatter();
@@ -1414,6 +1445,9 @@ function renderView(){
   }else if(viewMode==="alloc"){
     allocPane.style.display="flex";
     renderAlloc();
+  }else if(viewMode==="paper"){
+    paperPane.style.display="block";
+    renderPaper();
   }else{
     tableWrap.style.display="";pagination.style.display="";
     renderTable();renderPagination();
@@ -3434,6 +3468,127 @@ function whyPick(d,horizon){
   return bits.slice(0,2).join(" · ")||"strong fundamentals";
 }
 
+
+/* ── Autonomous paper portfolio ──────────────────────────
+   Reads the ledger the scheduled job writes. Nothing here trades; the
+   dashboard only reports what the engine already did. */
+let paperState=null;
+async function renderPaper(){
+  const pane=document.getElementById("paper-pane");
+  if(!paperState){
+    pane.innerHTML='<div style="color:var(--dim);font-size:.8rem;text-align:center;padding:2rem">Loading the ledger…</div>';
+    try{
+      const res=await fetch(`${GH_ROOT}/paper/portfolio.json`,{cache:"no-store"});
+      if(!res.ok)throw new Error(`ledger ${res.status}`);
+      paperState=await res.json();
+    }catch(e){
+      pane.innerHTML=`<div style="color:var(--dim);font-size:.8rem;text-align:center;padding:2rem">
+        No trading sessions recorded yet.<br><span style="font-size:.7rem">${e.message}</span></div>`;
+      return;
+    }
+  }
+  const st=paperState, eq=st.equity||[];
+  if(!eq.length){pane.innerHTML='<div style="color:var(--dim);font-size:.8rem;padding:2rem;text-align:center">Ledger is empty.</div>';return;}
+  const start=st.rules.start_capital, last=eq[eq.length-1];
+  const pct=v=>((v/start-1)*100);
+  const fmt=v=>(v>=0?"+":"")+v.toFixed(1)+"%";
+  const money=v=>"$"+Math.round(v).toLocaleString();
+
+  const benchKeys=Object.keys(last.bench||{});
+  const vsSpy=benchKeys.includes("SPY")?pct(last.value)-pct(last.bench.SPY):null;
+
+  /* drawdown so far */
+  let peak=eq[0].value,mdd=0;
+  for(const e of eq){peak=Math.max(peak,e.value);mdd=Math.min(mdd,e.value/peak-1);}
+  const days=Math.round((Date.parse(last.date)-Date.parse(st.started))/86400000);
+
+  const kpi=(k,v,n,cls)=>`<div class="pp-kpi ${cls||''}"><div class="pp-k">${k}</div><div class="pp-v">${v}</div>${n?`<div class="pp-n">${n}</div>`:""}</div>`;
+  let html=`<div class="pp-wrap">
+    <div class="pp-hd">
+      <h3>🤖 Autonomous paper portfolio</h3>
+      <span class="pp-sub">${st.rules.strategy} · started ${st.started} · ${days} days · ${eq.length} sessions</span>
+    </div>
+    <div class="pp-kpis">
+      ${kpi("Strategy",fmt(pct(last.value)),money(last.value),pct(last.value)>=0?"win":"lose")}
+      ${benchKeys.map(b=>kpi(b+" buy &amp; hold",fmt(pct(last.bench[b])),money(last.bench[b]))).join("")}
+      ${vsSpy!=null?kpi("vs SPY",(vsSpy>=0?"+":"")+vsSpy.toFixed(1)+" pts",vsSpy>=0?"ahead":"behind",vsSpy>=0?"win":"lose"):""}
+      ${kpi("Max drawdown",(mdd*100).toFixed(1)+"%","peak to trough")}
+      ${kpi("Holdings",last.n,money(last.cash)+" cash")}
+    </div>
+    <div class="pp-chart">
+      <canvas id="ppChart" aria-label="Paper portfolio equity versus benchmarks"></canvas>
+      <div class="pp-legend" id="ppLegend"></div>
+    </div>
+    <div class="pp-cols">
+      <div class="pp-card"><h4>Positions</h4>${
+        Object.entries(st.positions||{}).sort((a,b)=>b[1].shares*b[1].last-a[1].shares*a[1].last)
+        .map(([t,p])=>{const v=p.shares*(p.last||p.avg_price);
+          const g=(p.last/p.avg_price-1)*100;
+          return `<div class="pp-row"><span class="pp-tick" data-t="${t}">${t}</span>
+            <span><b>${money(v)}</b> <span style="color:${g>=0?"var(--accent)":"var(--red)"}">${fmt(g)}</span></span></div>`;
+        }).join("")||'<div class="pp-row" style="color:var(--dim)">Flat — all in cash</div>'}</div>
+      <div class="pp-card"><h4>Recent activity</h4>${
+        (st.trades||[]).slice(-14).reverse().map(t=>
+          `<div class="pp-row"><span><span style="color:${t.side==="BUY"?"var(--accent)":"var(--red)"}">${t.side}</span>
+            <span class="pp-tick" data-t="${t.ticker}">${t.ticker}</span></span>
+           <span style="color:var(--dim);font-size:.66rem">${t.date} · ${t.reason}${t.pnl!=null?` · <b style="color:${t.pnl>=0?"var(--accent)":"var(--red)"}">${t.pnl>=0?"+":""}${money(t.pnl)}</b>`:""}</span></div>`
+        ).join("")||'<div class="pp-row" style="color:var(--dim)">No trades yet</div>'}</div>
+    </div>
+    <div class="pp-note">
+      A scheduled job runs this book every weekday after the US close: it ranks the universe on
+      12-month momentum, holds the top ${st.rules.max_positions} that are also above their own 200-day average,
+      sizes them by inverse volatility with a ${Math.round(st.rules.max_sector*100)}% sector cap, and sells anything whose trend breaks.
+      Rebalances monthly. Long only, no leverage, ${st.rules.cost_bps} bps charged per fill.
+      <strong>Simulated money</strong> — the fills use real closing prices but no broker is involved.
+    </div>
+  </div>`;
+  pane.innerHTML=html;
+  pane.querySelectorAll(".pp-tick").forEach(el=>
+    el.addEventListener("click",()=>openDrawer(el.dataset.t)));
+  drawPaperChart(eq,start,benchKeys);
+}
+
+function drawPaperChart(eq,start,benchKeys){
+  const cv=document.getElementById("ppChart");if(!cv)return;
+  const COL={strategy:"#3fb950",SPY:"#58a6ff",QQQ:"#a371f7"};
+  const W=cv.clientWidth||600,H=Math.max(170,Math.min(260,W*0.32));
+  const dpr=window.devicePixelRatio||1;
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.height=H+"px";
+  const g=cv.getContext("2d");g.setTransform(dpr,0,0,dpr,0,0);
+  const P={l:46,r:12,t:10,b:20};
+  const lines=[{k:"strategy",v:eq.map(e=>e.value)}]
+    .concat(benchKeys.map(b=>({k:b,v:eq.map(e=>(e.bench||{})[b]||null)})));
+  let lo=Infinity,hi=-Infinity;
+  for(const L of lines)for(const v of L.v)if(v!=null){lo=Math.min(lo,v);hi=Math.max(hi,v);}
+  if(!isFinite(lo)){lo=start*0.9;hi=start*1.1;}
+  const pad=(hi-lo)*0.08||start*0.05;lo-=pad;hi+=pad;
+  const x=i=>P.l+(i/Math.max(1,eq.length-1))*(W-P.l-P.r);
+  const y=v=>P.t+(1-(v-lo)/(hi-lo))*(H-P.t-P.b);
+  const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  g.font="10px ui-monospace,Menlo,monospace";g.textAlign="right";g.textBaseline="middle";
+  for(let i=0;i<=3;i++){
+    const v=lo+(hi-lo)*i/3,yy=y(v);
+    g.strokeStyle=css("--line")||"#21262d";g.lineWidth=1;
+    g.beginPath();g.moveTo(P.l,Math.round(yy)+.5);g.lineTo(W-P.r,Math.round(yy)+.5);g.stroke();
+    g.fillStyle=css("--dim")||"#8b949e";
+    g.fillText(((v/start-1)*100).toFixed(0)+"%",P.l-6,yy);
+  }
+  /* the break-even line is the one that matters */
+  const y0=y(start);
+  g.strokeStyle=css("--dim")||"#8b949e";g.setLineDash([3,3]);
+  g.beginPath();g.moveTo(P.l,Math.round(y0)+.5);g.lineTo(W-P.r,Math.round(y0)+.5);g.stroke();
+  g.setLineDash([]);
+  for(const L of lines){
+    g.strokeStyle=COL[L.k]||"#8b949e";g.lineWidth=L.k==="strategy"?2:1.3;
+    g.lineJoin="round";g.beginPath();let started=false;
+    L.v.forEach((v,i)=>{if(v==null)return;const px=x(i),py=y(v);
+      started?g.lineTo(px,py):g.moveTo(px,py);started=true;});
+    g.stroke();
+  }
+  document.getElementById("ppLegend").innerHTML=lines.map(L=>
+    `<span><i style="background:${COL[L.k]||"#8b949e"}"></i>${L.k==="strategy"?"Paper strategy":L.k}</span>`).join("");
+}
+
 function renderAlloc(){
   const pane=document.getElementById("alloc-pane");
   const profile=ALLOC_PROFILES[allocRisk];
@@ -3683,7 +3838,8 @@ function syncFilterUI(){
 }
 
 /* ── GitHub data refresh (primary source) ─────────────── */
-const GH_RAW="https://raw.githubusercontent.com/teocara/investor-help/main/public";
+const GH_ROOT="https://raw.githubusercontent.com/teocara/investor-help/main";
+const GH_RAW=GH_ROOT+"/public";
 
 async function fetchFromGitHub(){
   const res=await fetch(`${GH_RAW}/quotes.json`,{cache:"no-store"});
