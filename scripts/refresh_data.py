@@ -1,8 +1,9 @@
 """
-Nightly data refresh — fetches prices, fundamentals, and 2-year OHLCV
-for every ticker in investor-dashboard.html using yfinance, then writes:
-  public/quotes.json        — prices + fundamentals for all tickers
-  public/ohlcv/<TICKER>.json — 2-year daily OHLCV per ticker
+Nightly data refresh — fetches prices, fundamentals and OHLCV for every
+ticker in investor-dashboard.html using yfinance, then writes:
+  public/quotes.json              — prices + fundamentals for all tickers
+  public/ohlcv/<TICKER>.json      — 3-year daily OHLCV per ticker
+  public/ohlcv-long/<TICKER>.json — full history, weekly, per ticker
 """
 
 import json
@@ -56,12 +57,14 @@ for t in EXTRA_TICKERS:
         tickers.append(t)
 print(f"Found {len(tickers)} tickers ({len(EXTRA_TICKERS)} extra)")
 
-# ── Batch OHLCV download (2 years daily) ─────────────────────────────────
+# ── Batch OHLCV download (3 years daily) ─────────────────────────────────
+# Three years rather than two so a 2-year chart still has a full 250-bar
+# warmup behind it for the long moving average.
 
-print("Downloading 2-year OHLCV (batch)…")
+print("Downloading 3-year OHLCV (batch)…")
 raw_hist = yf.download(
     tickers,
-    period="2y",
+    period="3y",
     interval="1d",
     auto_adjust=True,
     threads=True,
@@ -178,7 +181,7 @@ for i, ticker in enumerate(tickers):
 
         close_list = closes_s.tolist()
 
-        # ── OHLCV file (2y daily) ─────────────────────────────────────────
+        # ── OHLCV file (3y daily) ─────────────────────────────────────────
         rows = build_rows(closes_s, opens_s, highs_s, lows_s, vols_s)
         if rows and "." in ticker and QQQ_REF:
             rows = repair_rows(rows, QQQ_REF)      # non-US listings only

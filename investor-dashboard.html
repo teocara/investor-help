@@ -679,16 +679,16 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
       <button class="ct-btn" data-range="1mo">1M</button>
       <button class="ct-btn" data-range="3mo">3M</button>
       <button class="ct-btn" data-range="6mo">6M</button>
-      <button class="ct-btn on" data-range="1y">1Y</button>
+      <button class="ct-btn" data-range="1y">1Y</button>
       <button class="ct-btn" data-range="2y">2Y</button>
       <button class="ct-btn" data-range="5y">5Y</button>
-      <button class="ct-btn" data-range="10y">10Y</button>
+      <button class="ct-btn on" data-range="10y">10Y</button>
       <button class="ct-btn" data-range="15y">15Y</button>
       <button class="ct-btn" data-range="20y">20Y</button>
       <button class="ct-btn" data-range="max">Max</button>
       <span style="flex:1"></span>
       <button class="ct-btn on" data-ind="sma" data-tip="SMA 20 &amp; 50 — short and medium-term trend lines.">SMA</button>
-      <button class="ct-btn on" data-ind="sma250" data-tip="SMA 250 — the ~1-trading-year average. Price above it is the classic definition of a long-term uptrend. Needs at least 250 bars of history, so pick a longer range if the line does not appear.">SMA250</button>
+      <button class="ct-btn on" data-ind="sma250" data-tip="SMA 250 — the ~1-trading-year average. Price above it is the classic definition of a long-term uptrend. Extra history is fetched behind the visible window so the line is drawn from the very first bar on every range.">SMA250</button>
       <button class="ct-btn on" data-ind="bb">BB</button>
       <button class="ct-btn on" data-ind="vol">Vol</button>
     </div>
@@ -1701,7 +1701,7 @@ function drawGauge(rsi){
 /* ══════════════════════════════════════════════════════
    TAB 2 — TECHNICAL ANALYSIS CHARTS (lightweight-charts)
    ══════════════════════════════════════════════════════ */
-let taRange="1y";
+let taRange="10y";
 let taInds=new Set(["sma","sma250","bb","vol"]);
 let taOHLCV=null;
 
@@ -1768,7 +1768,7 @@ function tickerToStooq(ticker){
 async function fetchOHLCVStooq(ticker,range){
   const sym=tickerToStooq(ticker);
   const end=new Date(),start=new Date();
-  const days={"1mo":31,"3mo":92,"6mo":183,"1y":366,"2y":730,"5y":1826,"10y":3652,"15y":5479,"20y":7305,"max":10958}[range]||366;
+  const days={"1mo":31,"3mo":92,"6mo":183,"1y":366,"2y":730,"3y":1096,"5y":1826,"10y":3652,"15y":5479,"20y":7305,"max":10958}[range]||366;
   start.setDate(start.getDate()-days);
   const fmt=d=>d.toISOString().slice(0,10).replace(/-/g,'');
   const url=`https://stooq.com/q/d/l/?s=${sym}&d1=${fmt(start)}&d2=${fmt(end)}&i=d`;
@@ -1803,8 +1803,11 @@ const IDB_TTL=86400000; /* 1 day ms */
 async function fetchOHLCV(ticker,range){
   /* Yahoo only accepts a fixed set of range tokens — 15y/20y are not among
      them, so request full history and trim to the cutoff below. */
-  const yRange=(range==="15y"||range==="20y")?"max":range;
-  const interval=(yRange==="2y"||yRange==="5y"||yRange==="10y"||yRange==="max")?"1wk":"1d";
+  /* Yahoo accepts only a fixed set of range tokens. 3y is not one of them,
+     so ask for 5y at daily resolution and trim below. */
+  const yRange=(range==="15y"||range==="20y")?"max":range==="3y"?"5y":range;
+  const daily=range==="3y";
+  const interval=(!daily&&(yRange==="2y"||yRange==="5y"||yRange==="10y"||yRange==="max"))?"1wk":"1d";
   const yUrl=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?range=${yRange}&interval=${interval}&includePrePost=false`;
   const json=await fetchViaProxy(yUrl);
   const r=json.chart.result[0];
@@ -1999,12 +2002,23 @@ function calcKeltner(closes,highs,lows,n=20,mult=2){
   return closes.map((_,i)=>atr[i]==null?null:{upper:+(ema[i]+mult*atr[i]).toFixed(2),lower:+(ema[i]-mult*atr[i]).toFixed(2),mid:+ema[i].toFixed(2)});
 }
 
+/* A 250-bar average has no value until 250 bars have gone by, so fetching
+   exactly the window the user asked for leaves the line missing over the first
+   year of every chart. Fetch further back than we intend to draw, compute the
+   indicators over everything, then show only the requested window — the
+   averages are then valid from the very first visible bar.
+   The warmup has to keep the same bar size as the display, or a one-month
+   chart would end up drawn with weekly candles. */
+function warmupRange(range){
+  return LONG_RANGES.has(range)?"max":"3y";   /* weekly full history : 3y daily */
+}
+
 async function loadTACharts(ticker){
   document.getElementById("priceChart").innerHTML='<div class="chart-loading">Loading…</div>';
   ["rsiChart","macdChart","volChart"].forEach(id=>{document.getElementById(id).innerHTML="";});
   document.getElementById("ta-indicators").innerHTML="";
   try{
-    taOHLCV=await fetchOHLCVCached(ticker,taRange);
+    taOHLCV=await fetchOHLCVCached(ticker,warmupRange(taRange));
     renderTACharts(taOHLCV);
   }catch(e){
     document.getElementById("priceChart").innerHTML=`<div class="chart-loading" style="color:var(--red);flex-direction:column;gap:.5rem">
@@ -2029,10 +2043,31 @@ function makeLWC(containerId,h){
   });
 }
 
-function renderTACharts(rows){
-  if(!rows||rows.length===0){document.getElementById("priceChart").innerHTML='<div class="chart-loading">No data</div>';return;}
-  const closes=rows.map(r=>r.close);
-  const times=rows.map(r=>r.time);
+function renderTACharts(allRows){
+  if(!allRows||allRows.length===0){document.getElementById("priceChart").innerHTML='<div class="chart-loading">No data</div>';return;}
+
+  /* Indicators are computed over the whole fetched series (including the
+     warmup that sits before the visible window) and only then trimmed, so
+     every line is already valid at the left edge of the chart. */
+  const cutoff=rangeToStartDate(taRange);
+  let from=0;
+  if(cutoff){
+    while(from<allRows.length&&allRows[from].time<cutoff)from++;
+    /* keep at least a usable window if the series is shorter than asked for */
+    if(allRows.length-from<20)from=Math.max(0,allRows.length-20);
+  }
+  const trim=arr=>arr.slice(from);
+
+  const fullCloses=allRows.map(r=>r.close);
+  const fullTimes=allRows.map(r=>r.time);
+  const fullHighs=allRows.map(r=>r.high||r.close);
+  const fullLows=allRows.map(r=>r.low||r.close);
+
+  const rows=trim(allRows);
+  const closes=trim(fullCloses);
+  const times=trim(fullTimes);
+  /* how much history sits behind the visible window, for the caption */
+  const warmBars=from;
 
   /* destroy old charts */
   Object.values(chartInstances).forEach(c=>{try{c.remove();}catch(e){}});
@@ -2049,16 +2084,14 @@ function renderTACharts(rows){
       if(data.length){const ls=pc.addLineSeries({color,lineWidth:width||1,title:lbl,priceLineVisible:false,lastValueVisible:false});ls.setData(data);}
     };
     if(taInds.has("sma")){
-      addLine(calcSMA(closes,barsFor(20,rows)),"#58a6ff","SMA20");
-      addLine(calcSMA(closes,barsFor(50,rows)),"#d29922","SMA50");
+      addLine(trim(calcSMA(fullCloses,barsFor(20,allRows))),"#58a6ff","SMA20");
+      addLine(trim(calcSMA(fullCloses,barsFor(50,allRows))),"#d29922","SMA50");
     }
     if(taInds.has("sma250")){
-      /* Only meaningful once there is a full window of history to average. */
-      const n=barsFor(250,rows);
-      if(closes.length>=n)addLine(calcSMA(closes,n),"#f778ba","SMA250",2);
+      addLine(trim(calcSMA(fullCloses,barsFor(250,allRows))),"#f778ba","SMA250",2);
     }
     if(taInds.has("bb")){
-      const bb=calcBB(closes);
+      const bb=trim(calcBB(fullCloses));
       const upper=bb.map((v,i)=>v?{time:times[i],value:v.upper}:null).filter(Boolean);
       const lower=bb.map((v,i)=>v?{time:times[i],value:v.lower}:null).filter(Boolean);
       if(upper.length){
@@ -2073,7 +2106,7 @@ function renderTACharts(rows){
   if(rc){
     chartInstances.rsi=rc;
     rc.priceScale("right").applyOptions({scaleMargins:{top:.1,bottom:.1}});
-    const rsiVals=calcRSI(closes);
+    const rsiVals=trim(calcRSI(fullCloses,barsFor(14,allRows)));
     const rData=rsiVals.map((v,i)=>v!=null?{time:times[i],value:v}:null).filter(Boolean);
     if(rData.length){
       const rs=rc.addLineSeries({color:"#a371f7",lineWidth:1.5,priceLineVisible:false,lastValueVisible:true});
@@ -2090,7 +2123,8 @@ function renderTACharts(rows){
   if(mc){
     chartInstances.macd=mc;
     mc.priceScale("right").applyOptions({scaleMargins:{top:.1,bottom:.1}});
-    const{m,s,h}=calcMACD(closes);
+    const _macd=calcMACD(fullCloses,barsFor(12,allRows),barsFor(26,allRows),barsFor(9,allRows));
+    const m=trim(_macd.m),s=trim(_macd.s),h=trim(_macd.h);
     const hData=h.map((v,i)=>({time:times[i],value:v,color:v>=0?"#3fb950":"#f85149"}));
     const hist=mc.addHistogramSeries({priceLineVisible:false,lastValueVisible:false});
     hist.setData(hData);
@@ -2116,14 +2150,18 @@ function renderTACharts(rows){
   charts.forEach(c=>{c.timeScale().subscribeVisibleLogicalRangeChange(range=>{if(range)charts.forEach(oc=>{if(oc!==c)oc.timeScale().setVisibleLogicalRange(range);});});});
 
   /* Computed indicators summary */
-  const last=closes[closes.length-1];
-  const rsiArr=calcRSI(closes);const lastRSI=rsiArr.filter(v=>v!=null).slice(-1)[0];
-  const{m:macdM,s:macdS}=calcMACD(closes);
-  const lastMACD=macdM[macdM.length-1],lastSig=macdS[macdS.length-1];
-  const atr=calcATR(rows);const lastATR=atr.filter(v=>v!=null).slice(-1)[0];
-  const bb=calcBB(closes);const lastBB=bb.filter(v=>v!=null).slice(-1)[0];
-  const sma20=calcSMA(closes,20);const s20v=sma20.filter(v=>v!=null).slice(-1)[0];
-  const sma50=calcSMA(closes,50);const s50v=sma50.filter(v=>v!=null).slice(-1)[0];
+  /* Computed over the full fetched series so a short display window cannot
+     leave the longer averages undefined. */
+  const last=fullCloses[fullCloses.length-1];
+  const lastOf=arr=>arr.filter(v=>v!=null).slice(-1)[0];
+  const lastRSI=lastOf(calcRSI(fullCloses,barsFor(14,allRows)));
+  const _mac=calcMACD(fullCloses,barsFor(12,allRows),barsFor(26,allRows),barsFor(9,allRows));
+  const lastMACD=_mac.m[_mac.m.length-1],lastSig=_mac.s[_mac.s.length-1];
+  const lastATR=lastOf(calcATR(allRows,barsFor(14,allRows)));
+  const lastBB=lastOf(calcBB(fullCloses,barsFor(20,allRows)));
+  const s20v=lastOf(calcSMA(fullCloses,barsFor(20,allRows)));
+  const s50v=lastOf(calcSMA(fullCloses,barsFor(50,allRows)));
+  const s250v=lastOf(calcSMA(fullCloses,barsFor(250,allRows)));
   const bbPos=lastBB?((last-lastBB.lower)/(lastBB.upper-lastBB.lower)*100).toFixed(0):null;
 
   document.getElementById("ta-indicators").innerHTML=[
@@ -2131,6 +2169,7 @@ function renderTACharts(rows){
     ["MACD",lastMACD!=null?(lastMACD>lastSig?"▲ Bull":"▼ Bear"):"—",lastMACD>lastSig?"var(--accent)":"var(--red)"],
     ["SMA20",s20v?`$${s20v.toFixed(2)}`:"—",last>s20v?"var(--accent)":"var(--red)"],
     ["SMA50",s50v?`$${s50v.toFixed(2)}`:"—",last>s50v?"var(--accent)":"var(--red)"],
+    ["SMA250",s250v?`$${s250v.toFixed(2)}`:"—",last>s250v?"var(--accent)":"var(--red)"],
     ["ATR(14)",lastATR?`$${lastATR.toFixed(2)}`:"—","var(--text)"],
     ["BB%",bbPos!=null?bbPos+"%":"—",bbPos<20?"var(--accent)":bbPos>80?"var(--red)":"var(--text)"],
   ].map(([l,v,c])=>`<div class="ind-box"><div class="ind-lbl">${l}</div><div class="ind-val" style="color:${c}">${v}</div></div>`).join("");
@@ -3714,7 +3753,7 @@ async function fetchOHLCVGitHub(ticker,range){
 function rangeToStartDate(range){
   const d=new Date();
   const m={"1mo":1,"3mo":3,"6mo":6};
-  const y={"1y":1,"2y":2,"5y":5,"10y":10,"15y":15,"20y":20};
+  const y={"1y":1,"2y":2,"3y":3,"5y":5,"10y":10,"15y":15,"20y":20};
   if(m[range])d.setMonth(d.getMonth()-m[range]);
   else if(y[range])d.setFullYear(d.getFullYear()-y[range]);
   else return null; /* max */
