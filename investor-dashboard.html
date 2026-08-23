@@ -603,6 +603,10 @@ tbody tr.active td{background:rgba(88,166,255,.08);}
         <th data-k="fwdPe" data-tip="Forward P/E: price divided by next-12-month analyst EPS estimate. A lower Fwd P/E than trailing P/E implies expected earnings growth.">Fwd P/E <span class="sort-arrow">↕</span></th>
         <th data-k="peg" data-tip="PEG Ratio: P/E divided by EPS growth rate. PEG &lt; 1 = potentially undervalued relative to growth. PEG &gt; 2 = growth already priced in.">PEG <span class="sort-arrow">↕</span></th>
         <th data-k="eps_growth" data-tip="EPS Growth %: year-over-year earnings-per-share growth. Positive = expanding profits. Negative = earnings contraction.">EPS Gr% <span class="sort-arrow">↕</span></th>
+        <th data-k="exp1w" data-tip="Projected change over one week: central estimate on top, 90% range beneath. Read the RANGE — at this horizon it is typically thirty times wider than the estimate, because one-week returns are essentially unforecastable. The number is shown greyed for exactly that reason.">1W exp <span class="sort-arrow">↕</span></th>
+        <th data-k="exp1m" data-tip="Projected change over one month, with its 90% range. Still dominated by noise: the band remains several times the estimate.">1M exp <span class="sort-arrow">↕</span></th>
+        <th data-k="exp1y" data-tip="Projected change over one year. Central estimate = dividend yield + earnings growth shrunk toward an 8% long-run equity baseline, with a small penalty for a stretched PEG. The 90% band comes from volatility inferred from the 52-week range.">1Y exp <span class="sort-arrow">↕</span></th>
+        <th data-k="exp5y" data-tip="Projected change over five years, compounded. The central estimate is more meaningful here because drift grows with time while noise grows only with its square root — but the band is still wide, and the model assumes valuation does not change.">5Y exp <span class="sort-arrow">↕</span></th>
         <th data-k="score" data-tip="Proprietary composite score 1–10 combining valuation, growth, momentum, and quality factors. ≥7 = high conviction. ≤3 = weak fundamentals.">Score <span class="sort-arrow">↕</span></th>
         <th data-k="signal" style="cursor:default" data-tip="Rule-based signal: Buy/Entry (oversold + strong fundamentals), Hold (overbought but quality), Sell (deteriorating earnings + stretched valuation), Neutral (no clear edge).">Signal</th>
         <th data-k="notes" style="min-width:180px">Notes</th>
@@ -1114,12 +1118,12 @@ const RAW = [
 {ticker:"TQQQ",name:"ProShares UltraPro QQQ 3x",sector:"ETF",type:"ETF",price:75,rsi:60,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"3× leveraged QQQ. High-risk/high-reward. Daily rebalancing causes volatility decay — suitable for short-term tactical trades, not long-term holds."},
 {ticker:"VTI",name:"Vanguard Total Market ETF",sector:"ETF",type:"ETF",price:268,rsi:57,pe:22,fwdPe:20,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:7,notes:"Total US market diversification. Broadest single-fund exposure."},
 {ticker:"IWM",name:"iShares Russell 2000 ETF",sector:"ETF",type:"ETF",price:208,rsi:46,pe:18,fwdPe:16,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Small cap. Rate-sensitive. Benefits from Fed cuts more than large caps."},
-{ticker:"VEA",name:"Vanguard Developed Markets ETF",sector:"ETF",type:"ETF",price:54,rsi:52,pe:15,fwdPe:13,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"International developed. Europe/Japan value at discount to US."},
-{ticker:"VWO",name:"Vanguard Emerging Markets ETF",sector:"ETF",type:"ETF",price:46,rsi:50,pe:12,fwdPe:11,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"EM exposure. China + India + Brazil. Geopolitical risk premium."},
-{ticker:"GLD",name:"SPDR Gold Shares",sector:"ETF",type:"ETF",price:288,rsi:60,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Gold exposure. Inflation hedge + de-dollarization tailwind."},
-{ticker:"SLV",name:"iShares Silver Trust",sector:"ETF",type:"ETF",price:30,rsi:52,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"Silver. Industrial + monetary demand. Higher beta than gold."},
-{ticker:"TLT",name:"iShares 20+ Year Treasury ETF",sector:"ETF",type:"ETF",price:88,rsi:44,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"Long duration bonds. Benefits from rate cuts. High duration risk."},
-{ticker:"AGG",name:"iShares Core US Aggregate Bond",sector:"ETF",type:"ETF",price:98,rsi:48,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Broad bond market. Defensive allocation for portfolio ballast."},
+{ticker:"VEA",name:"Vanguard Developed Markets ETF",sector:"Intl Equity",type:"ETF",price:54,rsi:52,pe:15,fwdPe:13,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"International developed. Europe/Japan value at discount to US."},
+{ticker:"VWO",name:"Vanguard Emerging Markets ETF",sector:"Intl Equity",type:"ETF",price:46,rsi:50,pe:12,fwdPe:11,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"EM exposure. China + India + Brazil. Geopolitical risk premium."},
+{ticker:"GLD",name:"SPDR Gold Shares",sector:"Commodities",type:"ETF",price:288,rsi:60,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Gold exposure. Inflation hedge + de-dollarization tailwind."},
+{ticker:"SLV",name:"iShares Silver Trust",sector:"Commodities",type:"ETF",price:30,rsi:52,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"Silver. Industrial + monetary demand. Higher beta than gold."},
+{ticker:"TLT",name:"iShares 20+ Year Treasury ETF",sector:"Fixed Income",type:"ETF",price:88,rsi:44,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"Long duration bonds. Benefits from rate cuts. High duration risk."},
+{ticker:"AGG",name:"iShares Core US Aggregate Bond",sector:"Fixed Income",type:"ETF",price:98,rsi:48,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Broad bond market. Defensive allocation for portfolio ballast."},
 // ETFs - Sector
 {ticker:"SOXX",name:"iShares Semiconductor ETF",sector:"ETF",type:"ETF",price:238,rsi:49,pe:28,fwdPe:22,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:7,notes:"Broad semis exposure. Post-selloff bounce play vs single names."},
 {ticker:"SMH",name:"VanEck Semiconductor ETF",sector:"ETF",type:"ETF",price:248,rsi:50,pe:28,fwdPe:22,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:7,notes:"Alternative semis ETF. Top-weighted NVDA/TSM/ASML."},
@@ -1141,10 +1145,10 @@ const RAW = [
 {ticker:"ARKW",name:"ARK Next Generation Internet ETF",sector:"ETF",type:"ETF",price:82,rsi:52,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"Web3 + AI + fintech disruptors. High concentration + volatility."},
 {ticker:"IBIT",name:"iShares Bitcoin Trust ETF",sector:"ETF",type:"ETF",price:58,rsi:56,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Bitcoin spot ETF. Institutional crypto exposure with low fees."},
 {ticker:"JETS",name:"U.S. Global Jets ETF",sector:"ETF",type:"ETF",price:22,rsi:38,pe:12,fwdPe:11,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"Airline sector ETF. Recovery from oversold. Travel demand resilient."},
-{ticker:"KWEB",name:"KraneShares China Internet ETF",sector:"ETF",type:"ETF",price:34,rsi:56,pe:16,fwdPe:12,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"China internet (BABA, Tencent, JD). Deep value vs US peers. Geopolitical risk."},
-{ticker:"EEM",name:"iShares MSCI Emerging Markets ETF",sector:"ETF",type:"ETF",price:44,rsi:50,pe:13,fwdPe:11,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"Broad EM. India overweight opportunity + China risk."},
-{ticker:"VNQ",name:"Vanguard Real Estate ETF",sector:"ETF",type:"ETF",price:86,rsi:48,pe:30,fwdPe:26,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Broad REIT index. Data center REITs now large component."},
-{ticker:"BIL",name:"SPDR Bloomberg 1-3 Month T-Bill",sector:"ETF",type:"ETF",price:91,rsi:55,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Cash equivalent. 5%+ yield. Parking cash while awaiting opportunities."},
+{ticker:"KWEB",name:"KraneShares China Internet ETF",sector:"Intl Equity",type:"ETF",price:34,rsi:56,pe:16,fwdPe:12,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"China internet (BABA, Tencent, JD). Deep value vs US peers. Geopolitical risk."},
+{ticker:"EEM",name:"iShares MSCI Emerging Markets ETF",sector:"Intl Equity",type:"ETF",price:44,rsi:50,pe:13,fwdPe:11,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"Broad EM. India overweight opportunity + China risk."},
+{ticker:"VNQ",name:"Vanguard Real Estate ETF",sector:"Real Estate",type:"ETF",price:86,rsi:48,pe:30,fwdPe:26,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Broad REIT index. Data center REITs now large component."},
+{ticker:"BIL",name:"SPDR Bloomberg 1-3 Month T-Bill",sector:"Fixed Income",type:"ETF",price:91,rsi:55,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Cash equivalent. 5%+ yield. Parking cash while awaiting opportunities."},
 // International — Europe
 {ticker:"SAP",name:"SAP SE (ADR)",sector:"Technology",type:"Stock",price:238,rsi:57,pe:52,fwdPe:38,eps_growth:22,rev_growth:10,roe:16,debt_equity:0.2,market_cap_b:283,score:7,notes:"Enterprise ERP cloud migration + RISE with SAP. AI Joule assistant."},
 {ticker:"ERIC",name:"Ericsson (ADR)",sector:"Technology",type:"Stock",price:8,rsi:38,pe:null,fwdPe:12,eps_growth:30,rev_growth:2,roe:6,debt_equity:0.3,market_cap_b:26,score:5,notes:"5G telecom equipment. Restructuring + India 5G contract wins."},
@@ -1218,8 +1222,8 @@ const RAW = [
 // International — India
 {ticker:"IBN",name:"ICICI Bank (ADR)",sector:"Financials",type:"Stock",price:28,rsi:54,pe:18,fwdPe:14,eps_growth:20,rev_growth:12,roe:18,debt_equity:0.8,market_cap_b:99,score:7,notes:"India's best private bank. NIM expanding. Retail loan growth strong."},
 {ticker:"HDB",name:"HDFC Bank (ADR)",sector:"Financials",type:"Stock",price:68,rsi:52,pe:22,fwdPe:17,eps_growth:16,rev_growth:10,roe:16,debt_equity:0.8,market_cap_b:184,score:7,notes:"India's largest private bank. Merger with HDFC complete. NPA low."},
-{ticker:"INDA",name:"iShares MSCI India ETF",sector:"ETF",type:"ETF",price:58,rsi:52,pe:22,fwdPe:18,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:6,notes:"India broad market ETF. Best demographics story globally."},
-{ticker:"SMIN",name:"iShares MSCI India Small-Cap ETF",sector:"ETF",type:"ETF",price:88,rsi:48,pe:28,fwdPe:22,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"India small-cap. Higher growth, higher volatility domestic plays."},
+{ticker:"INDA",name:"iShares MSCI India ETF",sector:"Intl Equity",type:"ETF",price:58,rsi:52,pe:22,fwdPe:18,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:6,notes:"India broad market ETF. Best demographics story globally."},
+{ticker:"SMIN",name:"iShares MSCI India Small-Cap ETF",sector:"Intl Equity",type:"ETF",price:88,rsi:48,pe:28,fwdPe:22,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"India small-cap. Higher growth, higher volatility domestic plays."},
 {ticker:"INPX",name:"Inpixon",sector:"Technology",type:"Stock",price:2,rsi:22,pe:null,fwdPe:null,eps_growth:null,rev_growth:4,roe:null,debt_equity:null,market_cap_b:0,score:1,notes:"Indoor intelligence platform. Micro-cap speculative."},
 // International — Japan
 {ticker:"TM",name:"Toyota Motor (ADR)",sector:"Consumer Disc.",type:"Stock",price:192,rsi:44,pe:9,fwdPe:8,eps_growth:12,rev_growth:6,roe:12,debt_equity:1.2,market_cap_b:258,score:6,notes:"Hybrid dominance + Solid State battery EV race. Cheap P/E."},
@@ -1233,21 +1237,21 @@ const RAW = [
 {ticker:"NIO",name:"NIO (ADR)",sector:"Technology",type:"Stock",price:4,rsi:22,pe:null,fwdPe:null,eps_growth:null,rev_growth:12,roe:-38,debt_equity:1.4,market_cap_b:7,score:3,notes:"China premium EV. Battery swap model. Cash burn risk."},
 {ticker:"BILI",name:"Bilibili (ADR)",sector:"Communication",type:"Stock",price:22,rsi:44,pe:null,fwdPe:null,eps_growth:30,rev_growth:12,roe:-8,debt_equity:0.2,market_cap_b:8,score:4,notes:"China video platform. Gen-Z focused. Path to profitability underway."},
 // More ETFs — International & Thematic
-{ticker:"EWJ",name:"iShares MSCI Japan ETF",sector:"ETF",type:"ETF",price:72,rsi:48,pe:16,fwdPe:14,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Japan broad market. Corporate governance reforms + weak yen earnings."},
-{ticker:"EWG",name:"iShares MSCI Germany ETF",sector:"ETF",type:"ETF",price:34,rsi:50,pe:14,fwdPe:12,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"German equities. DAX exposure. Auto + industrial + financial value."},
-{ticker:"EWU",name:"iShares MSCI United Kingdom ETF",sector:"ETF",type:"ETF",price:38,rsi:52,pe:12,fwdPe:11,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"UK equities. Energy + financials + healthcare heavy. Deep value."},
-{ticker:"EWP",name:"iShares MSCI Spain ETF",sector:"ETF",type:"ETF",price:44,rsi:54,pe:11,fwdPe:10,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Spain equities. Banco Santander + Inditex (Zara) dominant."},
-{ticker:"EIRL",name:"iShares MSCI Ireland ETF",sector:"ETF",type:"ETF",price:56,rsi:48,pe:20,fwdPe:17,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Ireland equities. CRH + AIB. EU tech hub exposure."},
-{ticker:"EWL",name:"iShares MSCI Switzerland ETF",sector:"ETF",type:"ETF",price:58,rsi:50,pe:18,fwdPe:16,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Switzerland. Nestle + Roche + Novartis. Defensive quality."},
-{ticker:"EWQ",name:"iShares MSCI France ETF",sector:"ETF",type:"ETF",price:32,rsi:46,pe:14,fwdPe:12,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"France equities. LVMH + Total + luxury + energy."},
-{ticker:"EWI",name:"iShares MSCI Italy ETF",sector:"ETF",type:"ETF",price:38,rsi:52,pe:10,fwdPe:9,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Italy equities. Intesa Sanpaolo + Ferrari + ENI. Deep value."},
-{ticker:"EWZ",name:"iShares MSCI Brazil ETF",sector:"ETF",type:"ETF",price:34,rsi:42,pe:8,fwdPe:7,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"Brazil equities. Petrobras + Vale + financials. Commodities + rates."},
-{ticker:"EWC",name:"iShares MSCI Canada ETF",sector:"ETF",type:"ETF",price:38,rsi:50,pe:16,fwdPe:14,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Canada equities. Financials + energy + mining. Stable dividend."},
-{ticker:"EWA",name:"iShares MSCI Australia ETF",sector:"ETF",type:"ETF",price:28,rsi:50,pe:16,fwdPe:14,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Australia equities. Mining + banks + REITs. Commodity export exposure."},
-{ticker:"MCHI",name:"iShares MSCI China ETF",sector:"ETF",type:"ETF",price:54,rsi:56,pe:12,fwdPe:10,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"China broad market. Stimulus + AI investment play. Geopolitical risk."},
-{ticker:"CNYA",name:"iShares MSCI China A ETF",sector:"ETF",type:"ETF",price:28,rsi:52,pe:14,fwdPe:12,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"China A-shares. Domestic consumption + stimulus exposure."},
-{ticker:"FXI",name:"iShares China Large-Cap ETF",sector:"ETF",type:"ETF",price:34,rsi:54,pe:10,fwdPe:9,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"China blue chips. BABA + Tencent + CNOOC. Cheap vs history."},
-{ticker:"IEMG",name:"iShares Core MSCI Emerging Markets",sector:"ETF",type:"ETF",price:58,rsi:50,pe:13,fwdPe:11,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Broad EM core holding. Lower cost than EEM. India/China/Taiwan."},
+{ticker:"EWJ",name:"iShares MSCI Japan ETF",sector:"Intl Equity",type:"ETF",price:72,rsi:48,pe:16,fwdPe:14,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Japan broad market. Corporate governance reforms + weak yen earnings."},
+{ticker:"EWG",name:"iShares MSCI Germany ETF",sector:"Intl Equity",type:"ETF",price:34,rsi:50,pe:14,fwdPe:12,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"German equities. DAX exposure. Auto + industrial + financial value."},
+{ticker:"EWU",name:"iShares MSCI United Kingdom ETF",sector:"Intl Equity",type:"ETF",price:38,rsi:52,pe:12,fwdPe:11,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"UK equities. Energy + financials + healthcare heavy. Deep value."},
+{ticker:"EWP",name:"iShares MSCI Spain ETF",sector:"Intl Equity",type:"ETF",price:44,rsi:54,pe:11,fwdPe:10,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Spain equities. Banco Santander + Inditex (Zara) dominant."},
+{ticker:"EIRL",name:"iShares MSCI Ireland ETF",sector:"Intl Equity",type:"ETF",price:56,rsi:48,pe:20,fwdPe:17,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Ireland equities. CRH + AIB. EU tech hub exposure."},
+{ticker:"EWL",name:"iShares MSCI Switzerland ETF",sector:"Intl Equity",type:"ETF",price:58,rsi:50,pe:18,fwdPe:16,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Switzerland. Nestle + Roche + Novartis. Defensive quality."},
+{ticker:"EWQ",name:"iShares MSCI France ETF",sector:"Intl Equity",type:"ETF",price:32,rsi:46,pe:14,fwdPe:12,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"France equities. LVMH + Total + luxury + energy."},
+{ticker:"EWI",name:"iShares MSCI Italy ETF",sector:"Intl Equity",type:"ETF",price:38,rsi:52,pe:10,fwdPe:9,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Italy equities. Intesa Sanpaolo + Ferrari + ENI. Deep value."},
+{ticker:"EWZ",name:"iShares MSCI Brazil ETF",sector:"Intl Equity",type:"ETF",price:34,rsi:42,pe:8,fwdPe:7,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"Brazil equities. Petrobras + Vale + financials. Commodities + rates."},
+{ticker:"EWC",name:"iShares MSCI Canada ETF",sector:"Intl Equity",type:"ETF",price:38,rsi:50,pe:16,fwdPe:14,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Canada equities. Financials + energy + mining. Stable dividend."},
+{ticker:"EWA",name:"iShares MSCI Australia ETF",sector:"Intl Equity",type:"ETF",price:28,rsi:50,pe:16,fwdPe:14,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Australia equities. Mining + banks + REITs. Commodity export exposure."},
+{ticker:"MCHI",name:"iShares MSCI China ETF",sector:"Intl Equity",type:"ETF",price:54,rsi:56,pe:12,fwdPe:10,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"China broad market. Stimulus + AI investment play. Geopolitical risk."},
+{ticker:"CNYA",name:"iShares MSCI China A ETF",sector:"Intl Equity",type:"ETF",price:28,rsi:52,pe:14,fwdPe:12,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"China A-shares. Domestic consumption + stimulus exposure."},
+{ticker:"FXI",name:"iShares China Large-Cap ETF",sector:"Intl Equity",type:"ETF",price:34,rsi:54,pe:10,fwdPe:9,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"China blue chips. BABA + Tencent + CNOOC. Cheap vs history."},
+{ticker:"IEMG",name:"iShares Core MSCI Emerging Markets",sector:"Intl Equity",type:"ETF",price:58,rsi:50,pe:13,fwdPe:11,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Broad EM core holding. Lower cost than EEM. India/China/Taiwan."},
 // Thematic ETFs
 {ticker:"BOTZ",name:"Global X Robotics & AI ETF",sector:"ETF",type:"ETF",price:34,rsi:52,pe:38,fwdPe:28,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:6,notes:"AI + robotics. Keyence, Fanuc, NVDA, ABB. Factory automation."},
 {ticker:"ROBO",name:"ROBO Global Robotics ETF",sector:"ETF",type:"ETF",price:62,rsi:48,pe:32,fwdPe:26,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Diversified robotics + automation ETF. Surgical + industrial robots."},
@@ -1258,17 +1262,17 @@ const RAW = [
 {ticker:"HACK",name:"ETFMG Prime Cyber Security ETF",sector:"ETF",type:"ETF",price:62,rsi:50,pe:null,fwdPe:40,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Cybersecurity. Includes gov/defense cyber (LDOS, SAIC)."},
 {ticker:"FINX",name:"Global X FinTech ETF",sector:"ETF",type:"ETF",price:28,rsi:46,pe:28,fwdPe:22,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"FinTech basket. PYPL + SQ + AFRM + COIN exposure."},
 {ticker:"DRIV",name:"Global X Autonomous & EV ETF",sector:"ETF",type:"ETF",price:28,rsi:44,pe:22,fwdPe:18,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"EV + autonomous driving. NVDA + TSLA + NXP + semiconductor mix."},
-{ticker:"LIT",name:"Global X Lithium & Battery ETF",sector:"ETF",type:"ETF",price:22,rsi:28,pe:14,fwdPe:12,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"Lithium mining + battery. Oversold — ALB + SQM + LTHM basket."},
-{ticker:"COPX",name:"Global X Copper Miners ETF",sector:"ETF",type:"ETF",price:44,rsi:40,pe:14,fwdPe:12,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Copper miners. FCX + TECK + antofagasta. AI/EV demand play."},
-{ticker:"URA",name:"Global X Uranium ETF",sector:"ETF",type:"ETF",price:28,rsi:36,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:6,notes:"Uranium miners ETF. Nuclear AI power demand. CCJ + NXE + PDN."},
-{ticker:"URNM",name:"Sprott Uranium Miners ETF",sector:"ETF",type:"ETF",price:42,rsi:34,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:6,notes:"Pure uranium exposure. Higher CCJ weight than URA. Oversold."},
-{ticker:"GDX",name:"VanEck Gold Miners ETF",sector:"ETF",type:"ETF",price:46,rsi:50,pe:20,fwdPe:16,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Gold miners. NEM + AEM + GOLD. Leverage to gold price moves."},
-{ticker:"GDXJ",name:"VanEck Junior Gold Miners ETF",sector:"ETF",type:"ETF",price:52,rsi:48,pe:22,fwdPe:17,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"Junior gold miners. Higher beta to gold. More speculative."},
-{ticker:"IAU",name:"iShares Gold Trust",sector:"ETF",type:"ETF",price:48,rsi:60,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Low-cost gold ETF. 0.25% fee. Similar to GLD with smaller size."},
-{ticker:"PDBC",name:"Invesco Optimum Yield Commodity ETF",sector:"ETF",type:"ETF",price:16,rsi:42,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"Broad commodity futures. Oil + gas + metals + agriculture basket."},
-{ticker:"DBA",name:"Invesco Agriculture Fund ETF",sector:"ETF",type:"ETF",price:22,rsi:44,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"Agricultural commodities. Corn + wheat + sugar + coffee futures."},
-{ticker:"MOO",name:"VanEck Agribusiness ETF",sector:"ETF",type:"ETF",price:88,rsi:44,pe:16,fwdPe:14,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Agribusiness equities. DE + Nutrien + Archer-Daniels. Food security."},
-{ticker:"REMX",name:"VanEck Rare Earth/Strategic Metals ETF",sector:"ETF",type:"ETF",price:26,rsi:36,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Rare earth miners. Critical minerals for EV/AI. China supply risk."},
+{ticker:"LIT",name:"Global X Lithium & Battery ETF",sector:"Commodities",type:"ETF",price:22,rsi:28,pe:14,fwdPe:12,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"Lithium mining + battery. Oversold — ALB + SQM + LTHM basket."},
+{ticker:"COPX",name:"Global X Copper Miners ETF",sector:"Commodities",type:"ETF",price:44,rsi:40,pe:14,fwdPe:12,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Copper miners. FCX + TECK + antofagasta. AI/EV demand play."},
+{ticker:"URA",name:"Global X Uranium ETF",sector:"Commodities",type:"ETF",price:28,rsi:36,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:6,notes:"Uranium miners ETF. Nuclear AI power demand. CCJ + NXE + PDN."},
+{ticker:"URNM",name:"Sprott Uranium Miners ETF",sector:"Commodities",type:"ETF",price:42,rsi:34,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:6,notes:"Pure uranium exposure. Higher CCJ weight than URA. Oversold."},
+{ticker:"GDX",name:"VanEck Gold Miners ETF",sector:"Commodities",type:"ETF",price:46,rsi:50,pe:20,fwdPe:16,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Gold miners. NEM + AEM + GOLD. Leverage to gold price moves."},
+{ticker:"GDXJ",name:"VanEck Junior Gold Miners ETF",sector:"Commodities",type:"ETF",price:52,rsi:48,pe:22,fwdPe:17,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"Junior gold miners. Higher beta to gold. More speculative."},
+{ticker:"IAU",name:"iShares Gold Trust",sector:"Commodities",type:"ETF",price:48,rsi:60,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Low-cost gold ETF. 0.25% fee. Similar to GLD with smaller size."},
+{ticker:"PDBC",name:"Invesco Optimum Yield Commodity ETF",sector:"Commodities",type:"ETF",price:16,rsi:42,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"Broad commodity futures. Oil + gas + metals + agriculture basket."},
+{ticker:"DBA",name:"Invesco Agriculture Fund ETF",sector:"Commodities",type:"ETF",price:22,rsi:44,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:4,notes:"Agricultural commodities. Corn + wheat + sugar + coffee futures."},
+{ticker:"MOO",name:"VanEck Agribusiness ETF",sector:"Commodities",type:"ETF",price:88,rsi:44,pe:16,fwdPe:14,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Agribusiness equities. DE + Nutrien + Archer-Daniels. Food security."},
+{ticker:"REMX",name:"VanEck Rare Earth/Strategic Metals ETF",sector:"Commodities",type:"ETF",price:26,rsi:36,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Rare earth miners. Critical minerals for EV/AI. China supply risk."},
 // Biotech ETFs
 {ticker:"XBI",name:"SPDR S&P Biotech ETF",sector:"ETF",type:"ETF",price:88,rsi:36,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Biotech equal-weight. Oversold. M&A catalyst as Big Pharma buys."},
 {ticker:"IBB",name:"iShares Biotechnology ETF",sector:"ETF",type:"ETF",price:138,rsi:38,pe:22,fwdPe:18,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Large-cap biotech. AMGN + GILD + REGN + VRTX top weights."},
@@ -1582,9 +1586,9 @@ const RAW = [
 {ticker:"TAN",name:"Invesco Solar",sector:"ETF",type:"ETF",price:null,rsi:null,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Added to broaden the universe — fundamentals populate from the nightly refresh."},
 {ticker:"FAN",name:"First Trust Global Wind Energy",sector:"ETF",type:"ETF",price:null,rsi:null,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Added to broaden the universe — fundamentals populate from the nightly refresh."},
 {ticker:"NLR",name:"VanEck Uranium and Nuclear",sector:"ETF",type:"ETF",price:null,rsi:null,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Added to broaden the universe — fundamentals populate from the nightly refresh."},
-{ticker:"SIL",name:"Global X Silver Miners",sector:"ETF",type:"ETF",price:null,rsi:null,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Added to broaden the universe — fundamentals populate from the nightly refresh."},
-{ticker:"PICK",name:"iShares MSCI Global Metals & Mining",sector:"ETF",type:"ETF",price:null,rsi:null,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Added to broaden the universe — fundamentals populate from the nightly refresh."},
-{ticker:"WOOD",name:"iShares Global Timber & Forestry",sector:"ETF",type:"ETF",price:null,rsi:null,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Added to broaden the universe — fundamentals populate from the nightly refresh."},
+{ticker:"SIL",name:"Global X Silver Miners",sector:"Commodities",type:"ETF",price:null,rsi:null,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Added to broaden the universe — fundamentals populate from the nightly refresh."},
+{ticker:"PICK",name:"iShares MSCI Global Metals & Mining",sector:"Commodities",type:"ETF",price:null,rsi:null,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Added to broaden the universe — fundamentals populate from the nightly refresh."},
+{ticker:"WOOD",name:"iShares Global Timber & Forestry",sector:"Commodities",type:"ETF",price:null,rsi:null,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Added to broaden the universe — fundamentals populate from the nightly refresh."},
 {ticker:"IEF",name:"iShares 7-10 Year Treasury",sector:"Fixed Income",type:"ETF",price:null,rsi:null,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Added to broaden the universe — fundamentals populate from the nightly refresh."},
 {ticker:"SHY",name:"iShares 1-3 Year Treasury",sector:"Fixed Income",type:"ETF",price:null,rsi:null,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Added to broaden the universe — fundamentals populate from the nightly refresh."},
 {ticker:"SHV",name:"iShares Short Treasury",sector:"Fixed Income",type:"ETF",price:null,rsi:null,pe:null,fwdPe:null,eps_growth:null,rev_growth:null,roe:null,debt_equity:null,market_cap_b:null,score:5,notes:"Added to broaden the universe — fundamentals populate from the nightly refresh."},
@@ -1735,6 +1739,7 @@ function applyFilters(){
     if(f.watchOnly&&!watchlist.has(d.ticker))return false;
     return true;
   });
+  applyProjections(filtered);
   filtered.sort((a,b)=>{
     const av=a[sortK]??-Infinity,bv=b[sortK]??-Infinity;
     if(typeof av==="string")return sortAsc?av.localeCompare(bv):bv.localeCompare(av);
@@ -1913,6 +1918,94 @@ function pegBadge(v){
   return`<span class="${cls}" style="font-variant-numeric:tabular-nums">${v.toFixed(2)}</span>`;
 }
 
+
+/* ── Forward value projection ────────────────────────────
+   Honesty first: returns over a week or a month are, to a very good
+   approximation, unforecastable. A single "expected +0.4%" would be invented
+   precision. So every horizon is projected as a CENTRAL estimate plus the 90%
+   range around it, and the range is the part worth reading — at one week it is
+   typically thirty times wider than the estimate, which is the real answer.
+
+   Central drift follows the standard decomposition
+       expected return  ≈  dividend yield + earnings growth
+   with the growth term shrunk hard toward a long-run equity baseline. Trailing
+   EPS growth of 280% does not mean a 280% return; without shrinking, the column
+   would simply rank whichever companies had the noisiest accounting.
+
+   Volatility is inferred from the 52-week range, which spans roughly 3 sigma
+   for a random walk. It is a proxy, not a measurement — the daily history the
+   table would need is only fetched when a row is opened. */
+/* A baseline per asset class, because projecting a bond fund at the equity
+   premium is simply wrong — and with bonds, commodities and international
+   equity now in the universe, one global baseline would say TLT and SPY have
+   the same expected return. */
+const CLASS_DRIFT = {
+  "Fixed Income": 0.040,     // roughly a yield-to-maturity assumption
+  "Commodities":  0.025,     // no cash flow; long-run real return near zero
+  "Real Estate":  0.070,
+  "Utilities":    0.070,
+  "Intl Equity":  0.075,
+};
+const MKT_DRIFT = 0.08;      // long-run equity baseline
+const GROWTH_W  = 0.25;      // weight on the company's own growth
+const GROWTH_CAP= 0.25;      // and a ceiling on how much of it counts
+const CLASS_VOL = {
+  "Fixed Income": 0.12, "Commodities": 0.22, "Intl Equity": 0.20,
+  "Utilities": 0.18, "Real Estate": 0.22,
+};
+
+function projectionFor(d){
+  const live = liveData[d.ticker] || {};
+  const base = CLASS_DRIFT[d.sector] != null ? CLASS_DRIFT[d.sector] : MKT_DRIFT;
+
+  /* drift */
+  let g = d.eps_growth != null ? d.eps_growth/100 : null;
+  if (g != null) g = Math.max(-GROWTH_CAP, Math.min(GROWTH_CAP, g));
+  const dy = (live.divYield != null ? live.divYield/100 : 0);
+  let mu = base + (g != null ? GROWTH_W*(g - base) : 0) + dy;
+  /* a stretched valuation is a headwind, applied gently */
+  if (d.peg != null && d.peg > 2.5) mu -= 0.01*Math.min(3, d.peg - 2.5);
+  mu = Math.max(-0.10, Math.min(0.30, mu));
+
+  /* volatility proxy from the 52-week range */
+  let sigma = null;
+  if (live.high52 && live.low52 && live.high52 > live.low52){
+    const mid = (live.high52 + live.low52)/2;
+    if (mid > 0) sigma = (live.high52 - live.low52)/mid/3.0;
+  }
+  if (sigma == null)
+    sigma = CLASS_VOL[d.sector] != null ? CLASS_VOL[d.sector]
+          : d.type === "ETF" ? 0.18 : 0.35;                    // fallback by class
+  sigma = Math.max(0.08, Math.min(1.20, sigma));
+
+  const HOR = {exp1w:1/52, exp1m:1/12, exp1y:1, exp5y:5};
+  const out = {expMu:mu*100, expSigma:sigma*100};
+  for (const [k,T] of Object.entries(HOR)){
+    const drift = Math.log(1+mu)*T;
+    const spread = 1.645*sigma*Math.sqrt(T);      // 90% band
+    out[k]      = (Math.exp(drift)-1)*100;
+    out[k+"_lo"]= (Math.exp(drift-spread)-1)*100;
+    out[k+"_hi"]= (Math.exp(drift+spread)-1)*100;
+  }
+  return out;
+}
+
+function applyProjections(rows){
+  rows.forEach(d => Object.assign(d, projectionFor(d)));
+}
+
+function expCell(d,k){
+  const v=d[k], lo=d[k+"_lo"], hi=d[k+"_hi"];
+  if(v==null)return "—";
+  /* Muted whenever the band swamps the estimate, which at short horizons is
+     always — the styling is the message. */
+  const meaningful = Math.abs(v) > (hi-lo)/2;
+  const col = !meaningful ? "var(--dim)" : v>=0 ? "var(--accent)" : "var(--red)";
+  const f=x=>(x>=0?"+":"")+x.toFixed(x>=100||x<=-100?0:1)+"%";
+  return `<div style="line-height:1.25"><span style="color:${col};font-weight:${meaningful?600:400}">${f(v)}</span>`
+       + `<div style="font-size:.62rem;color:var(--dim);font-variant-numeric:tabular-nums">${f(lo)}…${f(hi)}</div></div>`;
+}
+
 function renderTable(){
   const start=(page-1)*PER_PAGE,slice=filtered.slice(start,start+PER_PAGE);
   document.getElementById("tbody").innerHTML=slice.map(d=>{
@@ -1937,6 +2030,10 @@ function renderTable(){
       <td>${fmt(d.fwdPe)}</td>
       <td>${pegBadge(d.peg)}</td>
       <td>${d.eps_growth!=null?(d.eps_growth>0?"+":"")+d.eps_growth+"%":"—"}</td>
+      <td>${expCell(d,"exp1w")}</td>
+      <td>${expCell(d,"exp1m")}</td>
+      <td>${expCell(d,"exp1y")}</td>
+      <td>${expCell(d,"exp5y")}</td>
       <td>${scBadge(d.score)}</td>
       <td>${signalBadge(d)}</td>
       <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;color:var(--dim);font-size:.75rem">${notes[d.ticker]||d.notes}</td>
