@@ -272,21 +272,53 @@ def main(offline=False):
     for s in px.values():
         for d in s:
             all_dates[d] = all_dates.get(d, 0) + 1
-    date = max(d for d, c in all_dates.items() if c >= len(px) * 0.6)
-    print(f"as of:    {date}\n")
+    sessions = sorted(d for d, c in all_dates.items() if c >= len(px) * 0.6)
+    if not sessions:
+        print("no session date has enough coverage — aborting")
+        sys.exit(1)
+    print(f"as of:    {sessions[-1]}\n")
 
     for cfg in BOOKS:
-        run_book(cfg, sectors, universe, px, date)
+        run_book(cfg, sectors, universe, px, sessions)
 
 
-def run_book(cfg, sectors, universe, px, date):
+def run_book(cfg, sectors, universe, px, sessions):
+    """Replay every session the ledger is missing, in order.
+
+    Processing only the newest date would leave permanent holes whenever the
+    scheduler misses a day — a holiday, a runner outage, a workflow paused and
+    resumed. Worse than the gap in the curve, the trend stops that should have
+    fired on those days would never fire at all, so the book would drift away
+    from the rules it claims to follow. Catching up keeps the simulation
+    faithful over an open-ended run.
+    """
     tag = cfg["id"]
-    state = load_state(date, cfg)
+    latest = sessions[-1]
+    state = load_state(latest, cfg)
 
-    # Idempotence: never act twice on the same session
-    if state["equity"] and state["equity"][-1]["date"] >= date:
+    if not state["equity"]:
+        pending = [latest]          # first run: open today, do not replay history
+    else:
+        done = state["equity"][-1]["date"]
+        pending = [d for d in sessions if d > done]
+
+    if not pending:
         print(f"[{tag}] already recorded this session — nothing to do")
         return
+    if len(pending) > 1:
+        print(f"[{tag}] catching up {len(pending)} missed sessions: "
+              f"{pending[0]} -> {pending[-1]}")
+        state.setdefault("log", []).append({
+            "date": latest,
+            "msg": f"backfilled {len(pending)} missed sessions ({pending[0]} to {pending[-1]})",
+        })
+
+    for date in pending:
+        run_session(cfg, state, sectors, universe, px, date, tag)
+    save_state(state, cfg)
+
+
+def run_session(cfg, state, sectors, universe, px, date, tag):
 
     # Only once we know a session will actually be written: keep the recorded rules in step with the code, and leave an audit trail
     # whenever they change — a year-long run is worthless if we cannot tell
@@ -422,7 +454,6 @@ def run_book(cfg, sectors, universe, px, date):
         "n": len(state["positions"]), "bench": bench,
     })
 
-    save_state(state, cfg)
     ret = equity / START_CAPITAL - 1
     line = (f"[{tag}] equity ${equity:,.0f} ({ret:+.2%})  "
             f"positions {len(state['positions'])}  trades {len(state['trades'])}")

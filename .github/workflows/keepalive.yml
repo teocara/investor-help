@@ -1,0 +1,82 @@
+name: Keepalive
+
+# GitHub disables scheduled workflows after 60 days without repository
+# activity, which is the one thing that would silently end an open-ended
+# paper-trading run. This job writes a dated heartbeat once a fortnight.
+#
+# IMPORTANT, and worth reading before trusting it:
+#
+#   Commits made with the default GITHUB_TOKEN are widely reported NOT to
+#   reset that 60-day timer — GitHub counts human activity. If you want the
+#   run to be genuinely self-sustaining, add a personal access token with
+#   `repo` scope as a secret named KEEPALIVE_TOKEN; the commit is then
+#   attributed to you and does reset it.
+#
+#   Without that secret this workflow still runs and still records the
+#   heartbeat, so a stall is at least VISIBLE in paper/heartbeat.json rather
+#   than silent — but it may not prevent one. The other safeguard is simply
+#   interacting with the repository every couple of months, which any working
+#   session already does.
+
+on:
+  schedule:
+    - cron: '20 6 1,15 * *'      # 06:20 UTC on the 1st and 15th
+  workflow_dispatch:
+
+concurrency:
+  group: keepalive
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write             # lets the token re-enable a paused workflow
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.KEEPALIVE_TOKEN || github.token }}
+
+      - name: Write the heartbeat
+        run: |
+          mkdir -p paper
+          python - <<'PY'
+          import json, datetime, os, pathlib
+          p = pathlib.Path("paper/heartbeat.json")
+          prev = {}
+          if p.exists():
+              try: prev = json.loads(p.read_text())
+              except Exception: pass
+          now = datetime.datetime.now(datetime.timezone.utc)
+          p.write_text(json.dumps({
+              "last_ping": now.isoformat(timespec="seconds"),
+              "pings": prev.get("pings", 0) + 1,
+              "using_pat": bool(os.environ.get("HAS_PAT")),
+              "note": ("Written to keep scheduled workflows alive. Without a "
+                       "KEEPALIVE_TOKEN secret this commit may not reset "
+                       "GitHub's 60-day inactivity timer."),
+          }, indent=1) + "\n", encoding="utf-8")
+          print(p.read_text())
+          PY
+        env:
+          HAS_PAT: ${{ secrets.KEEPALIVE_TOKEN }}
+
+      - name: Re-enable the trading schedule if it was paused
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.KEEPALIVE_TOKEN || github.token }}
+        run: |
+          # Idempotent: enabling an already-enabled workflow is a no-op.
+          curl -sS -X PUT \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/paper-trade.yml/enable" \
+            && echo "paper-trade schedule enabled"
+
+      - name: Commit the heartbeat
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: keepalive heartbeat [skip ci]"
+          file_pattern: "paper/heartbeat.json"

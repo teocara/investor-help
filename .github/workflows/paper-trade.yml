@@ -4,9 +4,15 @@ on:
   schedule:
     # 22:10 UTC Mon–Fri — after the US close, so the day's closing prices exist
     - cron: '10 22 * * 1-5'
+  # Any push to main also advances the books. Combined with the engine's
+  # backfill, this means a single commit after a pause catches every missed
+  # session up — so the run survives the scheduler being interrupted.
+  # The ledger commit below carries [skip ci], so this cannot loop.
+  push:
+    branches: [main]
   workflow_dispatch:
 
-# Never let two runs touch the ledger at once
+# Never let two runs touch the ledgers at once
 concurrency:
   group: paper-trading
   cancel-in-progress: false
@@ -31,7 +37,7 @@ jobs:
       - name: Run the session
         run: python scripts/paper_trade.py
 
-      - name: Commit the ledger
+      - name: Commit the ledgers
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore(paper): trading session [skip ci]"
