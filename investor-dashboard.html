@@ -3891,7 +3891,7 @@ async function renderPaper(){
       A scheduled job runs this book every weekday after the US close: it ranks the universe on
       12-month momentum, holds the top ${st.rules.max_positions} that are also above their own 200-day average,
       sizes them by inverse volatility with a ${Math.round(st.rules.max_sector*100)}% sector cap, and sells anything whose trend breaks.
-      Rebalances monthly. Long only, no leverage, ${st.rules.cost_bps} bps charged per fill.
+      Rebalance: ${st.rules.rebalance}. Long only, no leverage, ${st.rules.cost_bps} bps charged per fill.
       <strong>Simulated money</strong> — the fills use real closing prices but no broker is involved.
     </div>
   </div>`;

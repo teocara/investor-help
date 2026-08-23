@@ -23,7 +23,7 @@ absolute momentum decides WHETHER to own anything at all.
   Sizing       inverse volatility, capped, so one wild name cannot dominate
   Risk-off     names failing the gate are not replaced — the book moves to
                cash on its own when breadth collapses
-  Rebalance    monthly, plus a daily stop-out check for broken trends
+  Rebalance    weekly, plus a daily stop-out check for broken trends
 
 Long only, no leverage, no shorting. Costs are charged on every fill.
 """
@@ -43,7 +43,13 @@ START_CAPITAL   = 100_000.0
 MAX_POSITIONS   = 15
 MAX_WEIGHT      = 0.15      # no single name above 15% of the book
 MIN_WEIGHT      = 0.02
-COST_BPS        = 0.0005    # 5 bps per fill, each side
+COST_BPS        = 0.0010    # 10 bps per fill: the universe now includes
+                            # small caps and thin ADRs, where 5 bps is
+                            # optimistic. Weekly rebalancing only beats
+                            # monthly below roughly 10-15 bps, so the
+                            # assumption has to be honest or the choice
+                            # of frequency is decided by wishful thinking.
+REBALANCE_DAYS  = 7         # weekly
 MOM_LOOKBACK    = 252       # 12 months
 MOM_SKIP        = 21        # skip the most recent month (short-term reversal)
 TREND_WINDOW    = 200
@@ -149,7 +155,7 @@ def blank_state(today):
             "strategy": "Dual momentum — 12-1 relative rank, 200d absolute trend gate",
             "start_capital": START_CAPITAL, "max_positions": MAX_POSITIONS,
             "max_weight": MAX_WEIGHT, "cost_bps": COST_BPS * 1e4,
-            "rebalance": "monthly, plus daily stop-out on trend break",
+            "rebalance": "weekly, plus daily stop-out on trend break",
             "max_sector": MAX_SECTOR, "universe": "USD-quoted only",
             "long_only": True, "leverage": None,
         },
@@ -258,6 +264,22 @@ def main(offline=False):
         print("already recorded this session — nothing to do")
         return
 
+    # Only once we know a session will actually be written: keep the recorded rules in step with the code, and leave an audit trail
+    # whenever they change — a year-long run is worthless if we cannot tell
+    # later which rules produced which stretch of the curve.
+    current = blank_state(date)["rules"]
+    old = state.get("rules", {})
+    changed = {k: [old.get(k), v] for k, v in current.items() if old.get(k) != v}
+    if changed and state.get("equity"):
+        state.setdefault("rule_changes", []).append({"date": date, "changed": changed})
+        state["log"].append({
+            "date": date,
+            "msg": "rules changed: " + ", ".join(
+                f"{k} {a} -> {b}" for k, (a, b) in changed.items()),
+        })
+        print("  rule change recorded:", changed)
+    state["rules"] = current
+
     def closes_upto(t):
         s = px.get(t, {})
         return [s[d] for d in sorted(s) if d <= date]
@@ -281,8 +303,11 @@ def main(offline=False):
             sell(state, t, c[-1], date, "trend break")
 
     # ── monthly rebalance ───────────────────────────────────────────────
-    month = date[:7]
-    due = state["last_rebalance"] is None or state["last_rebalance"][:7] != month
+    # Weekly cadence measured in calendar days, so a missed session (holiday,
+    # a delayed runner) does not silently skip a whole period the way a
+    # month-boundary test would.
+    due = state["last_rebalance"] is None or \
+        (days_between(state["last_rebalance"], date) or 99) >= REBALANCE_DAYS
     if due:
         ranked = []
         for t in universe:
