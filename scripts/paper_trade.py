@@ -23,7 +23,9 @@ absolute momentum decides WHETHER to own anything at all.
   Sizing       inverse volatility, capped, so one wild name cannot dominate
   Risk-off     names failing the gate are not replaced — the book moves to
                cash on its own when breadth collapses
-  Rebalance    weekly, plus a daily stop-out check for broken trends
+  Rebalance    per book: the primary runs weekly, a parallel book runs
+               bi-weekly on identical prices and signals so the cadence can
+               be compared forward instead of argued from a backtest
 
 Long only, no leverage, no shorting. Costs are charged on every fill.
 """
@@ -36,7 +38,17 @@ import sys
 import datetime as dt
 from pathlib import Path
 
-STATE_PATH = Path("paper/portfolio.json")
+# ── Books ────────────────────────────────────────────────────────────────
+# Two portfolios run side by side on the SAME prices, the SAME session dates
+# and the SAME signals. The only difference is the rebalance cadence, so any
+# gap between them is attributable to that and nothing else — which is the
+# whole point of running the second one rather than trusting a backtest.
+BOOKS = [
+    {"id": "weekly",   "file": "paper/portfolio.json",
+     "rebalance_days": 7,  "label": "Weekly rebalance"},
+    {"id": "biweekly", "file": "paper/portfolio-biweekly.json",
+     "rebalance_days": 14, "label": "Bi-weekly rebalance"},
+]
 
 # ── Rules (fixed for the duration of the run) ────────────────────────────
 START_CAPITAL   = 100_000.0
@@ -49,7 +61,6 @@ COST_BPS        = 0.0010    # 10 bps per fill: the universe now includes
                             # monthly below roughly 10-15 bps, so the
                             # assumption has to be honest or the choice
                             # of frequency is decided by wishful thinking.
-REBALANCE_DAYS  = 7         # weekly
 MOM_LOOKBACK    = 252       # 12 months
 MOM_SKIP        = 21        # skip the most recent month (short-term reversal)
 TREND_WINDOW    = 200
@@ -148,14 +159,18 @@ def volatility(closes, n=VOL_WINDOW):
 
 
 # ── State ────────────────────────────────────────────────────────────────
-def blank_state(today):
+def blank_state(today, cfg):
+    every = cfg["rebalance_days"]
+    cadence = "weekly" if every == 7 else "bi-weekly" if every == 14 else f"every {every} days"
     return {
         "started": today,
+        "book": cfg["id"], "label": cfg["label"],
         "rules": {
             "strategy": "Dual momentum — 12-1 relative rank, 200d absolute trend gate",
             "start_capital": START_CAPITAL, "max_positions": MAX_POSITIONS,
             "max_weight": MAX_WEIGHT, "cost_bps": COST_BPS * 1e4,
-            "rebalance": "weekly, plus daily stop-out on trend break",
+            "rebalance": f"{cadence}, plus daily stop-out on trend break",
+            "rebalance_days": every,
             "max_sector": MAX_SECTOR, "universe": "USD-quoted only",
             "long_only": True, "leverage": None,
         },
@@ -169,19 +184,21 @@ def blank_state(today):
     }
 
 
-def load_state(today):
-    if STATE_PATH.exists():
+def load_state(today, cfg):
+    path = Path(cfg["file"])
+    if path.exists():
         try:
-            return json.loads(STATE_PATH.read_text())
+            return json.loads(path.read_text())
         except Exception as e:
-            print(f"  state unreadable ({e}) — refusing to overwrite")
+            print(f"  {cfg['id']}: state unreadable ({e}) — refusing to overwrite")
             sys.exit(1)
-    return blank_state(today)
+    return blank_state(today, cfg)
 
 
-def save_state(state):
-    STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    STATE_PATH.write_text(json.dumps(state, indent=1), encoding="utf-8")
+def save_state(state, cfg):
+    path = Path(cfg["file"])
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(state, indent=1), encoding="utf-8")
 
 
 # ── Trading ──────────────────────────────────────────────────────────────
@@ -243,31 +260,39 @@ def main(offline=False):
     tickers = sorted(set(universe) | set(BENCHMARKS))
     print(f"universe: {len(universe)} USD-quoted names")
 
+    # Prices are fetched ONCE and shared by every book, so the comparison
+    # between them can never be contaminated by two different snapshots.
     px = (load_prices_offline if offline else load_prices_live)(tickers)
     print(f"priced:   {len(px)} series")
     if len(px) < 30:
         print("too few priced series — aborting without changing state")
         sys.exit(1)
 
-    # The most recent date for which a good share of the universe has a bar
     all_dates = {}
     for s in px.values():
         for d in s:
             all_dates[d] = all_dates.get(d, 0) + 1
     date = max(d for d, c in all_dates.items() if c >= len(px) * 0.6)
-    print(f"as of:    {date}")
+    print(f"as of:    {date}\n")
 
-    state = load_state(date)
+    for cfg in BOOKS:
+        run_book(cfg, sectors, universe, px, date)
+
+
+def run_book(cfg, sectors, universe, px, date):
+    tag = cfg["id"]
+    state = load_state(date, cfg)
 
     # Idempotence: never act twice on the same session
     if state["equity"] and state["equity"][-1]["date"] >= date:
-        print("already recorded this session — nothing to do")
+        print(f"[{tag}] already recorded this session — nothing to do")
         return
 
     # Only once we know a session will actually be written: keep the recorded rules in step with the code, and leave an audit trail
     # whenever they change — a year-long run is worthless if we cannot tell
     # later which rules produced which stretch of the curve.
-    current = blank_state(date)["rules"]
+    state["book"], state["label"] = cfg["id"], cfg["label"]
+    current = blank_state(date, cfg)["rules"]
     old = state.get("rules", {})
     changed = {k: [old.get(k), v] for k, v in current.items() if old.get(k) != v}
     if changed and state.get("equity"):
@@ -277,7 +302,7 @@ def main(offline=False):
             "msg": "rules changed: " + ", ".join(
                 f"{k} {a} -> {b}" for k, (a, b) in changed.items()),
         })
-        print("  rule change recorded:", changed)
+        print(f"[{tag}] rule change recorded:", changed)
     state["rules"] = current
 
     def closes_upto(t):
@@ -307,7 +332,7 @@ def main(offline=False):
     # a delayed runner) does not silently skip a whole period the way a
     # month-boundary test would.
     due = state["last_rebalance"] is None or \
-        (days_between(state["last_rebalance"], date) or 99) >= REBALANCE_DAYS
+        (days_between(state["last_rebalance"], date) or 99) >= cfg["rebalance_days"]
     if due:
         ranked = []
         for t in universe:
@@ -340,7 +365,7 @@ def main(offline=False):
                 break
         spread = ", ".join(f"{k} {v}" for k, v in sorted(per_sector.items(),
                                                          key=lambda kv: -kv[1]))
-        print(f"qualified: {len(ranked)}  ->  holding {len(picks)}  [{spread}]")
+        print(f"[{tag}] qualified {len(ranked)} -> holding {len(picks)}  [{spread}]")
 
         keep = {p["t"] for p in picks}
         for t in list(state["positions"]):
@@ -397,9 +422,10 @@ def main(offline=False):
         "n": len(state["positions"]), "bench": bench,
     })
 
-    save_state(state)
+    save_state(state, cfg)
     ret = equity / START_CAPITAL - 1
-    line = f"equity ${equity:,.0f} ({ret:+.2%})  positions {len(state['positions'])}"
+    line = (f"[{tag}] equity ${equity:,.0f} ({ret:+.2%})  "
+            f"positions {len(state['positions'])}  trades {len(state['trades'])}")
     for b, v in bench.items():
         line += f"   {b} {v/START_CAPITAL-1:+.2%}"
     print(line)

@@ -3825,13 +3825,17 @@ function whyPick(d,horizon){
 /* ── Autonomous paper portfolio ──────────────────────────
    Reads the ledger the scheduled job writes. Nothing here trades; the
    dashboard only reports what the engine already did. */
-let paperState=null;
+let paperState=null, paperAlt=null;
+const PAPER_BOOKS=[
+  {id:"weekly",  file:"paper/portfolio.json",          col:"#3fb950"},
+  {id:"biweekly",file:"paper/portfolio-biweekly.json", col:"#d29922"},
+];
 async function renderPaper(){
   const pane=document.getElementById("paper-pane");
   if(!paperState){
-    pane.innerHTML='<div style="color:var(--dim);font-size:.8rem;text-align:center;padding:2rem">Loading the ledger…</div>';
+    pane.innerHTML='<div style="color:var(--dim);font-size:.8rem;text-align:center;padding:2rem">Loading the ledgers…</div>';
     try{
-      const res=await fetch(`${GH_ROOT}/paper/portfolio.json`,{cache:"no-store"});
+      const res=await fetch(`${GH_ROOT}/${PAPER_BOOKS[0].file}`,{cache:"no-store"});
       if(!res.ok)throw new Error(`ledger ${res.status}`);
       paperState=await res.json();
     }catch(e){
@@ -3839,6 +3843,11 @@ async function renderPaper(){
         No trading sessions recorded yet.<br><span style="font-size:.7rem">${e.message}</span></div>`;
       return;
     }
+    /* The parallel book is optional: the page still works if it is absent. */
+    try{
+      const r2=await fetch(`${GH_ROOT}/${PAPER_BOOKS[1].file}`,{cache:"no-store"});
+      if(r2.ok)paperAlt=await r2.json();
+    }catch(e){}
   }
   const st=paperState, eq=st.equity||[];
   if(!eq.length){pane.innerHTML='<div style="color:var(--dim);font-size:.8rem;padding:2rem;text-align:center">Ledger is empty.</div>';return;}
@@ -3862,7 +3871,14 @@ async function renderPaper(){
       <span class="pp-sub">${st.rules.strategy} · started ${st.started} · ${days} days · ${eq.length} sessions</span>
     </div>
     <div class="pp-kpis">
-      ${kpi("Strategy",fmt(pct(last.value)),money(last.value),pct(last.value)>=0?"win":"lose")}
+      ${kpi(st.label||"Strategy",fmt(pct(last.value)),money(last.value),pct(last.value)>=0?"win":"lose")}
+      ${(()=>{
+        if(!paperAlt||!paperAlt.equity||!paperAlt.equity.length)return "";
+        const a=paperAlt.equity[paperAlt.equity.length-1];
+        const d=pct(a.value)-pct(last.value);
+        return kpi(paperAlt.label||"Parallel book",fmt(pct(a.value)),
+                   (d>=0?"+":"")+d.toFixed(1)+" pts vs weekly",d>=0?"win":"lose");
+      })()}
       ${benchKeys.map(b=>kpi(b+" buy &amp; hold",fmt(pct(last.bench[b])),money(last.bench[b]))).join("")}
       ${vsSpy!=null?kpi("vs SPY",(vsSpy>=0?"+":"")+vsSpy.toFixed(1)+" pts",vsSpy>=0?"ahead":"behind",vsSpy>=0?"win":"lose"):""}
       ${kpi("Max drawdown",(mdd*100).toFixed(1)+"%","peak to trough")}
@@ -3893,24 +3909,34 @@ async function renderPaper(){
       sizes them by inverse volatility with a ${Math.round(st.rules.max_sector*100)}% sector cap, and sells anything whose trend breaks.
       Rebalance: ${st.rules.rebalance}. Long only, no leverage, ${st.rules.cost_bps} bps charged per fill.
       <strong>Simulated money</strong> — the fills use real closing prices but no broker is involved.
+      ${paperAlt?`<br><br>A second book runs alongside on <strong>identical prices, dates and signals</strong>,
+      differing only in rebalancing every ${paperAlt.rules.rebalance_days} days instead of ${st.rules.rebalance_days}.
+      Any gap between the two curves is attributable to cadence alone — a forward test of the
+      question a backtest cannot settle.`:""}
     </div>
   </div>`;
   pane.innerHTML=html;
   pane.querySelectorAll(".pp-tick").forEach(el=>
     el.addEventListener("click",()=>openDrawer(el.dataset.t)));
-  drawPaperChart(eq,start,benchKeys);
+  drawPaperChart(eq,start,benchKeys,paperAlt);
 }
 
-function drawPaperChart(eq,start,benchKeys){
+function drawPaperChart(eq,start,benchKeys,alt){
   const cv=document.getElementById("ppChart");if(!cv)return;
-  const COL={strategy:"#3fb950",SPY:"#58a6ff",QQQ:"#a371f7"};
+  const COL={strategy:"#3fb950",parallel:"#d29922",SPY:"#58a6ff",QQQ:"#a371f7"};
   const W=cv.clientWidth||600,H=Math.max(170,Math.min(260,W*0.32));
   const dpr=window.devicePixelRatio||1;
   cv.width=W*dpr;cv.height=H*dpr;cv.style.height=H+"px";
   const g=cv.getContext("2d");g.setTransform(dpr,0,0,dpr,0,0);
   const P={l:46,r:12,t:10,b:20};
-  const lines=[{k:"strategy",v:eq.map(e=>e.value)}]
-    .concat(benchKeys.map(b=>({k:b,v:eq.map(e=>(e.bench||{})[b]||null)})));
+  const lines=[{k:"strategy",v:eq.map(e=>e.value)}];
+  if(alt&&alt.equity&&alt.equity.length){
+    /* Align the parallel book to the primary's dates so both curves share
+       an x-axis even if one has a session the other does not. */
+    const m=new Map(alt.equity.map(e=>[e.date,e.value]));
+    lines.push({k:"parallel",v:eq.map(e=>m.get(e.date)??null)});
+  }
+  lines.push(...benchKeys.map(b=>({k:b,v:eq.map(e=>(e.bench||{})[b]||null)})));
   let lo=Infinity,hi=-Infinity;
   for(const L of lines)for(const v of L.v)if(v!=null){lo=Math.min(lo,v);hi=Math.max(hi,v);}
   if(!isFinite(lo)){lo=start*0.9;hi=start*1.1;}
@@ -3938,8 +3964,9 @@ function drawPaperChart(eq,start,benchKeys){
       started?g.lineTo(px,py):g.moveTo(px,py);started=true;});
     g.stroke();
   }
+  const NAME={strategy:"Weekly rebalance",parallel:"Bi-weekly rebalance"};
   document.getElementById("ppLegend").innerHTML=lines.map(L=>
-    `<span><i style="background:${COL[L.k]||"#8b949e"}"></i>${L.k==="strategy"?"Paper strategy":L.k}</span>`).join("");
+    `<span><i style="background:${COL[L.k]||"#8b949e"}"></i>${NAME[L.k]||L.k}</span>`).join("");
 }
 
 function renderAlloc(){

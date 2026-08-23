@@ -5,13 +5,13 @@
   "start_capital": 100000.0,
   "max_positions": 15,
   "max_weight": 0.15,
-  "cost_bps": 5.0,
-  "rebalance": "monthly, plus daily stop-out on trend break",
+  "cost_bps": 10.0,
+  "rebalance": "bi-weekly, plus daily stop-out on trend break",
+  "rebalance_days": 14,
   "max_sector": 0.4,
   "universe": "USD-quoted only",
   "long_only": true,
-  "leverage": null,
-  "rebalance_days": 7
+  "leverage": null
  },
  "cash": 0.0,
  "positions": {
@@ -308,8 +308,12 @@
   {
    "date": "2026-08-18",
    "msg": "rebalanced \u2014 157 qualified, 15 held"
+  },
+  {
+   "date": "2026-08-21",
+   "msg": "seeded from the weekly book: over these sessions neither had rebalanced again (7d and 14d thresholds both unmet) and no trend stop fired, so the two books were identical by construction \u2014 this is a clone, not an estimate. They diverge from the first rebalance where the cadences differ."
   }
  ],
- "book": "weekly",
- "label": "Weekly rebalance"
+ "book": "biweekly",
+ "label": "Bi-weekly rebalance"
 }
