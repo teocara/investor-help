@@ -1,0 +1,6 @@
+{
+ "last_ping": "2026-09-01T11:46:29+00:00",
+ "pings": 1,
+ "using_pat": false,
+ "note": "Written to keep scheduled workflows alive. Without a KEEPALIVE_TOKEN secret this commit may not reset GitHub's 60-day inactivity timer."
+}
