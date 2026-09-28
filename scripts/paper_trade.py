@@ -54,7 +54,47 @@ BOOKS = [
     # — it is there to answer a different question. See GROWTH_* below.
     {"id": "growth",   "file": "paper/portfolio-growth.json", "kind": "growth",
      "rebalance_days": 30, "label": "Long-run growth"},
+    # The fourth book trades the dashboard table's own Signal column and
+    # nothing else. See SIGNAL_* below for why it cannot be backtested.
+    {"id": "signal",   "file": "paper/portfolio-signal.json", "kind": "signal",
+     "rebalance_days": 1,  "label": "Table signals"},
 ]
+
+# ── The table-signal book ────────────────────────────────────────────────
+# This one trades the Signal column on the screener page, exactly as the
+# page computes it. It is the odd one out in three ways worth stating
+# before any of its numbers are read.
+#
+# FIRST: it cannot be backtested, at all. The signal is a function of RSI,
+# P/E, forward P/E, PEG and EPS growth, and only RSI can be reconstructed
+# from price history. There is no archive of what a company's PEG was on
+# some Tuesday in 2019 — quotes.json is a SNAPSHOT that is overwritten
+# nightly. So there is no 30-year table to print here and there never can
+# be. Running it forward is not the lazy option, it is the only honest
+# test available, and it is the reason this book exists.
+#
+# SECOND: half the signal is frozen. `score` is a hand-authored 1-10
+# conviction number hardcoded in the page and never refreshed by the
+# nightly job. The live fundamentals move; the quality judgement does not.
+#
+# THIRD, and this is a prediction rather than a result: the signal has no
+# exit for a position that keeps falling. "Entry" fires while RSI < 30 and
+# stays lit all the way down, and "Sell" requires RSI > 70, which a
+# collapsing stock will never reach. A book following it literally can
+# hold a falling knife indefinitely. It is implemented faithfully anyway,
+# because the point is to test the table rather than my improvement of it
+# — but the failure mode is written down here, in advance, so that in six
+# months it can be checked rather than rationalised.
+#
+# What the table supplies: which names to enter, and which to leave.
+# What the table does NOT supply, taken from house convention instead so
+# the result can be attributed correctly: equal weighting, a position
+# count, a sector cap, and the cost assumption.
+SIGNAL_MAX_POSITIONS = 20
+SIGNAL_MAX_SECTOR    = 0.40
+SIGNAL_ENTER_ON      = {"Buy", "Entry"}     # the table's two long calls
+SIGNAL_HOLD_WHILE    = {"Buy", "Entry", "Hold"}
+SIGNAL_MAX_STALE_DAYS = 4   # refuse to trade on an old quotes.json
 
 # ── The growth book ──────────────────────────────────────────────────────
 # Objective: maximise COMPOUND growth, which is not the same as maximising
@@ -223,6 +263,45 @@ def volatility(closes, n=VOL_WINDOW):
 
 # ── State ────────────────────────────────────────────────────────────────
 def blank_state(today, cfg):
+    if cfg.get("kind") == "signal":
+        return {
+            "started": today,
+            "book": cfg["id"], "label": cfg["label"],
+            "rules": {
+                "strategy": "Follows the screener table's Signal column verbatim",
+                "entry": "signal is Buy or Entry",
+                "exit": "signal is no longer Buy, Entry or Hold",
+                "signal_inputs": "RSI, P/E, forward P/E, PEG, EPS growth "
+                                 "(refreshed nightly) and score (static, "
+                                 "hand-authored, never refreshed)",
+                "backtestable": False,
+                "why_not": "the signal needs historical P/E, PEG and EPS "
+                           "growth; quotes.json is a snapshot with no "
+                           "archive, so only RSI could be reconstructed",
+                "known_weakness": "no exit for a falling position: Entry "
+                                  "stays lit below RSI 30 and Sell needs "
+                                  "RSI above 70, which a collapsing stock "
+                                  "never reaches",
+                "start_capital": START_CAPITAL,
+                "max_positions": SIGNAL_MAX_POSITIONS,
+                "max_sector": SIGNAL_MAX_SECTOR,
+                "sizing": "equal weight (the table expresses no sizing view)",
+                "cost_bps": COST_BPS * 1e4,
+                "rebalance": "every session, on the fresh signal snapshot",
+                "rebalance_days": cfg["rebalance_days"],
+                "long_only": True, "leverage": None,
+                "house_rules": "position count, equal weighting, sector cap "
+                               "and costs are house convention, not the "
+                               "table's — it supplies entries and exits only",
+            },
+            "cash": START_CAPITAL,
+            "positions": {},
+            "equity": [],
+            "trades": [],
+            "benchmarks": {},
+            "last_rebalance": None,
+            "log": [],
+        }
     if cfg.get("kind") == "growth":
         return {
             "started": today,
@@ -413,8 +492,14 @@ def run_book(cfg, sectors, universe, px, sessions):
             "msg": f"backfilled {len(pending)} missed sessions ({pending[0]} to {pending[-1]})",
         })
 
-    session = (run_growth_session if cfg.get("kind") == "growth"
-               else run_session)
+    kind = cfg.get("kind")
+    session = {"growth": run_growth_session,
+               "signal": run_signal_session}.get(kind, run_session)
+    # The signal book may only TRADE on the newest session. Replaying an
+    # older date would apply today's signal snapshot to a past price, which
+    # is look-ahead of the plainest kind; those dates are marked to market
+    # and nothing else.
+    cfg["_trade_on"] = pending[-1]
     for date in pending:
         session(cfg, state, sectors, universe, px, date, tag)
     save_state(state, cfg)
@@ -816,6 +901,197 @@ def growth_trim(state, ticker, price, date, keep_dollars, reason):
         "fee": round(fee, 2), "pnl": round(pnl, 2),
         "held_days": days_between(pos["opened"], date), "reason": reason,
     })
+
+
+
+# ── The table-signal book ────────────────────────────────────────────────
+def load_table_rows():
+    """The screener table's own inputs: static RAW merged with live quotes.
+
+    This mirrors what the page does in the browser — RAW holds the frozen
+    `score`, quotes.json overwrites the fundamentals that move — so the
+    Python book sees the same Signal column a reader sees.
+    """
+    html = Path("investor-dashboard.html").read_text(encoding="utf-8")
+    rows, seen = {}, set()
+    for m in re.finditer(r'\{ticker:"([^"]+)"(.*?)\}', html):
+        ticker, body = m.group(1), m.group(2)
+        if ticker in seen:
+            continue
+        seen.add(ticker)
+        d = {}
+        for key in ("rsi", "pe", "fwdPe", "peg", "eps_growth", "score"):
+            hit = re.search(rf'\b{key}:(-?[\d.]+)', body)
+            if hit:
+                d[key] = float(hit.group(1))
+        sec = re.search(r'sector:"([^"]*)"', body)
+        d["sector"] = sec.group(1) if sec else "Unknown"
+        rows[ticker] = d
+
+    updated = None
+    try:
+        blob = json.loads(Path("public/quotes.json").read_text())
+        updated = blob.get("updated")
+        for ticker, q in (blob.get("tickers") or {}).items():
+            if ticker in rows and isinstance(q, dict):
+                for key in ("rsi", "pe", "fwdPe", "peg", "eps_growth"):
+                    if q.get(key) is not None:
+                        rows[ticker][key] = q[key]
+    except Exception as exc:                                  # noqa: BLE001
+        print(f"  quotes.json unreadable ({exc}) — signal book cannot trade")
+        return {}, None
+    return rows, updated
+
+
+def table_signal(d):
+    """A literal port of signalBadge() in investor-dashboard.html.
+
+    Kept deliberately line-for-line with the page, including the order of
+    the tests, because the order decides the answer: a name that is both
+    overbought and low-scored is a Sell only because the Hold test above
+    it also requires a high score. Tidying this into something more
+    elegant would quietly change which signal fires.
+    """
+    rsi, sc, peg = d.get("rsi"), d.get("score"), d.get("peg")
+    pe, fpe, epsg = d.get("pe"), d.get("fwdPe"), d.get("eps_growth")
+    oversold   = rsi is not None and rsi < 30
+    overbought = rsi is not None and rsi > 70
+    high_score = sc is not None and sc >= 7
+    low_score  = sc is not None and sc <= 3
+    cheap_peg  = peg is not None and peg < 1
+    rich_peg   = peg is not None and peg > 3
+    contraction = pe is not None and fpe is not None and fpe > pe * 1.05
+    neg_growth  = epsg is not None and epsg < -5
+
+    if oversold and high_score and not rich_peg:
+        return "Buy"
+    if overbought and high_score:
+        return "Hold"
+    if (overbought and low_score) or (neg_growth and low_score):
+        return "Sell"
+    if rich_peg and overbought:
+        return "Sell"
+    if oversold or (rsi is not None and rsi < 40 and high_score):
+        return "Entry"
+    if contraction and not cheap_peg:
+        return "Hold"
+    if overbought:
+        return "Hold"
+    return "Neutral"
+
+
+def run_signal_session(cfg, state, sectors, universe, px, date, tag):
+    state["book"], state["label"] = cfg["id"], cfg["label"]
+    current = blank_state(date, cfg)["rules"]
+    old = state.get("rules", {})
+    changed = {k: [old.get(k), v] for k, v in current.items() if old.get(k) != v}
+    if changed and state.get("equity"):
+        state.setdefault("rule_changes", []).append({"date": date, "changed": changed})
+        state.setdefault("log", []).append(
+            {"date": date, "msg": f"rules changed: {', '.join(sorted(changed))}"})
+    state["rules"] = current
+
+    if not state["benchmarks"]:
+        for b in BENCHMARKS:
+            p0 = px.get(b, {}).get(date)
+            if p0:
+                state["benchmarks"][b] = {"shares": START_CAPITAL / p0,
+                                          "start_price": p0}
+        state.setdefault("log", []).append({"date": date, "msg": "portfolio opened"})
+
+    rf = tbill_rate(date)
+    prev = state["equity"][-1]["date"] if state["equity"] else None
+    elapsed = (days_between(prev, date) or 0) if prev else 0
+    if elapsed > 0 and state["cash"] > 0:
+        state["cash"] *= ((1 + rf) ** (1 / 365)) ** elapsed
+
+    trading = (date == cfg.get("_trade_on"))
+    rows, updated = load_table_rows()
+
+    # A stale snapshot means the nightly refresh failed. Marking to market
+    # on yesterday's signal is harmless; TRADING on it is not.
+    stale = None
+    if updated:
+        stale = days_between(updated[:10], date)
+    if trading and rows and stale is not None and stale > SIGNAL_MAX_STALE_DAYS:
+        state.setdefault("log", []).append({
+            "date": date,
+            "msg": f"quotes snapshot is {stale} days old — holding, not trading"})
+        trading = False
+
+    if trading and rows:
+        signals = {t: table_signal(d) for t, d in rows.items()
+                   if t in px and px[t].get(date) and t not in EXCLUDE
+                   and "." not in t and "=" not in t}
+
+        for t in list(state["positions"]):
+            price = px.get(t, {}).get(date)
+            if price and signals.get(t, "Neutral") not in SIGNAL_HOLD_WHILE:
+                sell(state, t, price, date,
+                     f"signal is now {signals.get(t, 'unavailable')}")
+
+        # The table ranks nothing, so the tie-break is house convention:
+        # its own Buy-over-Entry hierarchy first, then its own score, then
+        # the most oversold. Stated here because it is not the table's.
+        cands = [t for t, s in signals.items() if s in SIGNAL_ENTER_ON]
+        cands.sort(key=lambda t: (0 if signals[t] == "Buy" else 1,
+                                  -(rows[t].get("score") or 0),
+                                  rows[t].get("rsi") if rows[t].get("rsi") is not None else 99))
+
+        equity, _ = mark_to_market(state, px, date)
+        per_sector, picks = {}, []
+        cap = max(1, int(SIGNAL_MAX_POSITIONS * SIGNAL_MAX_SECTOR))
+        for t in list(state["positions"]):
+            sec = rows.get(t, {}).get("sector", "Unknown")
+            per_sector[sec] = per_sector.get(sec, 0) + 1
+        held = set(state["positions"])
+        for t in cands:
+            if len(held) + len(picks) >= SIGNAL_MAX_POSITIONS:
+                break
+            if t in held:
+                continue
+            sec = rows[t].get("sector", "Unknown")
+            if per_sector.get(sec, 0) >= cap:
+                continue
+            picks.append(t)
+            per_sector[sec] = per_sector.get(sec, 0) + 1
+
+        target_n = min(SIGNAL_MAX_POSITIONS, len(held) + len(picks))
+        if target_n:
+            slot = equity / target_n
+            for t in picks:
+                price = px[t][date]
+                spend = min(slot, max(0.0, state["cash"]))
+                if spend > equity * 0.01:
+                    buy(state, t, price, spend, date,
+                        f"{signals[t]} — RSI {rows[t].get('rsi')}, "
+                        f"score {rows[t].get('score')}")
+
+        state.setdefault("log", []).append({
+            "date": date,
+            "msg": f"{sum(1 for s in signals.values() if s in SIGNAL_ENTER_ON)} "
+                   f"long signals, {len(state['positions'])} held",
+            "snapshot": updated,
+        })
+    elif not trading:
+        state.setdefault("log", []).append({
+            "date": date,
+            "msg": "backfilled session — marked to market only, because the "
+                   "signal snapshot is today's and applying it to an older "
+                   "price would be look-ahead",
+        })
+
+    equity, invested = mark_to_market(state, px, date)
+    row = {"date": date, "value": round(equity, 2),
+           "invested": round(invested, 2), "cash": round(state["cash"], 2),
+           "n": len(state["positions"]), "bench": {}}
+    for b, bp in state["benchmarks"].items():
+        p = px.get(b, {}).get(date)
+        if p:
+            row["bench"][b] = round(bp["shares"] * p, 2)
+    state["equity"].append(row)
+    print(f"[{tag}] {date}  ${equity:,.0f}  {len(state['positions'])} held  "
+          f"cash ${state['cash']:,.0f}{'' if trading else '  (marked only)'}")
 
 if __name__ == "__main__":
     main(offline="--offline" in sys.argv)

@@ -3922,11 +3922,12 @@ function whyPick(d,horizon){
 /* ── Autonomous paper portfolio ──────────────────────────
    Reads the ledger the scheduled job writes. Nothing here trades; the
    dashboard only reports what the engine already did. */
-let paperState=null, paperAlt=null, paperGrowth=null;
+let paperState=null, paperAlt=null, paperGrowth=null, paperSignal=null;
 const PAPER_BOOKS=[
   {id:"weekly",  file:"paper/portfolio.json",          col:"#3fb950"},
   {id:"biweekly",file:"paper/portfolio-biweekly.json", col:"#d29922"},
   {id:"growth",  file:"paper/portfolio-growth.json",   col:"#58a6ff"},
+  {id:"signal",  file:"paper/portfolio-signal.json",   col:"#db6d28"},
 ];
 async function renderPaper(){
   const pane=document.getElementById("paper-pane");
@@ -3949,6 +3950,10 @@ async function renderPaper(){
     try{
       const r3=await fetch(`${GH_ROOT}/${PAPER_BOOKS[2].file}`,{cache:"no-store"});
       if(r3.ok)paperGrowth=await r3.json();
+    }catch(e){}
+    try{
+      const r4=await fetch(`${GH_ROOT}/${PAPER_BOOKS[3].file}`,{cache:"no-store"});
+      if(r4.ok)paperSignal=await r4.json();
     }catch(e){}
   }
   const st=paperState, eq=st.equity||[];
@@ -3992,6 +3997,15 @@ async function renderPaper(){
                    (gp>=0?"+":"")+gp.toFixed(1)+"%",
                    `${gr.gross!=null?gr.gross.toFixed(2)+"x gross":money(gr.value)}`,
                    gp>=0?"win":"lose");
+      })()}
+      ${(()=>{
+        if(!paperSignal||!paperSignal.equity||!paperSignal.equity.length)return "";
+        const sg=paperSignal.equity[paperSignal.equity.length-1];
+        const ss=paperSignal.rules.start_capital;
+        const sp=(sg.value/ss-1)*100;
+        return kpi(paperSignal.label||"Table signals",
+                   (sp>=0?"+":"")+sp.toFixed(1)+"%",
+                   `${sg.n} held`, sp>=0?"win":"lose");
       })()}
       ${kpi("Max drawdown",(mdd*100).toFixed(1)+"%","peak to trough")}
       ${kpi("Holdings",last.n,money(last.cash)+" cash")}
@@ -4040,17 +4054,35 @@ async function renderPaper(){
       disappears above roughly 17 bps per fill, and it was earned almost entirely before 2009. Over the last
       decade this book would have <em>lost</em> to simply holding the index, by a wide margin. It is designed
       to earn its keep in bad regimes, and the last fifteen years were not one.`:""}
+      ${paperSignal?`<br><br><strong>${paperSignal.label}</strong> trades the Signal column on the
+      screener table above, verbatim: it buys what the table calls <em>Buy</em> or <em>Entry</em> and
+      sells anything the table stops calling Buy, Entry or Hold. Because the table's signal is
+      mostly an oversold test (RSI under 30 plus a quality score), this book is a
+      <strong>mean-reversion</strong> strategy — it buys what has just fallen, which makes it the
+      mirror image of the three momentum and trend books beside it.
+      <br><br>Unlike those, it carries <strong>no backtest, and cannot have one</strong>. The signal
+      depends on P/E, forward P/E, PEG and EPS growth, and only RSI can be rebuilt from price
+      history — <code>quotes.json</code> is a snapshot that is overwritten nightly, so there is no
+      archive of what a company's PEG was on some past Tuesday. Running it forward is the only
+      honest test there is. Two things to keep in view while it runs: the <code>score</code> half of
+      the signal is hand-authored and never refreshes, so the quality judgement is frozen while the
+      fundamentals move; and the signal has <strong>no exit for a position that keeps falling</strong> —
+      <em>Entry</em> stays lit all the way below RSI 30 while <em>Sell</em> needs RSI above 70, which a
+      collapsing stock never reaches. That failure mode is written down in advance so it can be
+      checked rather than explained away later. Position count, equal weighting, the
+      ${Math.round(paperSignal.rules.max_sector*100)}% sector cap and the cost assumption are house
+      convention — the table supplies entries and exits only.`:""}
     </div>
   </div>`;
   pane.innerHTML=html;
   pane.querySelectorAll(".pp-tick").forEach(el=>
     el.addEventListener("click",()=>openDrawer(el.dataset.t)));
-  drawPaperChart(eq,start,benchKeys,paperAlt,paperGrowth);
+  drawPaperChart(eq,start,benchKeys,paperAlt,paperGrowth,paperSignal);
 }
 
-function drawPaperChart(eq,start,benchKeys,alt,growth){
+function drawPaperChart(eq,start,benchKeys,alt,growth,signal){
   const cv=document.getElementById("ppChart");if(!cv)return;
-  const COL={strategy:"#3fb950",parallel:"#d29922",growth:"#f778ba",SPY:"#58a6ff",QQQ:"#a371f7"};
+  const COL={strategy:"#3fb950",parallel:"#d29922",growth:"#f778ba",signal:"#db6d28",SPY:"#58a6ff",QQQ:"#a371f7"};
   const W=cv.clientWidth||600,H=Math.max(170,Math.min(260,W*0.32));
   const dpr=window.devicePixelRatio||1;
   cv.width=W*dpr;cv.height=H*dpr;cv.style.height=H+"px";
@@ -4069,6 +4101,11 @@ function drawPaperChart(eq,start,benchKeys,alt,growth){
     const gs=growth.rules.start_capital||start;
     const m=new Map(growth.equity.map(e=>[e.date,e.value/gs*start]));
     lines.push({k:"growth",v:eq.map(e=>m.get(e.date)??null)});
+  }
+  if(signal&&signal.equity&&signal.equity.length){
+    const ss=signal.rules.start_capital||start;
+    const m=new Map(signal.equity.map(e=>[e.date,e.value/ss*start]));
+    lines.push({k:"signal",v:eq.map(e=>m.get(e.date)??null)});
   }
   lines.push(...benchKeys.map(b=>({k:b,v:eq.map(e=>(e.bench||{})[b]||null)})));
   let lo=Infinity,hi=-Infinity;
@@ -4098,7 +4135,7 @@ function drawPaperChart(eq,start,benchKeys,alt,growth){
       started?g.lineTo(px,py):g.moveTo(px,py);started=true;});
     g.stroke();
   }
-  const NAME={strategy:"Weekly rebalance",parallel:"Bi-weekly rebalance",growth:"Long-run growth"};
+  const NAME={strategy:"Weekly rebalance",parallel:"Bi-weekly rebalance",growth:"Long-run growth",signal:"Table signals"};
   document.getElementById("ppLegend").innerHTML=lines.map(L=>
     `<span><i style="background:${COL[L.k]||"#8b949e"}"></i>${NAME[L.k]||L.k}</span>`).join("");
 }
