@@ -37,8 +37,31 @@ jobs:
       - name: Run the session
         run: python scripts/paper_trade.py
 
+      # Not git-auto-commit: it pushes once and fails on a non-fast-forward.
+      # Another workflow committing to main while this one runs is enough to
+      # lose a whole session's ledger, which has already happened. The
+      # ledgers are append-only JSON written from a freshly loaded state, so
+      # rebasing onto whatever landed meanwhile is safe: nothing else writes
+      # paper/, and the engine backfills any session a lost push dropped.
       - name: Commit the ledgers
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "chore(paper): trading session [skip ci]"
-          file_pattern: "paper/**"
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add paper/
+          if git diff --cached --quiet; then
+            echo "no ledger changes to commit"
+            exit 0
+          fi
+          git commit -m "chore(paper): trading session [skip ci]"
+          for attempt in 1 2 3 4 5; do
+            if git push origin HEAD:main; then
+              echo "pushed on attempt $attempt"
+              exit 0
+            fi
+            echo "push rejected, rebasing and retrying ($attempt)"
+            git pull --rebase --autostash origin main
+            sleep $((attempt * 5))
+          done
+          echo "could not push the ledgers after 5 attempts"
+          exit 1

@@ -37,8 +37,22 @@ jobs:
       - name: Fetch the long-history series
         run: python scripts/fetch_growth_history.py
 
+      # Same race as paper-trade.yml: this job and that one both commit to
+      # main, and whichever pushes second is rejected.
       - name: Commit the series
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "chore(data): long-history series for the growth book [skip ci]"
-          file_pattern: "public/growth-history/**"
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/growth-history/
+          if git diff --cached --quiet; then
+            echo "series unchanged"
+            exit 0
+          fi
+          git commit -m "chore(data): long-history series for the growth book [skip ci]"
+          for attempt in 1 2 3 4 5; do
+            git push origin HEAD:main && exit 0
+            git pull --rebase --autostash origin main
+            sleep $((attempt * 5))
+          done
+          exit 1
