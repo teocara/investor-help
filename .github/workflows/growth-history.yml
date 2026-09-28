@@ -1,0 +1,44 @@
+name: Growth history
+
+# One-shot data pull for the long-run growth book. The session container
+# cannot reach Yahoo — the environment's network policy allows GitHub and
+# the package registries and nothing else — so the fetch runs here and the
+# result is committed back for the research scripts to read.
+#
+# Re-runnable: it overwrites the series in place. Monthly so the 30-year
+# study can be re-run on fresh data without a manual dispatch.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '35 5 3 * *'        # 05:35 UTC on the 3rd of each month
+
+concurrency:
+  group: growth-history
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install yfinance pandas
+
+      - name: Fetch the long-history series
+        run: python scripts/fetch_growth_history.py
+
+      - name: Commit the series
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(data): long-history series for the growth book [skip ci]"
+          file_pattern: "public/growth-history/**"
