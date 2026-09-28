@@ -22,42 +22,42 @@
   "leverage": 2.0,
   "backtest": "research/growth.py, 1996-10 to 2026-09 on index funds: 10.69% CAGR vs 10.20% for the S&P 500 TR, -27.2% vs -55.3% max drawdown"
  },
- "cash": -40000.0,
+ "cash": -40021.835500080495,
  "positions": {
   "VTV": {
    "shares": 159.27171488148895,
    "avg_price": 219.88,
-   "last": 219.88,
+   "last": 218.57989501953125,
    "opened": "2026-09-24"
   },
   "SPY": {
    "shares": 33.58232957494006,
    "avg_price": 767.18,
-   "last": 767.18,
+   "last": 766.9299926757812,
    "opened": "2026-09-24"
   },
   "EFA": {
    "shares": 197.81041879325616,
    "avg_price": 104.5,
-   "last": 104.5,
+   "last": 105.16010284423828,
    "opened": "2026-09-24"
   },
   "VGK": {
    "shares": 233.36341472085044,
    "avg_price": 88.07,
-   "last": 88.07,
+   "last": 88.52999877929688,
    "opened": "2026-09-24"
   },
   "IWM": {
    "shares": 69.7326274084369,
    "avg_price": 281.66,
-   "last": 281.66,
+   "last": 280.7650146484375,
    "opened": "2026-09-24"
   },
   "VWO": {
    "shares": 304.17984289852666,
    "avg_price": 59.87,
-   "last": 59.87,
+   "last": 59.744998931884766,
    "opened": "2026-09-24"
   }
  },
@@ -72,6 +72,30 @@
    "bench": {
     "SPY": 100000.0,
     "QQQ": 100000.0
+   }
+  },
+  {
+   "date": "2026-09-25",
+   "value": 100592.88,
+   "invested": 140598.35,
+   "cash": -40005.47,
+   "n": 6,
+   "gross": 1.398,
+   "bench": {
+    "SPY": 100543.55,
+    "QQQ": 100458.78
+   }
+  },
+  {
+   "date": "2026-09-28",
+   "value": 99760.19,
+   "invested": 139782.02,
+   "cash": -40021.84,
+   "n": 6,
+   "gross": 1.401,
+   "bench": {
+    "SPY": 99967.41,
+    "QQQ": 99570.91
    }
   }
  ],
@@ -157,6 +181,10 @@
     "IEF": "below its 210-day average",
     "LQD": "below its 210-day average"
    }
+  },
+  {
+   "date": "2026-09-28",
+   "msg": "backfilled 2 missed sessions (2026-09-25 to 2026-09-28)"
   }
  ]
 }
