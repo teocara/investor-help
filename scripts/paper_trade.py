@@ -44,11 +44,74 @@ from pathlib import Path
 # gap between them is attributable to that and nothing else — which is the
 # whole point of running the second one rather than trusting a backtest.
 BOOKS = [
-    {"id": "weekly",   "file": "paper/portfolio.json",
+    {"id": "weekly",   "file": "paper/portfolio.json", "kind": "momentum",
      "rebalance_days": 7,  "label": "Weekly rebalance"},
-    {"id": "biweekly", "file": "paper/portfolio-biweekly.json",
+    {"id": "biweekly", "file": "paper/portfolio-biweekly.json", "kind": "momentum",
      "rebalance_days": 14, "label": "Bi-weekly rebalance"},
+    # The third book is a different animal entirely: asset classes rather
+    # than single stocks, monthly rather than weekly, and levered. It is
+    # not a cadence variant of the first two and is not comparable to them
+    # — it is there to answer a different question. See GROWTH_* below.
+    {"id": "growth",   "file": "paper/portfolio-growth.json", "kind": "growth",
+     "rebalance_days": 30, "label": "Long-run growth"},
 ]
+
+# ── The growth book ──────────────────────────────────────────────────────
+# Objective: maximise COMPOUND growth, which is not the same as maximising
+# average return. The gap between them is the design:
+#
+#       g  ~=  mu  -  sigma^2 / 2
+#
+# g is what multiplies the money. Volatility is a direct subtraction from
+# terminal wealth, so a book built to compound looks different from one
+# built to score well in an average year.
+#
+# Every number below was chosen by the 30-year study in research/growth.py,
+# run on broad index funds back to 1996 — not on the dashboard watchlist,
+# which is today's list of survivors and cannot support a claim about
+# thirty years. What the study found, including where it contradicted the
+# design it was meant to confirm, is written up in that file's docstring.
+#
+# Headline, 1996-10 to 2026-09, 10 bps per fill, financing charged:
+#   growth book   10.69% CAGR   14.1% vol   -27.2% maxDD   Sharpe 0.63
+#   S&P 500 TR    10.20% CAGR   19.1% vol   -55.3% maxDD   Sharpe 0.49
+# Half a point more growth at half the drawdown. The modest return edge is
+# the honest one: an earlier version showed 11.62%, but only because the
+# sleeve caps were being normalised away and the book was running hotter
+# than its own rules claimed.
+#
+# Two caveats that belong next to those numbers, not in a footnote:
+#   * the edge dies at ~30 bps per fill. It needs cheap execution.
+#   * it is concentrated in 1996-2008. Over rolling 10-year windows it beat
+#     buy-and-hold in 23 of 40, and the most recent decade it LOST by about
+#     9 points a year. This is a book that earns its keep in bad regimes.
+#
+# ETFs stand in for the index funds the study used, sleeve for sleeve.
+GROWTH_SLEEVES = {
+    "SPY": ("US large cap",        "equity"),
+    "IWM": ("US small cap",        "equity"),
+    "VTV": ("US large value",      "equity"),
+    "VGK": ("Europe",              "equity"),
+    "EFA": ("Developed ex-US",     "equity"),
+    "VWO": ("Emerging markets",    "equity"),
+    "VNQ": ("US REITs",            "real"),
+    "GLD": ("Gold",                "real"),
+    "TLT": ("Long Treasuries",     "bond"),
+    "IEF": ("Interm. Treasuries",  "bond"),
+    "LQD": ("Long IG credit",      "bond"),
+}
+GROWTH_TREND      = 210     # 10-month SMA (Faber 2007), mid-plateau in the sweep
+GROWTH_MOM        = 252     # 12-month absolute momentum, measured against T-bills
+GROWTH_VOL        = 126     # 6-month realised vol for the risk weights
+GROWTH_MAX_SLEEVE = 0.25
+GROWTH_MAX_EQUITY = 0.70    # or it quietly becomes an all-equity book
+GROWTH_MAX_LEV    = 2.00    # where growth PEAKS once financing is charged
+                            # realistically, and falls hard after. This is
+                            # set by the cost of money, not by Kelly.
+GROWTH_BAND       = 0.02    # no-trade band, fraction of equity
+GROWTH_BORROW     = 0.0100  # over T-bills, charged on borrowed cash
+GROWTH_MIN_BARS   = GROWTH_MOM + 10
+DEFAULT_TBILL     = 0.042   # only if the rate file is missing entirely
 
 # ── Rules (fixed for the duration of the run) ────────────────────────────
 START_CAPITAL   = 100_000.0
@@ -160,6 +223,41 @@ def volatility(closes, n=VOL_WINDOW):
 
 # ── State ────────────────────────────────────────────────────────────────
 def blank_state(today, cfg):
+    if cfg.get("kind") == "growth":
+        return {
+            "started": today,
+            "book": cfg["id"], "label": cfg["label"],
+            "rules": {
+                "strategy": "Asset-class trend following, inverse-vol sized, "
+                            "levered to the financing-aware growth optimum",
+                "objective": "maximise compound growth (g = mu - sigma^2/2), "
+                             "not average return",
+                "start_capital": START_CAPITAL,
+                "sleeves": len(GROWTH_SLEEVES),
+                "trend_days": GROWTH_TREND,
+                "momentum_days": GROWTH_MOM,
+                "momentum_hurdle": "13-week T-bill over the same window",
+                "sizing": "inverse volatility, 6-month lookback",
+                "max_sleeve": GROWTH_MAX_SLEEVE,
+                "max_equity_block": GROWTH_MAX_EQUITY,
+                "max_leverage": GROWTH_MAX_LEV,
+                "borrow_spread_bps": GROWTH_BORROW * 1e4,
+                "cost_bps": COST_BPS * 1e4,
+                "rebalance": "monthly (30 days), plus daily trend stop-out",
+                "rebalance_days": cfg["rebalance_days"],
+                "long_only": True, "leverage": GROWTH_MAX_LEV,
+                "backtest": "research/growth.py, 1996-10 to 2026-09 on index "
+                            "funds: 10.69% CAGR vs 10.20% for the S&P 500 TR, "
+                            "-27.2% vs -55.3% max drawdown",
+            },
+            "cash": START_CAPITAL,
+            "positions": {},
+            "equity": [],
+            "trades": [],
+            "benchmarks": {},
+            "last_rebalance": None,
+            "log": [],
+        }
     every = cfg["rebalance_days"]
     cadence = "weekly" if every == 7 else "bi-weekly" if every == 14 else f"every {every} days"
     return {
@@ -257,7 +355,9 @@ def days_between(a, b):
 def main(offline=False):
     sectors = load_universe()
     universe = list(sectors)
-    tickers = sorted(set(universe) | set(BENCHMARKS))
+    # The growth sleeves are priced explicitly: most are watchlist rows, but
+    # the book must not silently lose a sleeve if one is ever removed.
+    tickers = sorted(set(universe) | set(BENCHMARKS) | set(GROWTH_SLEEVES))
     print(f"universe: {len(universe)} USD-quoted names")
 
     # Prices are fetched ONCE and shared by every book, so the comparison
@@ -313,8 +413,10 @@ def run_book(cfg, sectors, universe, px, sessions):
             "msg": f"backfilled {len(pending)} missed sessions ({pending[0]} to {pending[-1]})",
         })
 
+    session = (run_growth_session if cfg.get("kind") == "growth"
+               else run_session)
     for date in pending:
-        run_session(cfg, state, sectors, universe, px, date, tag)
+        session(cfg, state, sectors, universe, px, date, tag)
     save_state(state, cfg)
 
 
@@ -461,6 +563,259 @@ def run_session(cfg, state, sectors, universe, px, date, tag):
         line += f"   {b} {v/START_CAPITAL-1:+.2%}"
     print(line)
 
+
+
+
+# ── The growth book ──────────────────────────────────────────────────────
+def tbill_rate(date):
+    """Annualised 13-week T-bill, for the momentum hurdle and the margin cost.
+
+    Read from the monthly growth-history pull rather than the nightly job,
+    because ^IRX is a RATE and the nightly job's split/spike repair is
+    written for prices — it would happily "fix" a genuine rate move. A rate
+    up to a month stale is immaterial here; a repaired one would not be.
+    """
+    path = Path("public/growth-history/_IRX.json")
+    if not path.exists():
+        return DEFAULT_TBILL
+    try:
+        rows = json.loads(path.read_text())
+    except Exception:
+        return DEFAULT_TBILL
+    last = None
+    for r in rows:
+        if r.get("time", "") > date:
+            break
+        v = r.get("close")
+        if v is not None and 0 <= v < 25:
+            last = v / 100.0
+    return last if last is not None else DEFAULT_TBILL
+
+
+def _series(px, ticker, date):
+    """Closes up to and including `date`, oldest first."""
+    s = px.get(ticker) or {}
+    return [s[d] for d in sorted(s) if d <= date and s[d]]
+
+
+def growth_targets(px, date):
+    """The weight vector the book wants today. Returns (weights, diagnostics)."""
+    rf = tbill_rate(date)
+    elig, rejected = [], {}
+
+    for t, (label, block) in GROWTH_SLEEVES.items():
+        closes = _series(px, t, date)
+        if len(closes) < GROWTH_MIN_BARS:
+            rejected[t] = "not enough history"
+            continue
+        price = closes[-1]
+
+        sma = sum(closes[-GROWTH_TREND:]) / GROWTH_TREND
+        if price <= sma:
+            rejected[t] = "below its 210-day average"
+            continue
+
+        past = closes[-GROWTH_MOM - 1]
+        hurdle = (1 + rf) ** (GROWTH_MOM / 252) - 1
+        excess = price / past - 1 - hurdle
+        if excess <= 0:
+            # Absolute momentum is measured against CASH, not against zero:
+            # an asset that returned 2% while T-bills paid 4% did not earn
+            # its place, whatever its chart looks like.
+            rejected[t] = f"12m return below T-bills by {-excess*100:.1f}pts"
+            continue
+
+        vol = volatility(closes, GROWTH_VOL)
+        if not vol or vol <= 0:
+            rejected[t] = "no volatility estimate"
+            continue
+        elig.append((t, vol, excess))
+
+    if not elig:
+        return {}, {"rejected": rejected, "gross": 0.0, "rf": rf}
+
+    # Inverse volatility, so a quiet bond sleeve and a wild EM sleeve
+    # contribute comparable risk rather than comparable dollars.
+    raw = {t: 1.0 / v for t, v, _ in elig}
+    total = sum(raw.values())
+    if total <= 0:
+        return {}, {"rejected": rejected, "gross": 0.0, "rf": rf}
+    w = {t: raw[t] / total for t in raw}
+
+    # Normalise FIRST, then cap, and do not normalise again. Capping before
+    # normalising means the next line scales the weights straight back up
+    # and the cap never binds - which bites hardest when every eligible
+    # sleeve is equity, i.e. exactly when the equity cap is wanted. The
+    # book then holds LESS than full gross, which is the intended answer:
+    # if the only things trending are equities, own less, not more.
+    w = {t: min(x, GROWTH_MAX_SLEEVE) for t, x in w.items()}
+    eq = [t for t in w if GROWTH_SLEEVES[t][1] == "equity"]
+    se = sum(w[t] for t in eq)
+    if se > GROWTH_MAX_EQUITY:
+        for t in eq:
+            w[t] *= GROWTH_MAX_EQUITY / se
+
+    # Leverage applies to the sleeves that PASSED. Sleeves that failed are
+    # not replaced, so when breadth collapses the book de-levers on its own
+    # — the trend gate is the risk control, and this is how it acts.
+    # Breadth only cuts exposure once FEWER THAN HALF the sleeves pass.
+    # Above that the cap stands: de-levering linearly with breadth would be
+    # a different rule from the one the 30-year study tested, and the
+    # headline numbers would no longer describe this book.
+    breadth = len(elig) / len(GROWTH_SLEEVES)
+    gross = GROWTH_MAX_LEV * min(1.0, breadth / 0.5)
+    w = {t: x * gross for t, x in w.items()}
+    return w, {"rejected": rejected, "gross": gross, "rf": rf,
+               "breadth": breadth}
+
+
+def run_growth_session(cfg, state, sectors, universe, px, date, tag):
+    state["book"], state["label"] = cfg["id"], cfg["label"]
+    current = blank_state(date, cfg)["rules"]
+    old = state.get("rules", {})
+    changed = {k: [old.get(k), v] for k, v in current.items() if old.get(k) != v}
+    if changed and state.get("equity"):
+        state.setdefault("rule_changes", []).append({"date": date, "changed": changed})
+        state.setdefault("log", []).append(
+            {"date": date, "msg": f"rules changed: {', '.join(sorted(changed))}"})
+    state["rules"] = current
+
+    prices = {t: px.get(t, {}).get(date) for t in GROWTH_SLEEVES}
+    prices = {t: p for t, p in prices.items() if p}
+    if len(prices) < len(GROWTH_SLEEVES) * 0.7:
+        state.setdefault("log", []).append(
+            {"date": date, "msg": f"only {len(prices)} sleeves priced — session skipped"})
+        return
+
+    if not state["benchmarks"]:
+        for b in BENCHMARKS:
+            p0 = px.get(b, {}).get(date)
+            if p0:
+                state["benchmarks"][b] = {"shares": START_CAPITAL / p0,
+                                          "start_price": p0}
+        state.setdefault("log", []).append({"date": date, "msg": "portfolio opened"})
+
+    # Financing. Cash earns the T-bill rate; borrowed cash costs T-bills
+    # plus a spread. Without this the leverage would be free, which is the
+    # single easiest way to make a levered backtest lie.
+    rf = tbill_rate(date)
+    prev = state["equity"][-1]["date"] if state["equity"] else None
+    elapsed = (days_between(prev, date) or 0) if prev else 0
+    if elapsed > 0:
+        daily = (1 + rf) ** (1 / 365) - 1
+        if state["cash"] >= 0:
+            state["cash"] *= (1 + daily) ** elapsed
+        else:
+            state["cash"] *= (1 + daily + GROWTH_BORROW / 365) ** elapsed
+
+    equity, _ = mark_to_market(state, px, date)
+
+    # Daily trend stop, same as the other books: a sleeve that breaks its
+    # average is sold the day it breaks, not at the next month end.
+    for t in list(state["positions"]):
+        closes = _series(px, t, date)
+        if len(closes) < GROWTH_TREND:
+            continue
+        sma = sum(closes[-GROWTH_TREND:]) / GROWTH_TREND
+        if closes[-1] <= sma:
+            growth_trim(state, t, closes[-1], date, 0.0, "trend break")
+
+    due = state["last_rebalance"] is None or \
+        (days_between(state["last_rebalance"], date) or 99) >= cfg["rebalance_days"]
+
+    if due:
+        state["last_rebalance"] = date
+        weights, diag = growth_targets(px, date)
+        equity, _ = mark_to_market(state, px, date)
+
+        for t in list(state["positions"]):
+            if t not in weights and prices.get(t):
+                growth_trim(state, t, prices[t], date, 0.0, "no longer eligible")
+
+        for t, w in sorted(weights.items(), key=lambda kv: -kv[1]):
+            price = prices.get(t)
+            if not price:
+                continue
+            want = equity * w
+            have = state["positions"].get(t, {}).get("shares", 0.0) * price
+            if abs(want - have) < equity * GROWTH_BAND:
+                continue
+            if want > have:
+                growth_add(state, t, price, want - have, date,
+                           f"{GROWTH_SLEEVES[t][0]} — target {w*100:.1f}%")
+            else:
+                growth_trim(state, t, price, date, want,
+                            f"trim to target {w*100:.1f}%")
+
+        state.setdefault("log", []).append({
+            "date": date,
+            "msg": f"rebalanced — {len(weights)} of {len(GROWTH_SLEEVES)} sleeves "
+                   f"pass, gross {diag['gross']:.2f}x, T-bill {diag['rf']*100:.2f}%",
+            "rejected": diag["rejected"],
+        })
+
+    equity, invested = mark_to_market(state, px, date)
+    row = {"date": date, "value": round(equity, 2),
+           "invested": round(invested, 2), "cash": round(state["cash"], 2),
+           "n": len(state["positions"]),
+           "gross": round(invested / equity, 3) if equity > 0 else 0.0,
+           "bench": {}}
+    for b, bp in state["benchmarks"].items():
+        p = px.get(b, {}).get(date)
+        if p:
+            row["bench"][b] = round(bp["shares"] * p, 2)
+    state["equity"].append(row)
+    print(f"[{tag}] {date}  ${equity:,.0f}  {len(state['positions'])} sleeves  "
+          f"gross {row['gross']:.2f}x  cash ${state['cash']:,.0f}")
+
+
+def growth_add(state, ticker, price, dollars, date, reason):
+    """Buy into a sleeve, adding to any existing position."""
+    if dollars < 1 or price <= 0:
+        return
+    fee = dollars * COST_BPS
+    shares = (dollars - fee) / price
+    if shares <= 0:
+        return
+    state["cash"] -= dollars          # may go negative: that is the leverage
+    pos = state["positions"].get(ticker)
+    if pos:
+        total = pos["shares"] + shares
+        pos["avg_price"] = (pos["avg_price"] * pos["shares"] + price * shares) / total
+        pos["shares"], pos["last"] = total, price
+    else:
+        state["positions"][ticker] = {"shares": shares, "avg_price": price,
+                                      "last": price, "opened": date}
+    state["trades"].append({
+        "date": date, "side": "BUY", "ticker": ticker,
+        "shares": round(shares, 4), "price": round(price, 4),
+        "fee": round(fee, 2), "reason": reason,
+    })
+
+
+def growth_trim(state, ticker, price, date, keep_dollars, reason):
+    """Sell down to `keep_dollars`; 0 closes the position outright."""
+    pos = state["positions"].get(ticker)
+    if not pos or price <= 0:
+        return
+    keep_shares = max(0.0, keep_dollars / price)
+    sell_shares = pos["shares"] - keep_shares
+    if sell_shares <= 1e-9:
+        return
+    proceeds = sell_shares * price
+    fee = proceeds * COST_BPS
+    state["cash"] += proceeds - fee
+    pnl = (price - pos["avg_price"]) * sell_shares - fee
+    if keep_shares <= 1e-9:
+        state["positions"].pop(ticker, None)
+    else:
+        pos["shares"], pos["last"] = keep_shares, price
+    state["trades"].append({
+        "date": date, "side": "SELL", "ticker": ticker,
+        "shares": round(sell_shares, 4), "price": round(price, 4),
+        "fee": round(fee, 2), "pnl": round(pnl, 2),
+        "held_days": days_between(pos["opened"], date), "reason": reason,
+    })
 
 if __name__ == "__main__":
     main(offline="--offline" in sys.argv)

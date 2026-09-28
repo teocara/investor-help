@@ -1,0 +1,162 @@
+{
+ "started": "2026-09-24",
+ "book": "growth",
+ "label": "Long-run growth",
+ "rules": {
+  "strategy": "Asset-class trend following, inverse-vol sized, levered to the financing-aware growth optimum",
+  "objective": "maximise compound growth (g = mu - sigma^2/2), not average return",
+  "start_capital": 100000.0,
+  "sleeves": 11,
+  "trend_days": 210,
+  "momentum_days": 252,
+  "momentum_hurdle": "13-week T-bill over the same window",
+  "sizing": "inverse volatility, 6-month lookback",
+  "max_sleeve": 0.25,
+  "max_equity_block": 0.7,
+  "max_leverage": 2.0,
+  "borrow_spread_bps": 100.0,
+  "cost_bps": 10.0,
+  "rebalance": "monthly (30 days), plus daily trend stop-out",
+  "rebalance_days": 30,
+  "long_only": true,
+  "leverage": 2.0,
+  "backtest": "research/growth.py, 1996-10 to 2026-09 on index funds: 10.69% CAGR vs 10.20% for the S&P 500 TR, -27.2% vs -55.3% max drawdown"
+ },
+ "cash": -40000.0,
+ "positions": {
+  "VTV": {
+   "shares": 159.27171488148895,
+   "avg_price": 219.88,
+   "last": 219.88,
+   "opened": "2026-09-24"
+  },
+  "SPY": {
+   "shares": 33.58232957494006,
+   "avg_price": 767.18,
+   "last": 767.18,
+   "opened": "2026-09-24"
+  },
+  "EFA": {
+   "shares": 197.81041879325616,
+   "avg_price": 104.5,
+   "last": 104.5,
+   "opened": "2026-09-24"
+  },
+  "VGK": {
+   "shares": 233.36341472085044,
+   "avg_price": 88.07,
+   "last": 88.07,
+   "opened": "2026-09-24"
+  },
+  "IWM": {
+   "shares": 69.7326274084369,
+   "avg_price": 281.66,
+   "last": 281.66,
+   "opened": "2026-09-24"
+  },
+  "VWO": {
+   "shares": 304.17984289852666,
+   "avg_price": 59.87,
+   "last": 59.87,
+   "opened": "2026-09-24"
+  }
+ },
+ "equity": [
+  {
+   "date": "2026-09-24",
+   "value": 99860.0,
+   "invested": 139860.0,
+   "cash": -40000.0,
+   "n": 6,
+   "gross": 1.401,
+   "bench": {
+    "SPY": 100000.0,
+    "QQQ": 100000.0
+   }
+  }
+ ],
+ "trades": [
+  {
+   "date": "2026-09-24",
+   "side": "BUY",
+   "ticker": "VTV",
+   "shares": 159.2717,
+   "price": 219.88,
+   "fee": 35.06,
+   "reason": "US large value \u2014 target 35.1%"
+  },
+  {
+   "date": "2026-09-24",
+   "side": "BUY",
+   "ticker": "SPY",
+   "shares": 33.5823,
+   "price": 767.18,
+   "fee": 25.79,
+   "reason": "US large cap \u2014 target 25.8%"
+  },
+  {
+   "date": "2026-09-24",
+   "side": "BUY",
+   "ticker": "EFA",
+   "shares": 197.8104,
+   "price": 104.5,
+   "fee": 20.69,
+   "reason": "Developed ex-US \u2014 target 20.7%"
+  },
+  {
+   "date": "2026-09-24",
+   "side": "BUY",
+   "ticker": "VGK",
+   "shares": 233.3634,
+   "price": 88.07,
+   "fee": 20.57,
+   "reason": "Europe \u2014 target 20.6%"
+  },
+  {
+   "date": "2026-09-24",
+   "side": "BUY",
+   "ticker": "IWM",
+   "shares": 69.7326,
+   "price": 281.66,
+   "fee": 19.66,
+   "reason": "US small cap \u2014 target 19.7%"
+  },
+  {
+   "date": "2026-09-24",
+   "side": "BUY",
+   "ticker": "VWO",
+   "shares": 304.1798,
+   "price": 59.87,
+   "fee": 18.23,
+   "reason": "Emerging markets \u2014 target 18.2%"
+  }
+ ],
+ "benchmarks": {
+  "SPY": {
+   "shares": 130.34750645220157,
+   "start_price": 767.18
+  },
+  "QQQ": {
+   "shares": 134.9345567399811,
+   "start_price": 741.1
+  }
+ },
+ "last_rebalance": "2026-09-24",
+ "log": [
+  {
+   "date": "2026-09-24",
+   "msg": "portfolio opened"
+  },
+  {
+   "date": "2026-09-24",
+   "msg": "rebalanced \u2014 6 of 11 sleeves pass, gross 2.00x, T-bill 4.07%",
+   "rejected": {
+    "VNQ": "below its 210-day average",
+    "GLD": "below its 210-day average",
+    "TLT": "below its 210-day average",
+    "IEF": "below its 210-day average",
+    "LQD": "below its 210-day average"
+   }
+  }
+ ]
+}

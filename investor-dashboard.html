@@ -3922,10 +3922,11 @@ function whyPick(d,horizon){
 /* ── Autonomous paper portfolio ──────────────────────────
    Reads the ledger the scheduled job writes. Nothing here trades; the
    dashboard only reports what the engine already did. */
-let paperState=null, paperAlt=null;
+let paperState=null, paperAlt=null, paperGrowth=null;
 const PAPER_BOOKS=[
   {id:"weekly",  file:"paper/portfolio.json",          col:"#3fb950"},
   {id:"biweekly",file:"paper/portfolio-biweekly.json", col:"#d29922"},
+  {id:"growth",  file:"paper/portfolio-growth.json",   col:"#58a6ff"},
 ];
 async function renderPaper(){
   const pane=document.getElementById("paper-pane");
@@ -3940,10 +3941,14 @@ async function renderPaper(){
         No trading sessions recorded yet.<br><span style="font-size:.7rem">${e.message}</span></div>`;
       return;
     }
-    /* The parallel book is optional: the page still works if it is absent. */
+    /* The other books are optional: the page still works if absent. */
     try{
       const r2=await fetch(`${GH_ROOT}/${PAPER_BOOKS[1].file}`,{cache:"no-store"});
       if(r2.ok)paperAlt=await r2.json();
+    }catch(e){}
+    try{
+      const r3=await fetch(`${GH_ROOT}/${PAPER_BOOKS[2].file}`,{cache:"no-store"});
+      if(r3.ok)paperGrowth=await r3.json();
     }catch(e){}
   }
   const st=paperState, eq=st.equity||[];
@@ -3978,6 +3983,16 @@ async function renderPaper(){
       })()}
       ${benchKeys.map(b=>kpi(b+" buy &amp; hold",fmt(pct(last.bench[b])),money(last.bench[b]))).join("")}
       ${vsSpy!=null?kpi("vs SPY",(vsSpy>=0?"+":"")+vsSpy.toFixed(1)+" pts",vsSpy>=0?"ahead":"behind",vsSpy>=0?"win":"lose"):""}
+      ${(()=>{
+        if(!paperGrowth||!paperGrowth.equity||!paperGrowth.equity.length)return "";
+        const gr=paperGrowth.equity[paperGrowth.equity.length-1];
+        const gs=paperGrowth.rules.start_capital;
+        const gp=(gr.value/gs-1)*100;
+        return kpi(paperGrowth.label||"Long-run growth",
+                   (gp>=0?"+":"")+gp.toFixed(1)+"%",
+                   `${gr.gross!=null?gr.gross.toFixed(2)+"x gross":money(gr.value)}`,
+                   gp>=0?"win":"lose");
+      })()}
       ${kpi("Max drawdown",(mdd*100).toFixed(1)+"%","peak to trough")}
       ${kpi("Holdings",last.n,money(last.cash)+" cash")}
     </div>
@@ -4010,17 +4025,32 @@ async function renderPaper(){
       differing only in rebalancing every ${paperAlt.rules.rebalance_days} days instead of ${st.rules.rebalance_days}.
       Any gap between the two curves is attributable to cadence alone — a forward test of the
       question a backtest cannot settle.`:""}
+      ${paperGrowth?`<br><br><strong>${paperGrowth.label}</strong> is a different animal and is
+      <em>not</em> a cadence variant of the other two. It trades ${paperGrowth.rules.sleeves} broad
+      asset-class ETFs rather than single stocks, rebalances monthly, and is allowed to borrow up to
+      ${paperGrowth.rules.max_leverage}× — with financing charged at T-bills + ${Math.round(paperGrowth.rules.borrow_spread_bps)} bps,
+      so the leverage is not free. It holds a sleeve only while the sleeve is above its
+      ${paperGrowth.rules.trend_days}-day average <em>and</em> its 12-month return beat T-bills; the rest sits
+      in cash. What it maximises is <strong>compound</strong> growth, not average return — the two differ by
+      roughly σ²/2, which is why the book spends its budget on cutting volatility rather than chasing upside.
+      <br><br>Tested on broad index funds from 1996 to 2026 (30 years, no survivorship bias, since an index
+      fund held the losers all the way down) it returned <strong>10.69%</strong> a year against
+      <strong>10.20%</strong> for the S&amp;P 500 total return — but with a worst drawdown of
+      <strong>−27%</strong> against <strong>−55%</strong>. Two caveats worth as much as the headline: the edge
+      disappears above roughly 17 bps per fill, and it was earned almost entirely before 2009. Over the last
+      decade this book would have <em>lost</em> to simply holding the index, by a wide margin. It is designed
+      to earn its keep in bad regimes, and the last fifteen years were not one.`:""}
     </div>
   </div>`;
   pane.innerHTML=html;
   pane.querySelectorAll(".pp-tick").forEach(el=>
     el.addEventListener("click",()=>openDrawer(el.dataset.t)));
-  drawPaperChart(eq,start,benchKeys,paperAlt);
+  drawPaperChart(eq,start,benchKeys,paperAlt,paperGrowth);
 }
 
-function drawPaperChart(eq,start,benchKeys,alt){
+function drawPaperChart(eq,start,benchKeys,alt,growth){
   const cv=document.getElementById("ppChart");if(!cv)return;
-  const COL={strategy:"#3fb950",parallel:"#d29922",SPY:"#58a6ff",QQQ:"#a371f7"};
+  const COL={strategy:"#3fb950",parallel:"#d29922",growth:"#f778ba",SPY:"#58a6ff",QQQ:"#a371f7"};
   const W=cv.clientWidth||600,H=Math.max(170,Math.min(260,W*0.32));
   const dpr=window.devicePixelRatio||1;
   cv.width=W*dpr;cv.height=H*dpr;cv.style.height=H+"px";
@@ -4032,6 +4062,13 @@ function drawPaperChart(eq,start,benchKeys,alt){
        an x-axis even if one has a session the other does not. */
     const m=new Map(alt.equity.map(e=>[e.date,e.value]));
     lines.push({k:"parallel",v:eq.map(e=>m.get(e.date)??null)});
+  }
+  if(growth&&growth.equity&&growth.equity.length){
+    /* Indexed to the same $100k start so the three books are comparable
+       on the one axis, even though they trade different things. */
+    const gs=growth.rules.start_capital||start;
+    const m=new Map(growth.equity.map(e=>[e.date,e.value/gs*start]));
+    lines.push({k:"growth",v:eq.map(e=>m.get(e.date)??null)});
   }
   lines.push(...benchKeys.map(b=>({k:b,v:eq.map(e=>(e.bench||{})[b]||null)})));
   let lo=Infinity,hi=-Infinity;
@@ -4061,7 +4098,7 @@ function drawPaperChart(eq,start,benchKeys,alt){
       started?g.lineTo(px,py):g.moveTo(px,py);started=true;});
     g.stroke();
   }
-  const NAME={strategy:"Weekly rebalance",parallel:"Bi-weekly rebalance"};
+  const NAME={strategy:"Weekly rebalance",parallel:"Bi-weekly rebalance",growth:"Long-run growth"};
   document.getElementById("ppLegend").innerHTML=lines.map(L=>
     `<span><i style="background:${COL[L.k]||"#8b949e"}"></i>${NAME[L.k]||L.k}</span>`).join("");
 }
