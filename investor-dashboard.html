@@ -1730,7 +1730,10 @@ function applyFilters(){
     if(f.rsiZone==="ob"&&(d.rsi==null||d.rsi<=70))return false;
     if(f.rsiMin!==""&&(d.rsi==null||d.rsi<+f.rsiMin))return false;
     if(f.rsiMax!==""&&(d.rsi==null||d.rsi>+f.rsiMax))return false;
-    if(f.scoreMin!==""&&d.score<+f.scoreMin)return false;
+    /* d.score is absent on rows that were never hand-scored. `undefined <
+       7` is false, so without the null test a "score >= 7" filter silently
+       ADMITTED every unscored row — the opposite of what it says. */
+    if(f.scoreMin!==""&&(d.score==null||d.score<+f.scoreMin))return false;
     if(f.peMax!==""&&(d.pe==null||d.pe>+f.peMax))return false;
     if(f.fpeMax!==""&&(d.fwdPe==null||d.fwdPe>+f.fpeMax))return false;
     if(f.epsMin!==""&&(d.eps_growth==null||d.eps_growth<+f.epsMin))return false;
@@ -1887,6 +1890,35 @@ function scheduleRefresh(){
 function rsiBadge(v){if(v==null)return"—";const cls=v<30?"rsi-os":v>70?"rsi-ob":"rsi-n";return`<span class="rsi-badge ${cls}">${v}</span>`;}
 function scBadge(v){const cls=v>=7?"sc-h":v>=4?"sc-m":"sc-l";return`<span class="sc-badge ${cls}">${v}</span>`;}
 function fmt(v,dec=1){return v==null?"—":typeof v==="number"?v.toFixed(dec):v;}
+/* Currency. The watchlist holds local listings alongside US ones, and a
+   Tokyo price rendered with a dollar sign is simply wrong — Toyota at
+   Y3,000 was showing as "$3,000". The symbol is derived from the listing
+   suffix, which is the only currency information a ticker carries, with
+   an explicit `currency` field on the row taking precedence when present. */
+const SUFFIX_CCY={T:"JPY",HK:"HKD",KS:"KRW",KQ:"KRW",TW:"TWD",NS:"INR",BO:"INR",
+  SA:"BRL",MX:"MXN",SR:"SAR",AX:"AUD",TO:"CAD",V:"CAD",L:"GBP",PA:"EUR",DE:"EUR",
+  AS:"EUR",MI:"EUR",MC:"EUR",BR:"EUR",LS:"EUR",VI:"EUR",HE:"EUR",IR:"EUR",
+  SW:"CHF",ST:"SEK",CO:"DKK",OL:"NOK"};
+const CCY_SYM={USD:"$",EUR:"\u20ac",GBP:"\u00a3",JPY:"\u00a5",CHF:"CHF\u202f",
+  HKD:"HK$",CAD:"C$",AUD:"A$",SEK:"kr\u202f",DKK:"kr\u202f",NOK:"kr\u202f",
+  KRW:"\u20a9",TWD:"NT$",INR:"\u20b9",BRL:"R$",MXN:"Mex$",SAR:"SAR\u202f"};
+function ccyOf(d){
+  if(d&&d.currency)return d.currency;
+  const t=(d&&d.ticker)||"";
+  if(t.includes("=")||!t.includes("."))return "USD";
+  return SUFFIX_CCY[t.split(".").pop()]||"USD";
+}
+function ccySym(d){const c=ccyOf(d);return CCY_SYM[c]||(c+"\u202f");}
+/* GBP listings on the London exchange are quoted in PENCE, not pounds, so
+   a raw close of 2650 is 26.50 pounds. Shown as pence to stay faithful to
+   the quote rather than silently rescaling it. */
+function priceStr(d,v){
+  if(v==null)return "\u2014";
+  const c=ccyOf(d);
+  if(c==="GBP")return v.toLocaleString(undefined,{maximumFractionDigits:v<100?2:0})+"p";
+  const dp=(c==="JPY"||c==="KRW")?0:2;
+  return ccySym(d)+v.toLocaleString(undefined,{minimumFractionDigits:dp,maximumFractionDigits:dp});
+}
 function signalBadge(d){
   /* Rule-based signal: RSI + Score + PEG */
   const rsi=d.rsi,sc=d.score,peg=d.peg,pe=d.pe,fpe=d.fwdPe,epsg=d.eps_growth;
@@ -2014,9 +2046,9 @@ function renderTable(){
     if(live?.price!=null){
       const chg=live.chgPct;
       const chgStr=chg!=null?`<span class="${chg>=0?"chg-pos":"chg-neg"}">${chg>=0?"+":""}${chg.toFixed(2)}%</span>`:"";
-      priceCell=`<div class="live-price"><span>$${live.price.toFixed(2)}</span>${chgStr}</div>`;
+      priceCell=`<div class="live-price"><span>${priceStr(d,live.price)}</span>${chgStr}</div>`;
     }else{
-      priceCell=`$${fmt(d.price)}`;
+      priceCell=priceStr(d,d.price);
     }
     return`<tr data-t="${d.ticker}" class="${activeRow===d.ticker?"active":""}">
       <td><button class="star-btn ${watchlist.has(d.ticker)?"on":""}" data-star="${d.ticker}" title="Toggle watchlist">${watchlist.has(d.ticker)?"★":"☆"}</button></td>
@@ -2116,7 +2148,7 @@ function openDrawer(ticker){
   const displayPrice=live?.price!=null?live.price:d.price;
   const chgHtml=live?.chgPct!=null
     ?`<span class="${live.chgPct>=0?"chg-pos":"chg-neg"}" style="font-size:.82rem;margin-left:.35rem">${live.chgPct>=0?"+":""}${live.chgPct.toFixed(2)}%</span>`:"";
-  document.getElementById("dr-price").innerHTML=`$${displayPrice!=null?displayPrice.toFixed(2):"—"}${chgHtml} ${rsiBadge(d.rsi)}`;
+  document.getElementById("dr-price").innerHTML=`${priceStr(d,displayPrice)}${chgHtml} ${rsiBadge(d.rsi)}`;
   drawGauge(d.rsi);
   const pctFromHigh=live?.high52!=null&&live?.price!=null
     ?((live.price/live.high52-1)*100).toFixed(1)+"%":"—";
@@ -2651,8 +2683,8 @@ function renderTACharts(allRows){
   document.getElementById("ta-indicators").innerHTML=[
     ["RSI(14)",lastRSI!=null?lastRSI.toFixed(1):"—",lastRSI<30?"var(--accent)":lastRSI>70?"var(--red)":"var(--text)"],
     ["MACD",lastMACD!=null?(lastMACD>lastSig?"▲ Bull":"▼ Bear"):"—",lastMACD>lastSig?"var(--accent)":"var(--red)"],
-    ["SMA20",s20v?`$${s20v.toFixed(2)}`:"—",last>s20v?"var(--accent)":"var(--red)"],
-    ["SMA50",s50v?`$${s50v.toFixed(2)}`:"—",last>s50v?"var(--accent)":"var(--red)"],
+    ["SMA20",s20v?priceStr(d,s20v):"—",last>s20v?"var(--accent)":"var(--red)"],
+    ["SMA50",s50v?priceStr(d,s50v):"—",last>s50v?"var(--accent)":"var(--red)"],
     ["SMA250",s250v?`$${s250v.toFixed(2)}`:"—",last>s250v?"var(--accent)":"var(--red)"],
     ["ATR(14)",lastATR?`$${lastATR.toFixed(2)}`:"—","var(--text)"],
     ["BB%",bbPos!=null?bbPos+"%":"—",bbPos<20?"var(--accent)":bbPos>80?"var(--red)":"var(--text)"],
