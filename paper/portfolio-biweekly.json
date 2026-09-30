@@ -13,97 +13,97 @@
   "long_only": true,
   "leverage": null
  },
- "cash": 0.0,
+ "cash": 1102.6685537811027,
  "positions": {
   "BE": {
    "shares": 17.449201579515776,
    "avg_price": 208.9600067138672,
-   "last": 265.8283996582031,
-   "opened": "2026-08-18"
-  },
-  "TXG": {
-   "shares": 102.04112802952136,
-   "avg_price": 55.630001068115234,
-   "last": 88.69599914550781,
+   "last": 278.67999267578125,
    "opened": "2026-08-18"
   },
   "MU": {
    "shares": 5.80516853930761,
    "avg_price": 933.4400024414062,
-   "last": 1052.7750244140625,
+   "last": 1067.2099609375,
    "opened": "2026-09-01"
   },
   "LITE": {
    "shares": 6.200186421954634,
    "avg_price": 868.9500122070312,
-   "last": 902.6041870117188,
-   "opened": "2026-09-01"
-  },
-  "INTC": {
-   "shares": 75.04847275280565,
-   "avg_price": 88.97000122070312,
-   "last": 115.37999725341797,
-   "opened": "2026-09-01"
-  },
-  "NBIS": {
-   "shares": 19.611277543230436,
-   "avg_price": 199.5399932861328,
-   "last": 234.5500030517578,
+   "last": 965.0599975585938,
    "opened": "2026-09-01"
   },
   "MRVL": {
    "shares": 26.051474218141685,
    "avg_price": 210.38999938964844,
-   "last": 251.8000030517578,
-   "opened": "2026-09-01"
-  },
-  "FIX": {
-   "shares": 5.367420354194458,
-   "avg_price": 1554.3699951171875,
-   "last": 1666.9200439453125,
+   "last": 262.1000061035156,
    "opened": "2026-09-01"
   },
   "ATI": {
    "shares": 59.57105868244259,
    "avg_price": 200.9499969482422,
-   "last": 179.77999877929688,
+   "last": 189.41000366210938,
    "opened": "2026-09-01"
   },
   "KRYS": {
    "shares": 33.475260768369004,
    "avg_price": 363.8399963378906,
-   "last": 341.05999755859375,
-   "opened": "2026-09-01"
-  },
-  "MRNA": {
-   "shares": 15.036434422141578,
-   "avg_price": 154.27000427246094,
-   "last": 198.54800415039062,
+   "last": 332.9750061035156,
    "opened": "2026-09-01"
   },
   "EWY": {
    "shares": 38.41936235441552,
    "avg_price": 175.8000030517578,
-   "last": 183.86000061035156,
-   "opened": "2026-09-01"
-  },
-  "SOXX": {
-   "shares": 17.556804709706146,
-   "avg_price": 500.30999755859375,
-   "last": 560.3300170898438,
+   "last": 181.8699951171875,
    "opened": "2026-09-01"
   },
   "AMD": {
    "shares": 13.875311712490026,
    "avg_price": 504.20001220703125,
-   "last": 605.2100219726562,
+   "last": 608.4299926757812,
    "opened": "2026-09-15"
   },
-  "MPC": {
-   "shares": 26.3923437956441,
-   "avg_price": 410.8399963378906,
-   "last": 391.1600036621094,
-   "opened": "2026-09-15"
+  "MRNA": {
+   "shares": 11.486568649717489,
+   "avg_price": 203.4600067138672,
+   "last": 189.47000122070312,
+   "opened": "2026-09-29"
+  },
+  "TXG": {
+   "shares": 77.4809193987612,
+   "avg_price": 90.04000091552734,
+   "last": 91.88500213623047,
+   "opened": "2026-09-29"
+  },
+  "FORM": {
+   "shares": 39.464342141395484,
+   "avg_price": 136.25,
+   "last": 146.92999267578125,
+   "opened": "2026-09-29"
+  },
+  "INTC": {
+   "shares": 60.27364801338818,
+   "avg_price": 115.93000030517578,
+   "last": 118.75,
+   "opened": "2026-09-29"
+  },
+  "ILMN": {
+   "shares": 40.69611056287192,
+   "avg_price": 272.0,
+   "last": 275.05999755859375,
+   "opened": "2026-09-29"
+  },
+  "FCX": {
+   "shares": 157.1644990249605,
+   "avg_price": 70.79000091552734,
+   "last": 70.50499725341797,
+   "opened": "2026-09-29"
+  },
+  "NTRA": {
+   "shares": 23.555300584375615,
+   "avg_price": 414.5199890136719,
+   "last": 423.82000732421875,
+   "opened": "2026-09-29"
   }
  },
  "equity": [
@@ -413,6 +413,28 @@
    "bench": {
     "SPY": 99943.96,
     "QQQ": 102844.56
+   }
+  },
+  {
+   "date": "2026-09-29",
+   "value": 116989.91,
+   "invested": 115887.24,
+   "cash": 1102.67,
+   "n": 15,
+   "bench": {
+    "SPY": 99588.2,
+    "QQQ": 102845.95
+   }
+  },
+  {
+   "date": "2026-09-30",
+   "value": 117341.3,
+   "invested": 116238.63,
+   "cash": 1102.67,
+   "n": 15,
+   "bench": {
+    "SPY": 99826.68,
+    "QQQ": 103485.67
    }
   }
  ],
@@ -851,6 +873,146 @@
    "price": 410.84,
    "fee": 10.85,
    "reason": "new position"
+  },
+  {
+   "date": "2026-09-29",
+   "side": "SELL",
+   "ticker": "NBIS",
+   "shares": 19.6113,
+   "price": 237.355,
+   "fee": 4.65,
+   "pnl": 736.95,
+   "held_days": 28,
+   "reason": "dropped from ranking"
+  },
+  {
+   "date": "2026-09-29",
+   "side": "SELL",
+   "ticker": "FIX",
+   "shares": 5.3674,
+   "price": 1665.05,
+   "fee": 8.94,
+   "pnl": 585.13,
+   "held_days": 28,
+   "reason": "dropped from ranking"
+  },
+  {
+   "date": "2026-09-29",
+   "side": "SELL",
+   "ticker": "SOXX",
+   "shares": 17.5568,
+   "price": 567.44,
+   "fee": 9.96,
+   "pnl": 1168.63,
+   "held_days": 28,
+   "reason": "dropped from ranking"
+  },
+  {
+   "date": "2026-09-29",
+   "side": "SELL",
+   "ticker": "MPC",
+   "shares": 26.3923,
+   "price": 392.03,
+   "fee": 10.35,
+   "pnl": -506.79,
+   "held_days": 14,
+   "reason": "dropped from ranking"
+  },
+  {
+   "date": "2026-09-29",
+   "side": "SELL",
+   "ticker": "MRNA",
+   "shares": 15.0364,
+   "price": 203.46,
+   "fee": 3.06,
+   "pnl": 736.58,
+   "held_days": 28,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-09-29",
+   "side": "BUY",
+   "ticker": "MRNA",
+   "shares": 11.4866,
+   "price": 203.46,
+   "fee": 2.34,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-09-29",
+   "side": "SELL",
+   "ticker": "TXG",
+   "shares": 102.0411,
+   "price": 90.04,
+   "fee": 9.19,
+   "pnl": 3502.05,
+   "held_days": 42,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-09-29",
+   "side": "BUY",
+   "ticker": "TXG",
+   "shares": 77.4809,
+   "price": 90.04,
+   "fee": 6.98,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-09-29",
+   "side": "BUY",
+   "ticker": "FORM",
+   "shares": 39.4643,
+   "price": 136.25,
+   "fee": 5.38,
+   "reason": "new position"
+  },
+  {
+   "date": "2026-09-29",
+   "side": "SELL",
+   "ticker": "INTC",
+   "shares": 75.0485,
+   "price": 115.93,
+   "fee": 8.7,
+   "pnl": 2014.61,
+   "held_days": 28,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-09-29",
+   "side": "BUY",
+   "ticker": "INTC",
+   "shares": 60.2736,
+   "price": 115.93,
+   "fee": 6.99,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-09-29",
+   "side": "BUY",
+   "ticker": "ILMN",
+   "shares": 40.6961,
+   "price": 272.0,
+   "fee": 11.08,
+   "reason": "new position"
+  },
+  {
+   "date": "2026-09-29",
+   "side": "BUY",
+   "ticker": "FCX",
+   "shares": 157.1645,
+   "price": 70.79,
+   "fee": 11.14,
+   "reason": "new position"
+  },
+  {
+   "date": "2026-09-29",
+   "side": "BUY",
+   "ticker": "NTRA",
+   "shares": 23.5553,
+   "price": 414.52,
+   "fee": 9.77,
+   "reason": "new position"
   }
  ],
  "benchmarks": {
@@ -863,7 +1025,7 @@
    "start_price": 717.510009765625
   }
  },
- "last_rebalance": "2026-09-15",
+ "last_rebalance": "2026-09-29",
  "log": [
   {
    "date": "2026-08-18",
@@ -892,6 +1054,14 @@
   {
    "date": "2026-09-28",
    "msg": "backfilled 2 missed sessions (2026-09-25 to 2026-09-28)"
+  },
+  {
+   "date": "2026-09-30",
+   "msg": "backfilled 2 missed sessions (2026-09-29 to 2026-09-30)"
+  },
+  {
+   "date": "2026-09-29",
+   "msg": "rebalanced \u2014 281 qualified, 15 held"
   }
  ],
  "book": "biweekly",

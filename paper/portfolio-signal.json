@@ -21,127 +21,127 @@
   "leverage": null,
   "house_rules": "position count, equal weighting, sector cap and costs are house convention, not the table's \u2014 it supplies entries and exits only"
  },
- "cash": 0.0,
+ "cash": 143.3383671778356,
  "positions": {
   "BKNG": {
    "shares": 31.732418524871356,
    "avg_price": 157.41,
-   "last": 164.00999450683594,
+   "last": 162.69000244140625,
    "opened": "2026-09-24"
   },
   "IBN": {
    "shares": 179.16068866571018,
    "avg_price": 27.88,
-   "last": 27.329999923706055,
+   "last": 27.469999313354492,
    "opened": "2026-09-24"
   },
   "SPGI": {
    "shares": 12.386856788592684,
    "avg_price": 403.25,
-   "last": 395.5350036621094,
+   "last": 396.0350036621094,
    "opened": "2026-09-24"
   },
   "MELI": {
    "shares": 2.8475654598005846,
    "avg_price": 1754.13,
-   "last": 1718.5,
+   "last": 1733.0374755859375,
    "opened": "2026-09-24"
   },
   "GS": {
    "shares": 5.410001191391654,
    "avg_price": 923.29,
-   "last": 916.8900146484375,
+   "last": 903.2150268554688,
    "opened": "2026-09-24"
   },
   "JPM": {
    "shares": 14.75366257088847,
    "avg_price": 338.56,
-   "last": 337.45001220703125,
+   "last": 331.8349914550781,
    "opened": "2026-09-24"
   },
   "CCJ": {
    "shares": 56.68406718111665,
    "avg_price": 88.12,
-   "last": 87.2300033569336,
+   "last": 87.26000213623047,
    "opened": "2026-09-24"
   },
   "AXP": {
    "shares": 16.341686841588693,
    "avg_price": 305.66,
-   "last": 305.5400085449219,
+   "last": 304.5350036621094,
    "opened": "2026-09-24"
   },
   "NFLX": {
    "shares": 69.64584495259342,
    "avg_price": 71.72,
-   "last": 69.11309814453125,
-   "opened": "2026-09-24"
-  },
-  "VRTX": {
-   "shares": 9.562004670929209,
-   "avg_price": 522.38,
-   "last": 528.280029296875,
+   "last": 69.6050033569336,
    "opened": "2026-09-24"
   },
   "UNH": {
    "shares": 13.319644809471749,
    "avg_price": 375.01,
-   "last": 376.0799865722656,
+   "last": 368.32000732421875,
    "opened": "2026-09-24"
   },
   "NVO": {
    "shares": 129.3371310201968,
    "avg_price": 38.62,
-   "last": 38.69499969482422,
-   "opened": "2026-09-24"
-  },
-  "MA": {
-   "shares": 8.823841153193895,
-   "avg_price": 566.08,
-   "last": 567.5700073242188,
-   "opened": "2026-09-24"
-  },
-  "V": {
-   "shares": 13.574107288439588,
-   "avg_price": 367.98,
-   "last": 369.1700134277344,
+   "last": 38.1349983215332,
    "opened": "2026-09-24"
   },
   "AMZN": {
    "shares": 20.02967359050445,
    "avg_price": 249.38,
-   "last": 246.1999969482422,
+   "last": 250.22000122070312,
    "opened": "2026-09-24"
   },
   "UBER": {
    "shares": 72.16122507945681,
    "avg_price": 69.22,
-   "last": 68.08899688720703,
-   "opened": "2026-09-24"
-  },
-  "COST": {
-   "shares": 5.571791897197929,
-   "avg_price": 896.48,
-   "last": 921.657470703125,
+   "last": 68.94999694824219,
    "opened": "2026-09-24"
   },
   "REGN": {
    "shares": 6.2749679656290045,
    "avg_price": 796.02,
-   "last": 752.9299926757812,
+   "last": 759.530029296875,
    "opened": "2026-09-24"
   },
   "CEG": {
    "shares": 19.092577020105495,
    "avg_price": 261.62,
-   "last": 260.739990234375,
+   "last": 252.23939514160156,
    "opened": "2026-09-24"
   },
   "GE": {
    "shares": 15.620113828256928,
    "avg_price": 319.78,
-   "last": 317.6700134277344,
+   "last": 313.7200012207031,
    "opened": "2026-09-24"
+  },
+  "AVGO": {
+   "shares": 13.938508271562698,
+   "avg_price": 353.55999755859375,
+   "last": 353.55999755859375,
+   "opened": "2026-09-30"
+  },
+  "HII": {
+   "shares": 18.40353638408171,
+   "avg_price": 267.7799987792969,
+   "last": 267.7799987792969,
+   "opened": "2026-09-30"
+  },
+  "NEE": {
+   "shares": 64.86474563264092,
+   "avg_price": 75.9749984741211,
+   "last": 75.9749984741211,
+   "opened": "2026-09-30"
+  },
+  "BAC": {
+   "shares": 90.56508072313405,
+   "avg_price": 54.415000915527344,
+   "last": 54.415000915527344,
+   "opened": "2026-09-30"
   }
  },
  "equity": [
@@ -176,6 +176,28 @@
    "bench": {
     "SPY": 99801.87,
     "QQQ": 99411.01
+   }
+  },
+  {
+   "date": "2026-09-29",
+   "value": 99266.03,
+   "invested": 99266.03,
+   "cash": 0.0,
+   "n": 20,
+   "bench": {
+    "SPY": 99611.57,
+    "QQQ": 99572.26
+   }
+  },
+  {
+   "date": "2026-09-30",
+   "value": 98640.91,
+   "invested": 98497.57,
+   "cash": 143.34,
+   "n": 20,
+   "bench": {
+    "SPY": 99850.1,
+    "QQQ": 100191.61
    }
   }
  ],
@@ -359,6 +381,86 @@
    "price": 319.78,
    "fee": 5.0,
    "reason": "Entry \u2014 RSI 35.3, score 7.0"
+  },
+  {
+   "date": "2026-09-30",
+   "side": "SELL",
+   "ticker": "VRTX",
+   "shares": 9.562,
+   "price": 525.66,
+   "fee": 5.03,
+   "pnl": 26.34,
+   "held_days": 6,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-09-30",
+   "side": "SELL",
+   "ticker": "MA",
+   "shares": 8.8238,
+   "price": 553.67,
+   "fee": 4.89,
+   "pnl": -114.39,
+   "held_days": 6,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-09-30",
+   "side": "SELL",
+   "ticker": "V",
+   "shares": 13.5741,
+   "price": 360.355,
+   "fee": 4.89,
+   "pnl": -108.39,
+   "held_days": 6,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-09-30",
+   "side": "SELL",
+   "ticker": "COST",
+   "shares": 5.5718,
+   "price": 913.89,
+   "fee": 5.09,
+   "pnl": 91.91,
+   "held_days": 6,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-09-30",
+   "side": "BUY",
+   "ticker": "AVGO",
+   "shares": 13.9385,
+   "price": 353.56,
+   "fee": 4.93,
+   "reason": "Entry \u2014 RSI 38.2, score 8.0"
+  },
+  {
+   "date": "2026-09-30",
+   "side": "BUY",
+   "ticker": "HII",
+   "shares": 18.4035,
+   "price": 267.78,
+   "fee": 4.93,
+   "reason": "Entry \u2014 RSI 11.1, score 6.0"
+  },
+  {
+   "date": "2026-09-30",
+   "side": "BUY",
+   "ticker": "NEE",
+   "shares": 64.8647,
+   "price": 75.975,
+   "fee": 4.93,
+   "reason": "Entry \u2014 RSI 12.4, score 6.0"
+  },
+  {
+   "date": "2026-09-30",
+   "side": "BUY",
+   "ticker": "BAC",
+   "shares": 90.5651,
+   "price": 54.415,
+   "fee": 4.93,
+   "reason": "Entry \u2014 RSI 16.3, score 6.0"
   }
  ],
  "benchmarks": {
@@ -394,6 +496,19 @@
    "date": "2026-09-28",
    "msg": "202 long signals, 20 held",
    "snapshot": "2026-09-26T00:07:29Z"
+  },
+  {
+   "date": "2026-09-30",
+   "msg": "backfilled 2 missed sessions (2026-09-29 to 2026-09-30)"
+  },
+  {
+   "date": "2026-09-29",
+   "msg": "backfilled session \u2014 marked to market only, because the signal snapshot is today's and applying it to an older price would be look-ahead"
+  },
+  {
+   "date": "2026-09-30",
+   "msg": "171 long signals, 20 held",
+   "snapshot": "2026-09-30T00:46:43Z"
   }
  ]
 }
