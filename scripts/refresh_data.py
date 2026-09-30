@@ -9,6 +9,8 @@ ticker in investor-dashboard.html using yfinance, then writes:
 import json
 import math
 import re
+import sys
+import time
 import datetime
 import os
 from pathlib import Path
@@ -217,6 +219,29 @@ Path("public/ohlcv-long").mkdir(parents=True, exist_ok=True)
 
 quotes = {}
 ohlcv_errors = []
+info_ok = 0
+info_failed = []
+carried = 0
+
+# The previous snapshot, so a ticker whose fundamentals cannot be fetched
+# keeps the ones it had rather than being blanked. Valuation fields move
+# quarterly; a day-old P/E is worth far more than a null, and the fourth
+# paper book reads pe/peg/eps_growth straight off this file to build its
+# signal. Without this, one bad night silently rewrites what that book
+# thinks it is looking at.
+prev_quotes = {}
+try:
+    _p = Path("public/quotes.json")
+    if _p.exists():
+        prev_quotes = (json.loads(_p.read_text()) or {}).get("tickers", {})
+        print(f"carry-forward source: {len(prev_quotes)} tickers "
+              "from the previous snapshot")
+except Exception as e:
+    print(f"  could not read the previous snapshot ({e}) — "
+          "fundamentals cannot be carried forward this run")
+
+CARRY = ["pe", "fwdPe", "peg", "eps_growth", "rev_growth", "roe",
+         "debt_equity", "divYield", "high52", "low52", "market_cap_b"]
 
 # QQQ is a clean US listing and serves as the reference for detecting
 # corporate actions in the non-US tickers.
@@ -260,11 +285,25 @@ for i, ticker in enumerate(tickers):
             )
 
         # ── Fundamentals ──────────────────────────────────────────────────
+        # Retried, because a single transient refusal used to blank every
+        # valuation field for that ticker. With ~900 tickers the source
+        # throttles, and on 2026-09-30 it refused ALL of them: the job
+        # still exited 0 and committed a quotes.json with every P/E, PEG,
+        # market cap and 52-week range null. Nothing noticed, because the
+        # failure was swallowed by a bare except.
         info = {}
-        try:
-            info = yf.Ticker(ticker).info or {}
-        except Exception:
-            pass
+        for attempt in range(3):
+            try:
+                info = yf.Ticker(ticker).info or {}
+                if info:
+                    break
+            except Exception:
+                pass
+            time.sleep(0.4 * (attempt + 1))
+        if info:
+            info_ok += 1
+        else:
+            info_failed.append(ticker)
 
         last_price = safe(close_list[-1], 2) if close_list else None
         prev_price = safe(close_list[-2], 2) if len(close_list) > 1 else None
@@ -315,6 +354,17 @@ for i, ticker in enumerate(tickers):
             "market_cap_b": mcap,
         }
 
+        # Anything the fetch could not supply keeps its previous value.
+        # Price, chgPct and RSI are deliberately NOT carried forward: they
+        # come from the batch download, which either works or leaves the
+        # ticker genuinely unpriced, and a stale price is actively
+        # misleading in a way a stale P/E is not.
+        was = prev_quotes.get(ticker) or {}
+        for field in CARRY:
+            if quotes[ticker].get(field) is None and was.get(field) is not None:
+                quotes[ticker][field] = was[field]
+                carried += 1
+
         if (i + 1) % 20 == 0:
             print(f"  {i + 1}/{len(tickers)} done")
 
@@ -325,8 +375,18 @@ for i, ticker in enumerate(tickers):
 
 # ── Write quotes.json ─────────────────────────────────────────────────────
 
+fresh_rate = info_ok / len(tickers) if tickers else 0.0
+
 output = {
     "updated": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+    # Recorded so staleness is auditable from the file itself rather than
+    # only from a log nobody reads.
+    "fundamentals": {
+        "fresh": info_ok,
+        "carried_forward": carried,
+        "requested": len(tickers),
+        "fresh_rate": round(fresh_rate, 3),
+    },
     "tickers": quotes,
 }
 Path("public/quotes.json").write_text(
@@ -337,3 +397,16 @@ ok  = len(quotes) - len(ohlcv_errors)
 print(f"\nDone: {ok}/{len(tickers)} successful, {len(ohlcv_errors)} errors")
 if ohlcv_errors:
     print("  Failed:", ", ".join(ohlcv_errors))
+print(f"Fundamentals: {info_ok}/{len(tickers)} fetched fresh "
+      f"({fresh_rate:.0%}), {carried} values carried forward")
+
+# A run that quietly loses every valuation field used to look exactly like
+# a healthy one: it exited 0 and committed. It must not. Prices and RSI
+# are still good and still worth committing, so this fails AFTER the
+# write, leaving the commit step to the workflow's own decision.
+if fresh_rate < 0.25:
+    print(f"\nFUNDAMENTALS COLLAPSED: only {info_ok} of {len(tickers)} "
+          "tickers returned any fundamentals at all. The valuation columns "
+          "in this file are carried forward, not fresh. This usually means "
+          "the source is throttling the runner.")
+    sys.exit(1)

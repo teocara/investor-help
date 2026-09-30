@@ -24,9 +24,18 @@ jobs:
         run: pip install yfinance pandas
 
       - name: Run data refresh
+        id: refresh
         run: python scripts/refresh_data.py
 
+      # Runs even when the refresh exits non-zero. A collapse of the
+      # fundamentals fetch still leaves fresh prices, RSI and OHLCV worth
+      # keeping, and the script carries the valuation fields forward
+      # rather than blanking them — so the data is safe to commit. The job
+      # is still marked failed, which is the point: on 2026-09-30 a run
+      # that lost every single Ticker.info response reported success and
+      # nobody noticed until the table went blank.
       - name: Commit updated data
+        if: always()
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore: refresh market data [skip ci]"
