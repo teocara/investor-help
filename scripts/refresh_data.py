@@ -52,6 +52,24 @@ tickers = list(dict.fromkeys(re.findall(r'ticker:"([^"]+)"', html)))
 # European 2x Nasdaq UCITS ETF — the only leveraged Nasdaq exposure an EU/EEA
 # retail investor can buy, since TQQQ has no PRIIPs KID.
 EXTRA_TICKERS = ["LQQ.PA", "EURUSD=X"]
+
+# Market cap comes back in the LISTING's currency. Left unconverted, the
+# "largest 40 companies" heatmap and the scatter axes compare yen-billions
+# with dollar-billions, which ranks Shin-Etsu (10,790 JPY bn) above Apple
+# (4,977 USD bn) purely because the yen is a smaller unit. Every cap is
+# normalised to USD before it is written, so the field means one thing.
+FX_PAIRS = {
+    "EUR": "EURUSD=X", "GBP": "GBPUSD=X", "GBp": "GBPUSD=X",
+    "JPY": "JPYUSD=X", "CHF": "CHFUSD=X", "HKD": "HKDUSD=X",
+    "CAD": "CADUSD=X", "AUD": "AUDUSD=X", "SEK": "SEKUSD=X",
+    "DKK": "DKKUSD=X", "NOK": "NOKUSD=X", "KRW": "KRWUSD=X",
+    "TWD": "TWDUSD=X", "INR": "INRUSD=X", "BRL": "BRLUSD=X",
+    "MXN": "MXNUSD=X", "SAR": "SARUSD=X", "SGD": "SGDUSD=X",
+    "USD": None,
+}
+for _pair in {v for v in FX_PAIRS.values() if v}:
+    if _pair not in EXTRA_TICKERS:
+        EXTRA_TICKERS.append(_pair)
 for t in EXTRA_TICKERS:
     if t not in tickers:
         tickers.append(t)
@@ -93,6 +111,11 @@ except Exception as e:
     print(f"  long-history download FAILED: {e}")
     raw_long = None
 
+# ── FX rates, for normalising market cap ─────────────────────────────────
+# Read out of the batch that was just downloaded, so no extra requests and
+# the rate is from the same session as the prices it converts.
+fx_to_usd = {"USD": 1.0}
+
 # yf.download returns MultiIndex (metric, ticker) when >1 tickers
 multi = len(tickers) > 1
 
@@ -106,11 +129,42 @@ def _series(frame, metric, ticker):
     except Exception:
         return pd.Series(dtype=float)
 
+def _populate_fx():
+    """Fill fx_to_usd from the batch. Falls back to the inverted pair.
+
+    Yahoo carries both directions for most crosses but not reliably, so a
+    missing JPYUSD is recovered from USDJPY rather than silently leaving
+    every Japanese market cap blank.
+    """
+    for cur, pair in FX_PAIRS.items():
+        if not pair or cur in fx_to_usd:
+            continue
+        rate = None
+        ser = _series(raw_hist, "Close", pair)
+        if len(ser):
+            rate = float(ser.iloc[-1])
+        if not rate or rate <= 0:
+            inv = f"USD{cur[:3].upper()}=X"
+            ser = _series(raw_hist, "Close", inv)
+            if len(ser) and float(ser.iloc[-1]) > 0:
+                rate = 1.0 / float(ser.iloc[-1])
+        if rate and rate > 0:
+            fx_to_usd[cur] = rate
+    # London quotes in PENCE. Whether a given field comes back in pence or
+    # pounds is not consistent, so GBp is carried as its own rate rather
+    # than folded into GBP by upper-casing.
+    if "GBP" in fx_to_usd:
+        fx_to_usd["GBp"] = fx_to_usd["GBP"] / 100.0
+
+
 def get_series(metric, ticker):
     return _series(raw_hist, metric, ticker)
 
 def get_long_series(metric, ticker):
     return _series(raw_long, metric, ticker)
+
+_populate_fx()
+print(f"FX rates resolved: {len(fx_to_usd)-1} currencies")
 
 def repair_rows(rows, ref, thresh=0.45):
     """Fix data defects yfinance leaves in some non-US listings: isolated bad
@@ -233,8 +287,16 @@ for i, ticker in enumerate(tickers):
         div_y  = safe(info.get("dividendYield"), 4)
         h52    = safe(info.get("fiftyTwoWeekHigh"), 2)
         l52    = safe(info.get("fiftyTwoWeekLow"), 2)
-        mcap   = safe((info.get("marketCap") or 0) / 1e9, 1) \
-                 if info.get("marketCap") else None
+        # Normalise to USD billions. If the rate is missing the cap is
+        # dropped rather than written in the wrong unit — a blank cell is
+        # honest, a number that means yen while the column says dollars
+        # is not.
+        mcap = None
+        if info.get("marketCap"):
+            cur = info.get("currency") or "USD"
+            rate = fx_to_usd.get(cur) or fx_to_usd.get(cur.upper())
+            if rate:
+                mcap = safe(info["marketCap"] * rate / 1e9, 1)
 
         quotes[ticker] = {
             "price":    last_price,

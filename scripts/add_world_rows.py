@@ -54,6 +54,20 @@ SECTOR_MAP = {
 }
 
 
+# The currency a listing's suffix implies. A row whose source-reported
+# currency disagrees is dropped: the nightly job refreshes price from the
+# same source, so a ticker the source is inconsistent about can silently
+# swap units and move the displayed price by 100x.
+SUFFIX_CCY = {
+    "T": "JPY", "HK": "HKD", "KS": "KRW", "KQ": "KRW", "TW": "TWD",
+    "NS": "INR", "BO": "INR", "SA": "BRL", "MX": "MXN", "SR": "SAR",
+    "AX": "AUD", "TO": "CAD", "V": "CAD", "L": "GBP", "PA": "EUR",
+    "DE": "EUR", "AS": "EUR", "MI": "EUR", "MC": "EUR", "BR": "EUR",
+    "LS": "EUR", "VI": "EUR", "HE": "EUR", "IR": "EUR", "SW": "CHF",
+    "ST": "SEK", "CO": "DKK", "OL": "NOK",
+}
+
+
 def js_str(v):
     return '"' + str(v).replace("\\", "\\\\").replace('"', '\\"') + '"'
 
@@ -82,10 +96,16 @@ def main():
     existing = set(re.findall(r'ticker:"([^"]+)"', html))
 
     by_market = {}
-    skipped = []
+    skipped, mismatched = [], []
     for ticker, d in sorted(resolved.items()):
         if ticker in existing:
             skipped.append(ticker)
+            continue
+        suffix = ticker.rsplit(".", 1)[-1] if "." in ticker else ""
+        expect = SUFFIX_CCY.get(suffix)
+        got = (d.get("currency") or "").upper()
+        if expect and got and got != expect:
+            mismatched.append((ticker, expect, got, d.get("price")))
             continue
         sector = SECTOR_MAP.get(d.get("sector") or "")
         if not sector:
@@ -107,7 +127,14 @@ def main():
                 'fwdPe:' + num(d.get("forwardPE")),
                 'eps_growth:null', 'rev_growth:null', 'roe:null',
                 'debt_equity:null',
-                'market_cap_b:' + num(d.get("market_cap_b"), 1),
+                # Left null on purpose. The validation fetch returns market
+                # cap in the LISTING's currency, and the heatmap ranks the
+                # largest 40 companies by this field — a yen-billions figure
+                # sitting next to a dollar-billions one would put Shin-Etsu
+                # above Apple. refresh_data.py now normalises caps to USD, so
+                # the nightly run fills this in correctly; a blank cell until
+                # then beats a wrong ranking.
+                'market_cap_b:null',
                 f'notes:{js_str(market + " main-market listing. Local currency: " + (d["currency"] or "USD") + ". Not scored.")}',
             ]
             rows.append("{" + ",".join(parts) + "},")
@@ -135,6 +162,11 @@ def main():
     if skipped:
         print(f"skipped {len(skipped)} already present: {', '.join(skipped[:8])}"
               + (" ..." if len(skipped) > 8 else ""))
+    if mismatched:
+        print(f"\ndropped {len(mismatched)} for inconsistent currency "
+              f"(exchange says one thing, the source another):")
+        for t, exp, got, px in mismatched:
+            print(f"  {t:<14}suffix implies {exp}, source says {got} @ {px}")
     for market in sorted(by_market):
         print(f"  {market:<14}{len(by_market[market])}")
 
