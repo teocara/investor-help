@@ -22,42 +22,36 @@
   "leverage": 2.0,
   "backtest": "research/growth.py, 1996-10 to 2026-09 on index funds: 10.69% CAGR vs 10.20% for the S&P 500 TR, -27.2% vs -55.3% max drawdown"
  },
- "cash": -40032.7508690585,
+ "cash": -20107.92208173285,
  "positions": {
   "VTV": {
    "shares": 159.27171488148895,
    "avg_price": 219.88,
-   "last": 216.72999572753906,
+   "last": 216.6999969482422,
    "opened": "2026-09-24"
   },
   "SPY": {
    "shares": 33.58232957494006,
    "avg_price": 767.18,
-   "last": 766.030029296875,
+   "last": 763.989990234375,
    "opened": "2026-09-24"
   },
   "EFA": {
    "shares": 197.81041879325616,
    "avg_price": 104.5,
-   "last": 103.98999786376953,
-   "opened": "2026-09-24"
-  },
-  "VGK": {
-   "shares": 233.36341472085044,
-   "avg_price": 88.07,
-   "last": 86.8949966430664,
+   "last": 102.81999969482422,
    "opened": "2026-09-24"
   },
   "IWM": {
    "shares": 69.7326274084369,
    "avg_price": 281.66,
-   "last": 278.82000732421875,
+   "last": 279.0199890136719,
    "opened": "2026-09-24"
   },
   "VWO": {
    "shares": 304.17984289852666,
    "avg_price": 59.87,
-   "last": 59.244998931884766,
+   "last": 59.029998779296875,
    "opened": "2026-09-24"
   }
  },
@@ -121,6 +115,18 @@
     "SPY": 99850.1,
     "QQQ": 100191.61
    }
+  },
+  {
+   "date": "2026-10-01",
+   "value": 97814.22,
+   "invested": 117922.14,
+   "cash": -20107.92,
+   "n": 5,
+   "gross": 1.206,
+   "bench": {
+    "SPY": 99584.19,
+    "QQQ": 100125.49
+   }
   }
  ],
  "trades": [
@@ -177,6 +183,17 @@
    "price": 59.87,
    "fee": 18.23,
    "reason": "Emerging markets \u2014 target 18.2%"
+  },
+  {
+   "date": "2026-10-01",
+   "side": "SELL",
+   "ticker": "VGK",
+   "shares": 233.3634,
+   "price": 85.49,
+   "fee": 19.95,
+   "pnl": -622.03,
+   "held_days": 7,
+   "reason": "trend break"
   }
  ],
  "benchmarks": {
