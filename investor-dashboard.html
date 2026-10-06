@@ -2782,15 +2782,28 @@ async function loadTACharts(ticker){
   document.getElementById("priceChart").innerHTML='<div class="chart-loading">Loading…</div>';
   ["rsiChart","macdChart","volChart"].forEach(id=>{document.getElementById(id).innerHTML="";});
   document.getElementById("ta-indicators").innerHTML="";
+  /* Fetching and drawing are caught SEPARATELY and on purpose. One catch
+     around both meant any bug inside renderTACharts overwrote #priceChart
+     with "Failed to load: <message>" — wiping charts that had just drawn
+     correctly, blaming the network for a code fault, and offering a Retry
+     that re-ran the identical failing path. Charts appeared and then
+     vanished. A draw failure now says so, and leaves what rendered alone. */
   try{
     taOHLCV=await fetchOHLCVCached(ticker,warmupRange(taRange));
-    renderTACharts(taOHLCV);
   }catch(e){
     document.getElementById("priceChart").innerHTML=`<div class="chart-loading" style="color:var(--red);flex-direction:column;gap:.5rem">
       <div>Failed to load: ${e.message}</div>
       <button class="ct-btn" id="taRetryBtn">↻ Retry</button>
     </div>`;
     document.getElementById("taRetryBtn")?.addEventListener("click",()=>loadTACharts(ticker));
+    return;
+  }
+  try{
+    renderTACharts(taOHLCV);
+  }catch(e){
+    console.error("renderTACharts failed",e);
+    document.getElementById("ta-indicators").innerHTML=
+      `<div class="ind-box" style="color:var(--red)">Chart error: ${e.message}</div>`;
   }
 }
 
@@ -2929,13 +2942,22 @@ function renderTACharts(allRows){
   const s250v=lastOf(calcSMA(fullCloses,barsFor(250,allRows)));
   const bbPos=lastBB?((last-lastBB.lower)/(lastBB.upper-lastBB.lower)*100).toFixed(0):null;
 
+  /* The row, for its currency. This function only receives OHLCV, so the
+     ticker has to come from drawerTicker — and it must not be assumed to
+     resolve: a missing row falls back to a bare ticker object, which
+     ccyOf() reads the suffix from. An earlier version referenced a `d`
+     that does not exist in this scope, which threw on every single render;
+     loadTACharts caught it and replaced the price chart with an error box,
+     so the charts drew and then vanished. */
+  const row=RAW.find(r=>r.ticker===drawerTicker)||{ticker:drawerTicker};
+
   document.getElementById("ta-indicators").innerHTML=[
     ["RSI(14)",lastRSI!=null?lastRSI.toFixed(1):"—",lastRSI<30?"var(--accent)":lastRSI>70?"var(--red)":"var(--text)"],
     ["MACD",lastMACD!=null?(lastMACD>lastSig?"▲ Bull":"▼ Bear"):"—",lastMACD>lastSig?"var(--accent)":"var(--red)"],
-    ["SMA20",s20v?priceStr(d,s20v):"—",last>s20v?"var(--accent)":"var(--red)"],
-    ["SMA50",s50v?priceStr(d,s50v):"—",last>s50v?"var(--accent)":"var(--red)"],
-    ["SMA250",s250v?`$${s250v.toFixed(2)}`:"—",last>s250v?"var(--accent)":"var(--red)"],
-    ["ATR(14)",lastATR?`$${lastATR.toFixed(2)}`:"—","var(--text)"],
+    ["SMA20",s20v?priceStr(row,s20v):"—",last>s20v?"var(--accent)":"var(--red)"],
+    ["SMA50",s50v?priceStr(row,s50v):"—",last>s50v?"var(--accent)":"var(--red)"],
+    ["SMA250",s250v?priceStr(row,s250v):"—",last>s250v?"var(--accent)":"var(--red)"],
+    ["ATR(14)",lastATR?priceStr(row,lastATR):"—","var(--text)"],
     ["BB%",bbPos!=null?bbPos+"%":"—",bbPos<20?"var(--accent)":bbPos>80?"var(--red)":"var(--text)"],
   ].map(([l,v,c])=>`<div class="ind-box"><div class="ind-lbl">${l}</div><div class="ind-val" style="color:${c}">${v}</div></div>`).join("");
 }
