@@ -21,127 +21,127 @@
   "leverage": null,
   "house_rules": "position count, equal weighting, sector cap and costs are house convention, not the table's \u2014 it supplies entries and exits only"
  },
- "cash": 201.63005905298087,
+ "cash": 714.8286523203806,
  "positions": {
   "BKNG": {
    "shares": 31.732418524871356,
    "avg_price": 157.41,
-   "last": 160.27999877929688,
+   "last": 158.3300018310547,
    "opened": "2026-09-24"
   },
   "IBN": {
    "shares": 179.16068866571018,
    "avg_price": 27.88,
-   "last": 27.510000228881836,
+   "last": 27.75,
    "opened": "2026-09-24"
   },
   "SPGI": {
    "shares": 12.386856788592684,
    "avg_price": 403.25,
-   "last": 388.1600036621094,
-   "opened": "2026-09-24"
-  },
-  "MELI": {
-   "shares": 2.8475654598005846,
-   "avg_price": 1754.13,
-   "last": 1685.1199951171875,
+   "last": 390.9200134277344,
    "opened": "2026-09-24"
   },
   "GS": {
    "shares": 5.410001191391654,
    "avg_price": 923.29,
-   "last": 896.6699829101562,
+   "last": 893.4600219726562,
    "opened": "2026-09-24"
   },
   "JPM": {
    "shares": 14.75366257088847,
    "avg_price": 338.56,
-   "last": 333.17999267578125,
+   "last": 332.3800048828125,
    "opened": "2026-09-24"
   },
   "CCJ": {
    "shares": 56.68406718111665,
    "avg_price": 88.12,
-   "last": 85.69000244140625,
+   "last": 87.47000122070312,
    "opened": "2026-09-24"
   },
   "AXP": {
    "shares": 16.341686841588693,
    "avg_price": 305.66,
-   "last": 302.0899963378906,
+   "last": 304.0199890136719,
    "opened": "2026-09-24"
   },
   "NFLX": {
    "shares": 69.64584495259342,
    "avg_price": 71.72,
-   "last": 67.8499984741211,
-   "opened": "2026-09-24"
-  },
-  "UNH": {
-   "shares": 13.319644809471749,
-   "avg_price": 375.01,
-   "last": 365.20001220703125,
+   "last": 67.5,
    "opened": "2026-09-24"
   },
   "NVO": {
    "shares": 129.3371310201968,
    "avg_price": 38.62,
-   "last": 37.400001525878906,
+   "last": 37.540000915527344,
    "opened": "2026-09-24"
   },
   "AMZN": {
    "shares": 20.02967359050445,
    "avg_price": 249.38,
-   "last": 248.22999572753906,
+   "last": 251.39999389648438,
    "opened": "2026-09-24"
   },
   "UBER": {
    "shares": 72.16122507945681,
    "avg_price": 69.22,
-   "last": 67.87999725341797,
+   "last": 69.4800033569336,
    "opened": "2026-09-24"
   },
   "REGN": {
    "shares": 6.2749679656290045,
    "avg_price": 796.02,
-   "last": 734.8099975585938,
-   "opened": "2026-09-24"
-  },
-  "CEG": {
-   "shares": 19.092577020105495,
-   "avg_price": 261.62,
-   "last": 258.9200134277344,
-   "opened": "2026-09-24"
-  },
-  "GE": {
-   "shares": 15.620113828256928,
-   "avg_price": 319.78,
-   "last": 312.3900146484375,
+   "last": 726.469970703125,
    "opened": "2026-09-24"
   },
   "NEE": {
    "shares": 64.86474563264092,
    "avg_price": 75.9749984741211,
-   "last": 76.3499984741211,
+   "last": 76.27999877929688,
    "opened": "2026-09-30"
   },
   "BAC": {
    "shares": 90.56508072313405,
    "avg_price": 54.415000915527344,
-   "last": 53.72999954223633,
+   "last": 54.0,
    "opened": "2026-09-30"
-  },
-  "MA": {
-   "shares": 8.87326015870059,
-   "avg_price": 550.0,
-   "last": 550.0,
-   "opened": "2026-10-01"
   },
   "LVMUY": {
    "shares": 57.32080246971067,
    "avg_price": 85.13999938964844,
-   "last": 85.13999938964844,
+   "last": 85.5,
    "opened": "2026-10-01"
+  },
+  "SAP": {
+   "shares": 23.7624629151136,
+   "avg_price": 207.74000549316406,
+   "last": 207.74000549316406,
+   "opened": "2026-10-05"
+  },
+  "BRK-B": {
+   "shares": 9.789422283974496,
+   "avg_price": 504.260009765625,
+   "last": 504.260009765625,
+   "opened": "2026-10-05"
+  },
+  "AZN": {
+   "shares": 31.53653750088517,
+   "avg_price": 156.52999877929688,
+   "last": 156.52999877929688,
+   "opened": "2026-10-05"
+  },
+  "TTD": {
+   "shares": 412.0546214641438,
+   "avg_price": 11.979999542236328,
+   "last": 11.979999542236328,
+   "opened": "2026-10-05"
+  },
+  "NOC": {
+   "shares": 10.368222319201577,
+   "avg_price": 476.1099853515625,
+   "last": 476.1099853515625,
+   "opened": "2026-10-05"
   }
  },
  "equity": [
@@ -209,6 +209,28 @@
    "bench": {
     "SPY": 99584.19,
     "QQQ": 100125.49
+   }
+  },
+  {
+   "date": "2026-10-02",
+   "value": 97739.87,
+   "invested": 97538.21,
+   "cash": 201.65,
+   "n": 20,
+   "bench": {
+    "SPY": 100320.66,
+    "QQQ": 101144.25
+   }
+  },
+  {
+   "date": "2026-10-05",
+   "value": 98802.4,
+   "invested": 98087.58,
+   "cash": 714.83,
+   "n": 20,
+   "bench": {
+    "SPY": 100997.16,
+    "QQQ": 102037.51
    }
   }
  ],
@@ -512,6 +534,106 @@
    "price": 85.14,
    "fee": 4.89,
    "reason": "Entry \u2014 RSI 16.0, score 6.0"
+  },
+  {
+   "date": "2026-10-05",
+   "side": "SELL",
+   "ticker": "MELI",
+   "shares": 2.8476,
+   "price": 1860.61,
+   "fee": 5.3,
+   "pnl": 297.91,
+   "held_days": 11,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-10-05",
+   "side": "SELL",
+   "ticker": "UNH",
+   "shares": 13.3196,
+   "price": 378.58,
+   "fee": 5.04,
+   "pnl": 42.51,
+   "held_days": 11,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-10-05",
+   "side": "SELL",
+   "ticker": "CEG",
+   "shares": 19.0926,
+   "price": 267.62,
+   "fee": 5.11,
+   "pnl": 109.45,
+   "held_days": 11,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-10-05",
+   "side": "SELL",
+   "ticker": "GE",
+   "shares": 15.6201,
+   "price": 306.34,
+   "fee": 4.79,
+   "pnl": -214.72,
+   "held_days": 11,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-10-05",
+   "side": "SELL",
+   "ticker": "MA",
+   "shares": 8.8733,
+   "price": 564.59,
+   "fee": 5.01,
+   "pnl": 124.45,
+   "held_days": 4,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-10-05",
+   "side": "BUY",
+   "ticker": "SAP",
+   "shares": 23.7625,
+   "price": 207.74,
+   "fee": 4.94,
+   "reason": "Entry \u2014 RSI 32.5, score 7.0"
+  },
+  {
+   "date": "2026-10-05",
+   "side": "BUY",
+   "ticker": "BRK-B",
+   "shares": 9.7894,
+   "price": 504.26,
+   "fee": 4.94,
+   "reason": "Entry \u2014 RSI 35.6, score 7.0"
+  },
+  {
+   "date": "2026-10-05",
+   "side": "BUY",
+   "ticker": "AZN",
+   "shares": 31.5365,
+   "price": 156.53,
+   "fee": 4.94,
+   "reason": "Entry \u2014 RSI 39.4, score 7.0"
+  },
+  {
+   "date": "2026-10-05",
+   "side": "BUY",
+   "ticker": "TTD",
+   "shares": 412.0546,
+   "price": 11.98,
+   "fee": 4.94,
+   "reason": "Entry \u2014 RSI 4.5, score 6.0"
+  },
+  {
+   "date": "2026-10-05",
+   "side": "BUY",
+   "ticker": "NOC",
+   "shares": 10.3682,
+   "price": 476.11,
+   "fee": 4.94,
+   "reason": "Entry \u2014 RSI 12.8, score 6.0"
   }
  ],
  "benchmarks": {
@@ -565,6 +687,19 @@
    "date": "2026-10-01",
    "msg": "143 long signals, 20 held",
    "snapshot": "2026-10-02T01:14:37Z"
+  },
+  {
+   "date": "2026-10-05",
+   "msg": "backfilled 2 missed sessions (2026-10-02 to 2026-10-05)"
+  },
+  {
+   "date": "2026-10-02",
+   "msg": "backfilled session \u2014 marked to market only, because the signal snapshot is today's and applying it to an older price would be look-ahead"
+  },
+  {
+   "date": "2026-10-05",
+   "msg": "108 long signals, 20 held",
+   "snapshot": "2026-10-06T01:58:56Z"
   }
  ]
 }
