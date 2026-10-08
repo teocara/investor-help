@@ -21,127 +21,127 @@
   "leverage": null,
   "house_rules": "position count, equal weighting, sector cap and costs are house convention, not the table's \u2014 it supplies entries and exits only"
  },
- "cash": 714.9053358152387,
+ "cash": 886.6271783780157,
  "positions": {
   "BKNG": {
    "shares": 31.732418524871356,
    "avg_price": 157.41,
-   "last": 157.6300048828125,
-   "opened": "2026-09-24"
-  },
-  "IBN": {
-   "shares": 179.16068866571018,
-   "avg_price": 27.88,
-   "last": 28.020000457763672,
+   "last": 155.8699951171875,
    "opened": "2026-09-24"
   },
   "SPGI": {
    "shares": 12.386856788592684,
    "avg_price": 403.25,
-   "last": 396.1300048828125,
+   "last": 395.17999267578125,
    "opened": "2026-09-24"
   },
   "GS": {
    "shares": 5.410001191391654,
    "avg_price": 923.29,
-   "last": 897.1799926757812,
+   "last": 887.2100219726562,
    "opened": "2026-09-24"
   },
   "JPM": {
    "shares": 14.75366257088847,
    "avg_price": 338.56,
-   "last": 331.2799987792969,
-   "opened": "2026-09-24"
-  },
-  "CCJ": {
-   "shares": 56.68406718111665,
-   "avg_price": 88.12,
-   "last": 93.0199966430664,
+   "last": 329.5799865722656,
    "opened": "2026-09-24"
   },
   "AXP": {
    "shares": 16.341686841588693,
    "avg_price": 305.66,
-   "last": 304.54998779296875,
+   "last": 304.25,
    "opened": "2026-09-24"
   },
   "NFLX": {
    "shares": 69.64584495259342,
    "avg_price": 71.72,
-   "last": 68.69000244140625,
+   "last": 69.69999694824219,
    "opened": "2026-09-24"
   },
   "NVO": {
    "shares": 129.3371310201968,
    "avg_price": 38.62,
-   "last": 37.529998779296875,
+   "last": 38.2599983215332,
    "opened": "2026-09-24"
   },
   "AMZN": {
    "shares": 20.02967359050445,
    "avg_price": 249.38,
-   "last": 256.2900085449219,
+   "last": 259.9200134277344,
    "opened": "2026-09-24"
   },
   "UBER": {
    "shares": 72.16122507945681,
    "avg_price": 69.22,
-   "last": 69.08000183105469,
+   "last": 68.44999694824219,
    "opened": "2026-09-24"
   },
   "REGN": {
    "shares": 6.2749679656290045,
    "avg_price": 796.02,
-   "last": 738.719970703125,
+   "last": 742.1199951171875,
    "opened": "2026-09-24"
-  },
-  "NEE": {
-   "shares": 64.86474563264092,
-   "avg_price": 75.9749984741211,
-   "last": 77.87999725341797,
-   "opened": "2026-09-30"
   },
   "BAC": {
    "shares": 90.56508072313405,
    "avg_price": 54.415000915527344,
-   "last": 54.09000015258789,
+   "last": 53.52000045776367,
    "opened": "2026-09-30"
   },
   "LVMUY": {
    "shares": 57.32080246971067,
    "avg_price": 85.13999938964844,
-   "last": 86.22000122070312,
+   "last": 87.12000274658203,
    "opened": "2026-10-01"
-  },
-  "SAP": {
-   "shares": 23.7624629151136,
-   "avg_price": 207.74000549316406,
-   "last": 210.4600067138672,
-   "opened": "2026-10-05"
   },
   "BRK-B": {
    "shares": 9.789422283974496,
    "avg_price": 504.260009765625,
-   "last": 505.5400085449219,
-   "opened": "2026-10-05"
-  },
-  "AZN": {
-   "shares": 31.53653750088517,
-   "avg_price": 156.52999877929688,
-   "last": 158.61000061035156,
+   "last": 506.25,
    "opened": "2026-10-05"
   },
   "TTD": {
    "shares": 412.0546214641438,
    "avg_price": 11.979999542236328,
-   "last": 11.920000076293945,
+   "last": 12.09000015258789,
    "opened": "2026-10-05"
   },
   "NOC": {
    "shares": 10.368222319201577,
    "avg_price": 476.1099853515625,
-   "last": 483.1099853515625,
+   "last": 473.4599914550781,
    "opened": "2026-10-05"
+  },
+  "GD": {
+   "shares": 15.222097544230788,
+   "avg_price": 326.6300048828125,
+   "last": 326.6300048828125,
+   "opened": "2026-10-07"
+  },
+  "RTX": {
+   "shares": 27.582347424348775,
+   "avg_price": 180.25999450683594,
+   "last": 180.25999450683594,
+   "opened": "2026-10-07"
+  },
+  "MCD": {
+   "shares": 21.534969204987586,
+   "avg_price": 230.8800048828125,
+   "last": 230.8800048828125,
+   "opened": "2026-10-07"
+  },
+  "LMT": {
+   "shares": 9.959524424183982,
+   "avg_price": 499.2200012207031,
+   "last": 499.2200012207031,
+   "opened": "2026-10-07"
+  },
+  "TTE": {
+   "shares": 59.02877356100056,
+   "avg_price": 84.2300033569336,
+   "last": 84.2300033569336,
+   "opened": "2026-10-07"
   }
  },
  "equity": [
@@ -242,6 +242,17 @@
    "bench": {
     "SPY": 101552.44,
     "QQQ": 102504.38
+   }
+  },
+  {
+   "date": "2026-10-07",
+   "value": 99514.53,
+   "invested": 98627.9,
+   "cash": 886.63,
+   "n": 20,
+   "bench": {
+    "SPY": 101308.69,
+    "QQQ": 102243.96
    }
   }
  ],
@@ -645,6 +656,106 @@
    "price": 476.11,
    "fee": 4.94,
    "reason": "Entry \u2014 RSI 12.8, score 6.0"
+  },
+  {
+   "date": "2026-10-07",
+   "side": "SELL",
+   "ticker": "IBN",
+   "shares": 179.1607,
+   "price": 27.86,
+   "fee": 4.99,
+   "pnl": -8.57,
+   "held_days": 13,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-10-07",
+   "side": "SELL",
+   "ticker": "CCJ",
+   "shares": 56.6841,
+   "price": 89.07,
+   "fee": 5.05,
+   "pnl": 48.8,
+   "held_days": 13,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-10-07",
+   "side": "SELL",
+   "ticker": "NEE",
+   "shares": 64.8647,
+   "price": 77.06,
+   "fee": 5.0,
+   "pnl": 65.38,
+   "held_days": 7,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-10-07",
+   "side": "SELL",
+   "ticker": "SAP",
+   "shares": 23.7625,
+   "price": 210.13,
+   "fee": 4.99,
+   "pnl": 51.8,
+   "held_days": 2,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-10-07",
+   "side": "SELL",
+   "ticker": "AZN",
+   "shares": 31.5365,
+   "price": 160.12,
+   "fee": 5.05,
+   "pnl": 108.17,
+   "held_days": 2,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-10-07",
+   "side": "BUY",
+   "ticker": "GD",
+   "shares": 15.2221,
+   "price": 326.63,
+   "fee": 4.98,
+   "reason": "Entry \u2014 RSI 10.5, score 6.0"
+  },
+  {
+   "date": "2026-10-07",
+   "side": "BUY",
+   "ticker": "RTX",
+   "shares": 27.5823,
+   "price": 180.26,
+   "fee": 4.98,
+   "reason": "Entry \u2014 RSI 14.6, score 6.0"
+  },
+  {
+   "date": "2026-10-07",
+   "side": "BUY",
+   "ticker": "MCD",
+   "shares": 21.535,
+   "price": 230.88,
+   "fee": 4.98,
+   "reason": "Entry \u2014 RSI 19.0, score 6.0"
+  },
+  {
+   "date": "2026-10-07",
+   "side": "BUY",
+   "ticker": "LMT",
+   "shares": 9.9595,
+   "price": 499.22,
+   "fee": 4.98,
+   "reason": "Entry \u2014 RSI 21.1, score 6.0"
+  },
+  {
+   "date": "2026-10-07",
+   "side": "BUY",
+   "ticker": "TTE",
+   "shares": 59.0288,
+   "price": 84.23,
+   "fee": 4.98,
+   "reason": "Entry \u2014 RSI 24.4, score 6.0"
   }
  ],
  "benchmarks": {
@@ -716,6 +827,11 @@
    "date": "2026-10-06",
    "msg": "108 long signals, 20 held",
    "snapshot": "2026-10-06T01:58:56Z"
+  },
+  {
+   "date": "2026-10-07",
+   "msg": "66 long signals, 20 held",
+   "snapshot": "2026-10-08T01:19:14Z"
   }
  ]
 }
