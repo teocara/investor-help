@@ -1,167 +1,195 @@
 {
- "generated": "2026-10-03T10:33:44+00:00",
+ "generated": "2026-10-08T20:59:01+00:00",
  "note": "Daily TOTAL-RETURN closes (Yahoo adjusted close: distributions reinvested). ^IRX is a rate in percent, not a price.",
  "series": {
   "VFINX": {
    "file": "VFINX.json",
    "role": "US large cap (S&P 500 index fund, 1976)",
    "start": "1980-01-02",
-   "end": "2026-10-02",
-   "bars": 11784
+   "end": "2026-10-07",
+   "bars": 11787
   },
   "NAESX": {
    "file": "NAESX.json",
    "role": "US small cap (Small-Cap index fund, 1960)",
    "start": "1980-01-02",
-   "end": "2026-10-02",
-   "bars": 11784
+   "end": "2026-10-07",
+   "bars": 11787
   },
   "VIVAX": {
    "file": "VIVAX.json",
    "role": "US large value (Value index fund, 1992)",
    "start": "1992-10-30",
-   "end": "2026-10-02",
-   "bars": 8539
+   "end": "2026-10-07",
+   "bars": 8542
   },
   "VEURX": {
    "file": "VEURX.json",
    "role": "Europe (Europe index fund, 1990)",
    "start": "1990-06-18",
-   "end": "2026-10-02",
-   "bars": 9140
+   "end": "2026-10-07",
+   "bars": 9143
   },
   "VPACX": {
    "file": "VPACX.json",
    "role": "Pacific (Pacific index fund, 1990)",
    "start": "1990-06-18",
-   "end": "2026-10-02",
-   "bars": 9140
+   "end": "2026-10-07",
+   "bars": 9143
   },
   "VEIEX": {
    "file": "VEIEX.json",
    "role": "Emerging markets (EM index fund, 1994)",
    "start": "1994-05-04",
-   "end": "2026-10-02",
-   "bars": 8159
+   "end": "2026-10-07",
+   "bars": 8162
   },
   "VGSIX": {
    "file": "VGSIX.json",
    "role": "US REITs (REIT index fund, 1996)",
    "start": "1996-05-13",
-   "end": "2026-10-02",
-   "bars": 7647
+   "end": "2026-10-07",
+   "bars": 7650
   },
   "VGPMX": {
    "file": "VGPMX.json",
    "role": "Precious metals and mining (1984)",
    "start": "1984-05-23",
-   "end": "2026-10-02",
-   "bars": 10673
+   "end": "2026-10-07",
+   "bars": 10676
   },
   "VUSTX": {
    "file": "VUSTX.json",
    "role": "Long Treasuries (Long-Term Treasury, 1986)",
    "start": "1986-05-19",
-   "end": "2026-10-02",
-   "bars": 10172
+   "end": "2026-10-07",
+   "bars": 10175
   },
   "VFITX": {
    "file": "VFITX.json",
    "role": "Intermediate Treasuries (1991)",
    "start": "1991-10-28",
-   "end": "2026-10-02",
-   "bars": 8795
+   "end": "2026-10-07",
+   "bars": 8798
   },
   "VWESX": {
    "file": "VWESX.json",
    "role": "Long investment-grade credit (1973)",
    "start": "1980-01-02",
-   "end": "2026-10-02",
-   "bars": 11784
+   "end": "2026-10-07",
+   "bars": 11787
   },
   "^IRX": {
    "file": "_IRX.json",
    "role": "13-week T-bill discount rate, for the financing cost",
    "start": "1970-01-02",
-   "end": "2026-10-02",
-   "bars": 14201
+   "end": "2026-10-08",
+   "bars": 14205
+  },
+  "^GSPC": {
+   "file": "_GSPC.json",
+   "role": "S&P 500 price index, 1927 \u2014 the long sample for the event study",
+   "start": "1970-01-02",
+   "end": "2026-10-08",
+   "bars": 14314
+  },
+  "^SP500TR": {
+   "file": "_SP500TR.json",
+   "role": "S&P 500 TOTAL return, 1988 \u2014 cross-check on the price index",
+   "start": "1988-01-04",
+   "end": "2026-10-08",
+   "bars": 9765
+  },
+  "^VIX": {
+   "file": "_VIX.json",
+   "role": "Implied volatility, 1990 \u2014 for the pre-election risk premium",
+   "start": "1990-01-02",
+   "end": "2026-10-08",
+   "bars": 9262
+  },
+  "^RUT": {
+   "file": "_RUT.json",
+   "role": "Russell 2000, 1987 \u2014 small caps, said to be more policy-sensitive",
+   "start": "1987-09-10",
+   "end": "2026-10-08",
+   "bars": 9844
   },
   "VFISX": {
    "file": "VFISX.json",
    "role": "Short Treasuries, the cash sleeve (1991)",
    "start": "1991-10-28",
-   "end": "2026-10-02",
-   "bars": 8795
+   "end": "2026-10-07",
+   "bars": 8798
   },
   "SPY": {
    "file": "SPY.json",
    "role": "cross-check against the fund series",
    "start": "1993-01-29",
-   "end": "2026-10-02",
-   "bars": 8477
+   "end": "2026-10-08",
+   "bars": 8481
   },
   "IWM": {
    "file": "IWM.json",
    "role": "cross-check against the fund series",
    "start": "2000-05-26",
-   "end": "2026-10-02",
-   "bars": 6627
+   "end": "2026-10-08",
+   "bars": 6631
   },
   "EFA": {
    "file": "EFA.json",
    "role": "cross-check against the fund series",
    "start": "2001-08-27",
-   "end": "2026-10-02",
-   "bars": 6312
+   "end": "2026-10-08",
+   "bars": 6316
   },
   "EEM": {
    "file": "EEM.json",
    "role": "cross-check against the fund series",
    "start": "2003-04-14",
-   "end": "2026-10-02",
-   "bars": 5906
+   "end": "2026-10-08",
+   "bars": 5910
   },
   "VNQ": {
    "file": "VNQ.json",
    "role": "cross-check against the fund series",
    "start": "2004-09-29",
-   "end": "2026-10-02",
-   "bars": 5538
+   "end": "2026-10-08",
+   "bars": 5542
   },
   "TLT": {
    "file": "TLT.json",
    "role": "cross-check against the fund series",
    "start": "2002-07-30",
-   "end": "2026-10-02",
-   "bars": 6084
+   "end": "2026-10-08",
+   "bars": 6088
   },
   "IEF": {
    "file": "IEF.json",
    "role": "cross-check against the fund series",
    "start": "2002-07-30",
-   "end": "2026-10-02",
-   "bars": 6084
+   "end": "2026-10-08",
+   "bars": 6088
   },
   "LQD": {
    "file": "LQD.json",
    "role": "cross-check against the fund series",
    "start": "2002-07-30",
-   "end": "2026-10-02",
-   "bars": 6084
+   "end": "2026-10-08",
+   "bars": 6088
   },
   "GLD": {
    "file": "GLD.json",
    "role": "cross-check against the fund series",
    "start": "2004-11-18",
-   "end": "2026-10-02",
-   "bars": 5502
+   "end": "2026-10-08",
+   "bars": 5506
   },
   "BIL": {
    "file": "BIL.json",
    "role": "cross-check against the fund series",
    "start": "2007-05-30",
-   "end": "2026-10-02",
-   "bars": 4868
+   "end": "2026-10-08",
+   "bars": 4872
   }
  },
  "failed": []
