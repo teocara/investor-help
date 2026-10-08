@@ -73,7 +73,10 @@ CROSSCHECK = ["SPY", "IWM", "EFA", "EEM", "VNQ", "TLT", "IEF", "LQD", "GLD", "BI
 
 def fetch(ticker):
     df = yf.download(
-        ticker, start="1970-01-01", auto_adjust=True,
+        # 1927, not 1970: the index reaches back that far and the election
+        # study lives or dies on sample size — 1970 gives 14 midterms, 1927
+        # gives 24. The fund series simply start when they start.
+        ticker, start="1927-01-01", auto_adjust=True,
         progress=False, threads=False, actions=False,
     )
     if df is None or df.empty:
