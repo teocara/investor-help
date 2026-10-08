@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-08T20:59:01+00:00",
+ "generated": "2026-10-08T21:00:28+00:00",
  "note": "Daily TOTAL-RETURN closes (Yahoo adjusted close: distributions reinvested). ^IRX is a rate in percent, not a price.",
  "series": {
   "VFINX": {
@@ -82,16 +82,16 @@
   "^IRX": {
    "file": "_IRX.json",
    "role": "13-week T-bill discount rate, for the financing cost",
-   "start": "1970-01-02",
+   "start": "1960-01-04",
    "end": "2026-10-08",
-   "bars": 14205
+   "bars": 16670
   },
   "^GSPC": {
    "file": "_GSPC.json",
    "role": "S&P 500 price index, 1927 \u2014 the long sample for the event study",
-   "start": "1970-01-02",
+   "start": "1927-12-30",
    "end": "2026-10-08",
-   "bars": 14314
+   "bars": 24810
   },
   "^SP500TR": {
    "file": "_SP500TR.json",
