@@ -51,6 +51,18 @@ SERIES = {
     "VWESX": "Long investment-grade credit (1973)",
     # Reference series, not tradeable sleeves
     "^IRX":  "13-week T-bill discount rate, for the financing cost",
+    # For the midterm-election event study. The index goes back to 1927,
+    # which is the difference between 11 midterms and 24 — and with a
+    # sample this small, every extra observation moves the error bars.
+    # Price-only, so it understates total return, and by MORE in the
+    # decades when dividend yields were 5-6%. That is tolerable here only
+    # because the study compares election windows against non-election
+    # windows drawn from the same decades, so the missing dividend is in
+    # both sides of the comparison.
+    "^GSPC": "S&P 500 price index, 1927 — the long sample for the event study",
+    "^SP500TR": "S&P 500 TOTAL return, 1988 — cross-check on the price index",
+    "^VIX":  "Implied volatility, 1990 — for the pre-election risk premium",
+    "^RUT":  "Russell 2000, 1987 — small caps, said to be more policy-sensitive",
     "VFISX": "Short Treasuries, the cash sleeve (1991)",
 }
 
