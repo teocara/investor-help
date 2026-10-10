@@ -21,127 +21,127 @@
   "leverage": null,
   "house_rules": "position count, equal weighting, sector cap and costs are house convention, not the table's \u2014 it supplies entries and exits only"
  },
- "cash": 886.7222916201242,
+ "cash": 847.189925603976,
  "positions": {
   "BKNG": {
    "shares": 31.732418524871356,
    "avg_price": 157.41,
-   "last": 159.97000122070312,
-   "opened": "2026-09-24"
-  },
-  "SPGI": {
-   "shares": 12.386856788592684,
-   "avg_price": 403.25,
-   "last": 402.7300109863281,
+   "last": 160.33999633789062,
    "opened": "2026-09-24"
   },
   "GS": {
    "shares": 5.410001191391654,
    "avg_price": 923.29,
-   "last": 882.5900268554688,
+   "last": 895.3200073242188,
    "opened": "2026-09-24"
   },
   "JPM": {
    "shares": 14.75366257088847,
    "avg_price": 338.56,
-   "last": 331.4200134277344,
-   "opened": "2026-09-24"
-  },
-  "AXP": {
-   "shares": 16.341686841588693,
-   "avg_price": 305.66,
-   "last": 308.1000061035156,
-   "opened": "2026-09-24"
-  },
-  "NFLX": {
-   "shares": 69.64584495259342,
-   "avg_price": 71.72,
-   "last": 71.56999969482422,
+   "last": 332.989990234375,
    "opened": "2026-09-24"
   },
   "NVO": {
    "shares": 129.3371310201968,
    "avg_price": 38.62,
-   "last": 38.18000030517578,
+   "last": 38.63999938964844,
    "opened": "2026-09-24"
   },
   "AMZN": {
    "shares": 20.02967359050445,
    "avg_price": 249.38,
-   "last": 254.05999755859375,
-   "opened": "2026-09-24"
-  },
-  "UBER": {
-   "shares": 72.16122507945681,
-   "avg_price": 69.22,
-   "last": 70.23999786376953,
+   "last": 262.42999267578125,
    "opened": "2026-09-24"
   },
   "REGN": {
    "shares": 6.2749679656290045,
    "avg_price": 796.02,
-   "last": 739.5700073242188,
+   "last": 746.5399780273438,
    "opened": "2026-09-24"
   },
   "BAC": {
    "shares": 90.56508072313405,
    "avg_price": 54.415000915527344,
-   "last": 53.61000061035156,
+   "last": 54.31999969482422,
    "opened": "2026-09-30"
   },
   "LVMUY": {
    "shares": 57.32080246971067,
    "avg_price": 85.13999938964844,
-   "last": 85.87999725341797,
+   "last": 85.44999694824219,
    "opened": "2026-10-01"
   },
   "BRK-B": {
    "shares": 9.789422283974496,
    "avg_price": 504.260009765625,
-   "last": 511.04998779296875,
+   "last": 515.6199951171875,
    "opened": "2026-10-05"
   },
   "TTD": {
    "shares": 412.0546214641438,
    "avg_price": 11.979999542236328,
-   "last": 12.34000015258789,
+   "last": 12.079999923706055,
    "opened": "2026-10-05"
   },
   "NOC": {
    "shares": 10.368222319201577,
    "avg_price": 476.1099853515625,
-   "last": 484.4800109863281,
+   "last": 480.7200012207031,
    "opened": "2026-10-05"
   },
   "GD": {
    "shares": 15.222097544230788,
    "avg_price": 326.6300048828125,
-   "last": 329.8999938964844,
+   "last": 331.2699890136719,
    "opened": "2026-10-07"
   },
   "RTX": {
    "shares": 27.582347424348775,
    "avg_price": 180.25999450683594,
-   "last": 184.32000732421875,
-   "opened": "2026-10-07"
-  },
-  "MCD": {
-   "shares": 21.534969204987586,
-   "avg_price": 230.8800048828125,
-   "last": 236.89999389648438,
+   "last": 185.97000122070312,
    "opened": "2026-10-07"
   },
   "LMT": {
    "shares": 9.959524424183982,
    "avg_price": 499.2200012207031,
-   "last": 507.8900146484375,
+   "last": 509.5899963378906,
    "opened": "2026-10-07"
   },
-  "TTE": {
-   "shares": 59.02877356100056,
-   "avg_price": 84.2300033569336,
-   "last": 86.0199966430664,
-   "opened": "2026-10-07"
+  "BABA": {
+   "shares": 45.301921724236706,
+   "avg_price": 111.37000274658203,
+   "last": 111.37000274658203,
+   "opened": "2026-10-09"
+  },
+  "AZN": {
+   "shares": 31.69142740934829,
+   "avg_price": 159.1999969482422,
+   "last": 159.1999969482422,
+   "opened": "2026-10-09"
+  },
+  "HDB": {
+   "shares": 226.44860822997157,
+   "avg_price": 22.280000686645508,
+   "last": 22.280000686645508,
+   "opened": "2026-10-09"
+  },
+  "SE": {
+   "shares": 52.96876794597046,
+   "avg_price": 95.25,
+   "last": 95.25,
+   "opened": "2026-10-09"
+  },
+  "MS": {
+   "shares": 26.55128425120704,
+   "avg_price": 190.02000427246094,
+   "last": 190.02000427246094,
+   "opened": "2026-10-09"
+  },
+  "HSBC": {
+   "shares": 54.26193767154189,
+   "avg_price": 92.9800033569336,
+   "last": 92.9800033569336,
+   "opened": "2026-10-09"
   }
  },
  "equity": [
@@ -264,6 +264,17 @@
    "bench": {
     "SPY": 100879.84,
     "QQQ": 100874.38
+   }
+  },
+  {
+   "date": "2026-10-09",
+   "value": 100976.21,
+   "invested": 100129.02,
+   "cash": 847.19,
+   "n": 20,
+   "bench": {
+    "SPY": 101484.66,
+    "QQQ": 101372.29
    }
   }
  ],
@@ -767,6 +778,126 @@
    "price": 84.23,
    "fee": 4.98,
    "reason": "Entry \u2014 RSI 24.4, score 6.0"
+  },
+  {
+   "date": "2026-10-09",
+   "side": "SELL",
+   "ticker": "SPGI",
+   "shares": 12.3869,
+   "price": 407.82,
+   "fee": 5.05,
+   "pnl": 51.56,
+   "held_days": 15,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-10-09",
+   "side": "SELL",
+   "ticker": "AXP",
+   "shares": 16.3417,
+   "price": 308.17,
+   "fee": 5.04,
+   "pnl": 35.98,
+   "held_days": 15,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-10-09",
+   "side": "SELL",
+   "ticker": "NFLX",
+   "shares": 69.6458,
+   "price": 70.3,
+   "fee": 4.9,
+   "pnl": -103.79,
+   "held_days": 15,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-10-09",
+   "side": "SELL",
+   "ticker": "UBER",
+   "shares": 72.1612,
+   "price": 71.51,
+   "fee": 5.16,
+   "pnl": 160.09,
+   "held_days": 15,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-10-09",
+   "side": "SELL",
+   "ticker": "MCD",
+   "shares": 21.535,
+   "price": 235.23,
+   "fee": 5.07,
+   "pnl": 88.61,
+   "held_days": 2,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-10-09",
+   "side": "SELL",
+   "ticker": "TTE",
+   "shares": 59.0288,
+   "price": 86.11,
+   "fee": 5.08,
+   "pnl": 105.89,
+   "held_days": 2,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-10-09",
+   "side": "BUY",
+   "ticker": "BABA",
+   "shares": 45.3019,
+   "price": 111.37,
+   "fee": 5.05,
+   "reason": "Entry \u2014 RSI 34.0, score 7.0"
+  },
+  {
+   "date": "2026-10-09",
+   "side": "BUY",
+   "ticker": "AZN",
+   "shares": 31.6914,
+   "price": 159.2,
+   "fee": 5.05,
+   "reason": "Entry \u2014 RSI 35.7, score 7.0"
+  },
+  {
+   "date": "2026-10-09",
+   "side": "BUY",
+   "ticker": "HDB",
+   "shares": 226.4486,
+   "price": 22.28,
+   "fee": 5.05,
+   "reason": "Entry \u2014 RSI 38.2, score 7.0"
+  },
+  {
+   "date": "2026-10-09",
+   "side": "BUY",
+   "ticker": "SE",
+   "shares": 52.9688,
+   "price": 95.25,
+   "fee": 5.05,
+   "reason": "Entry \u2014 RSI 22.2, score 6.0"
+  },
+  {
+   "date": "2026-10-09",
+   "side": "BUY",
+   "ticker": "MS",
+   "shares": 26.5513,
+   "price": 190.02,
+   "fee": 5.05,
+   "reason": "Entry \u2014 RSI 23.4, score 6.0"
+  },
+  {
+   "date": "2026-10-09",
+   "side": "BUY",
+   "ticker": "HSBC",
+   "shares": 54.2619,
+   "price": 92.98,
+   "fee": 5.05,
+   "reason": "Entry \u2014 RSI 23.7, score 6.0"
   }
  ],
  "benchmarks": {
@@ -848,6 +979,11 @@
    "date": "2026-10-08",
    "msg": "66 long signals, 20 held",
    "snapshot": "2026-10-08T01:19:14Z"
+  },
+  {
+   "date": "2026-10-09",
+   "msg": "88 long signals, 20 held",
+   "snapshot": "2026-10-10T01:16:34Z"
   }
  ]
 }
