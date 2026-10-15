@@ -453,6 +453,10 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true",
                     help="evaluate and print, touch nothing")
+    ap.add_argument("--self-test", action="store_true",
+                    help="raise one synthetic alarm to prove the "
+                         "notification actually reaches you, then resolve "
+                         "it on the next run")
     args = ap.parse_args()
 
     today = dt.date.today().isoformat()
@@ -465,9 +469,25 @@ def main():
           f"{sessions[-1] if sessions else 'unknown'}\n")
 
     alarms = []
-    alarms += check_data(today)
-    alarms += check_books(today, sessions)
-    alarms += check_workflows(today, api)
+    if args.self_test:
+        # The smoke-alarm test button. Until something genuinely fires, the
+        # delivery path has never run, and an unverified channel is the
+        # exact failure this whole file exists to prevent. Firing it on
+        # purpose proves the issue opens and reaches you; the NEXT ordinary
+        # run finds the condition gone and closes it, which also exercises
+        # the auto-resolve path.
+        alarms.append(Alarm(
+            "self_test", WARNING,
+            "Alarm channel self-test",
+            "This was raised deliberately by `--self-test` to prove the "
+            "notification path works end to end. Nothing is wrong.\n\n"
+            "If you are reading this, alarms reach you.",
+            "Nothing. The next scheduled alarm run will close this issue "
+            "automatically, which confirms the auto-resolve path too."))
+    else:
+        alarms += check_data(today)
+        alarms += check_books(today, sessions)
+        alarms += check_workflows(today, api)
 
     order = {CRITICAL: 0, WARNING: 1, INFO: 2}
     alarms.sort(key=lambda a: order[a.severity])

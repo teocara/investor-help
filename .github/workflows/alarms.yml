@@ -13,6 +13,11 @@ on:
   schedule:
     - cron: '47 11 * * *'          # 11:47 UTC daily, safety net
   workflow_dispatch:
+    inputs:
+      self_test:
+        description: "Raise a deliberate test alarm to verify notifications reach you"
+        type: boolean
+        default: false
 
 concurrency:
   group: alarms
@@ -48,7 +53,12 @@ jobs:
           # anything that accepts a POST, and critical alarms are pushed
           # there as well as opening an issue. Absent, nothing breaks.
           ALARM_WEBHOOK: ${{ secrets.ALARM_WEBHOOK }}
-        run: python scripts/alarms.py
+        run: |
+          if [ "${{ inputs.self_test }}" = "true" ]; then
+            python scripts/alarms.py --self-test
+          else
+            python scripts/alarms.py
+          fi
 
       - name: Commit the alarm state
         run: |
