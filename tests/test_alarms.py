@@ -106,12 +106,18 @@ run("drawdown within tolerance (stays silent)", None,
         {**d["equity"][-1],
          "value": max(x["value"] for x in d["equity"]) * 0.95})))
 
-run("single name takes over the book", "concentration",
+# Must breach the book's OWN declared cap times the drift allowance, not
+# a flat percentage. The flat version passed while hiding a false
+# positive on the growth book, whose cap is legitimately higher.
+run("single name past its stated cap", "concentration",
     lambda: wbook("portfolio.json", lambda d: d["positions"].__setitem__(
         next(iter(d["positions"])),
         {**next(iter(d["positions"].values())), "shares": 1e6, "last": 500,
          "avg_price": 100})),
     severity="warning")
+
+run("growth sleeve at normal monthly drift (silent)", None,
+    lambda: None)
 
 run("held position gaps 40% in a day", "shock",
     lambda: wbook("portfolio.json", lambda d: d["positions"].__setitem__(

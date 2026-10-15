@@ -75,11 +75,18 @@ DD_GROWTH = -30.0
 # nobody reads it as a risk model.
 DD_MOMENTUM = -20.0
 
-# A single name at this share of a book means the sizing rules have been
-# overwhelmed by a price move. MRNA reached 85% of the weekly book's gain
-# in August without ever breaching a position cap, which is what makes
-# this worth watching separately from the caps.
-CONCENTRATION = 0.30
+# Concentration is measured against each book's OWN declared cap, read
+# from its ledger, not against a flat number. A flat 30% looked sensible
+# and was a false positive by construction: the growth book's sleeve cap
+# is 25% of gross exposure, so after a month of drift a sleeve near 36%
+# of invested value is the strategy working exactly as designed. The
+# first real test run fired on it.
+#
+# Caps are applied at rebalance; between rebalances price moves carry
+# weights away from target, and the growth book only rebalances monthly.
+# So the alarm sits at the cap times a drift allowance: ordinary drift
+# stays quiet, and a position at half again its permitted weight does not.
+CONCENTRATION_DRIFT = 1.5
 
 # One-day move in a HELD position. Measured in this repo: in the August
 # episode exactly 1 of 637 tickers moved more than 35% in a day, so 25%
@@ -219,19 +226,30 @@ def check_books(today, sessions_index):
         pos = d.get("positions") or {}
         total = sum(p["shares"] * p.get("last", p["avg_price"])
                     for p in pos.values()) or 0.0
-        if total > 0:
+        # Each book states its own per-position cap. Both are shares of
+        # INVESTED value, which makes them directly comparable: the
+        # momentum books cap a name at 15% of equity, and the growth
+        # book's 25%-of-gross sleeve cap is also 25% of invested, because
+        # invested IS gross times equity.
+        rules = d.get("rules") or {}
+        cap = rules.get("max_weight") or rules.get("max_sleeve")
+        if total > 0 and cap:
+            limit = cap * CONCENTRATION_DRIFT
             for tk, p in pos.items():
                 share = p["shares"] * p.get("last", p["avg_price"]) / total
-                if share >= CONCENTRATION:
+                if share >= limit:
                     out.append(Alarm(
                         f"concentration:{d.get('book', path.stem)}:{tk}",
                         WARNING,
-                        f"{label}: {tk} is {share*100:.0f}% of the book",
-                        f"A single position has grown to {share*100:.0f}% of "
-                        f"invested value. The position caps are applied at "
-                        f"rebalance; between rebalances a price move can "
-                        f"carry a name past them.",
-                        "Confirm this is a price move and not a sizing bug."))
+                        f"{label}: {tk} is {share*100:.0f}% of the book "
+                        f"(cap {cap*100:.0f}%)",
+                        f"A single position has drifted to {share*100:.0f}% "
+                        f"of invested value against a stated cap of "
+                        f"{cap*100:.0f}%. Caps bind at rebalance, so some "
+                        f"drift is normal — this is {share/cap:.1f}x the "
+                        f"cap, which is past normal.",
+                        "Confirm this is a price move and not a sizing bug, "
+                        "and that the next rebalance actually trims it."))
 
         # 4. A held position just moved violently
         for tk, p in pos.items():
