@@ -1,10 +1,19 @@
 {
  "version": 1,
- "active": {},
+ "active": {
+  "self_test": {
+   "key": "self_test",
+   "severity": "warning",
+   "title": "Alarm channel self-test",
+   "first_seen": "2026-10-15",
+   "last_notified": "2026-10-15",
+   "issue": 2
+  }
+ },
  "history": [],
  "last_run": "2026-10-15",
  "last_result": {
-  "firing": 0,
+  "firing": 1,
   "critical": 0
  }
 }
