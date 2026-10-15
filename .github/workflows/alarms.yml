@@ -1,0 +1,69 @@
+name: Alarms
+
+# Chained to the jobs it watches rather than run on its own cron, so a
+# failure surfaces a minute or two after it happens instead of up to a day
+# later. The daily run is the safety net for the one case chaining cannot
+# see: a watched workflow that never starts at all, which is precisely
+# what GitHub's 60-day schedule disabling causes.
+
+on:
+  workflow_run:
+    workflows: ["Paper trading", "Refresh market data"]
+    types: [completed]
+  schedule:
+    - cron: '47 11 * * *'          # 11:47 UTC daily, safety net
+  workflow_dispatch:
+
+concurrency:
+  group: alarms
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+  actions: read                    # to read other workflows' run history
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # The alarm rules are tested on every run. An alarm system whose
+      # own logic has silently broken is worse than no alarm system: it
+      # looks like coverage. This caught a real inverted-sensitivity bug
+      # where the staleness check went quiet for badly stale ledgers.
+      - name: Test the alarm rules
+        run: python tests/test_alarms.py
+
+      - name: Evaluate alarms
+        env:
+          GITHUB_TOKEN: ${{ secrets.ALARM_TOKEN || github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          # Optional. Set it to an ntfy.sh topic URL, a Slack webhook or
+          # anything that accepts a POST, and critical alarms are pushed
+          # there as well as opening an issue. Absent, nothing breaks.
+          ALARM_WEBHOOK: ${{ secrets.ALARM_WEBHOOK }}
+        run: python scripts/alarms.py
+
+      - name: Commit the alarm state
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add paper/alarms.json
+          if git diff --cached --quiet; then
+            echo "no alarm state change"
+            exit 0
+          fi
+          git commit -m "chore(alarms): state update [skip ci]"
+          for attempt in 1 2 3 4 5; do
+            git push origin HEAD:main && exit 0
+            git pull --rebase --autostash origin main
+            sleep $((attempt * 5))
+          done
+          exit 1
