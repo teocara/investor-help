@@ -13,97 +13,97 @@
   "long_only": true,
   "leverage": null
  },
- "cash": 1102.6685537811027,
+ "cash": 0.0,
  "positions": {
   "BE": {
    "shares": 17.449201579515776,
    "avg_price": 208.9600067138672,
-   "last": 262.2799987792969,
+   "last": 263.45001220703125,
    "opened": "2026-08-18"
   },
   "MU": {
    "shares": 5.80516853930761,
    "avg_price": 933.4400024414062,
-   "last": 989.0399780273438,
-   "opened": "2026-09-01"
-  },
-  "LITE": {
-   "shares": 6.200186421954634,
-   "avg_price": 868.9500122070312,
-   "last": 995.4099731445312,
+   "last": 953.1900024414062,
    "opened": "2026-09-01"
   },
   "MRVL": {
    "shares": 26.051474218141685,
    "avg_price": 210.38999938964844,
-   "last": 265.8599853515625,
+   "last": 268.7300109863281,
    "opened": "2026-09-01"
   },
   "ATI": {
    "shares": 59.57105868244259,
    "avg_price": 200.9499969482422,
-   "last": 187.97999572753906,
-   "opened": "2026-09-01"
-  },
-  "KRYS": {
-   "shares": 33.475260768369004,
-   "avg_price": 363.8399963378906,
-   "last": 332.07000732421875,
-   "opened": "2026-09-01"
-  },
-  "EWY": {
-   "shares": 38.41936235441552,
-   "avg_price": 175.8000030517578,
-   "last": 170.11000061035156,
+   "last": 189.80999755859375,
    "opened": "2026-09-01"
   },
   "AMD": {
    "shares": 13.875311712490026,
    "avg_price": 504.20001220703125,
-   "last": 594.239990234375,
+   "last": 605.530029296875,
    "opened": "2026-09-15"
   },
   "MRNA": {
    "shares": 11.486568649717489,
    "avg_price": 203.4600067138672,
-   "last": 213.74000549316406,
+   "last": 216.25,
    "opened": "2026-09-29"
   },
   "TXG": {
    "shares": 77.4809193987612,
    "avg_price": 90.04000091552734,
-   "last": 75.19000244140625,
+   "last": 71.79000091552734,
    "opened": "2026-09-29"
   },
   "FORM": {
    "shares": 39.464342141395484,
    "avg_price": 136.25,
-   "last": 130.27999877929688,
+   "last": 128.08999633789062,
    "opened": "2026-09-29"
   },
   "INTC": {
    "shares": 60.27364801338818,
    "avg_price": 115.93000030517578,
-   "last": 101.3499984741211,
+   "last": 102.80999755859375,
    "opened": "2026-09-29"
   },
   "ILMN": {
    "shares": 40.69611056287192,
    "avg_price": 272.0,
-   "last": 276.6700134277344,
+   "last": 271.17999267578125,
    "opened": "2026-09-29"
   },
-  "FCX": {
-   "shares": 157.1644990249605,
-   "avg_price": 70.79000091552734,
-   "last": 73.29000091552734,
-   "opened": "2026-09-29"
+  "LITE": {
+   "shares": 5.085117440200408,
+   "avg_price": 987.989990234375,
+   "last": 987.989990234375,
+   "opened": "2026-10-13"
   },
-  "NTRA": {
-   "shares": 23.555300584375615,
-   "avg_price": 414.5199890136719,
-   "last": 397.7699890136719,
-   "opened": "2026-09-29"
+  "USO": {
+   "shares": 62.46209629188622,
+   "avg_price": 153.08999633789062,
+   "last": 153.08999633789062,
+   "opened": "2026-10-13"
+  },
+  "MPC": {
+   "shares": 27.679418091000983,
+   "avg_price": 476.9800109863281,
+   "last": 476.9800109863281,
+   "opened": "2026-10-13"
+  },
+  "EWY": {
+   "shares": 51.00787939083452,
+   "avg_price": 166.55999755859375,
+   "last": 166.55999755859375,
+   "opened": "2026-10-13"
+  },
+  "BNO": {
+   "shares": 133.7369846226329,
+   "avg_price": 65.0999984741211,
+   "last": 65.0999984741211,
+   "opened": "2026-10-13"
   }
  },
  "equity": [
@@ -523,6 +523,17 @@
    "bench": {
     "SPY": 101399.6,
     "QQQ": 103976.25
+   }
+  },
+  {
+   "date": "2026-10-13",
+   "value": 112165.4,
+   "invested": 112165.4,
+   "cash": 0.0,
+   "n": 15,
+   "bench": {
+    "SPY": 101387.88,
+    "QQQ": 103632.0
    }
   }
  ],
@@ -1101,6 +1112,106 @@
    "price": 414.52,
    "fee": 9.77,
    "reason": "new position"
+  },
+  {
+   "date": "2026-10-13",
+   "side": "SELL",
+   "ticker": "KRYS",
+   "shares": 33.4753,
+   "price": 321.16,
+   "fee": 10.75,
+   "pnl": -1439.47,
+   "held_days": 42,
+   "reason": "dropped from ranking"
+  },
+  {
+   "date": "2026-10-13",
+   "side": "SELL",
+   "ticker": "FCX",
+   "shares": 157.1645,
+   "price": 72.42,
+   "fee": 11.38,
+   "pnl": 244.8,
+   "held_days": 14,
+   "reason": "dropped from ranking"
+  },
+  {
+   "date": "2026-10-13",
+   "side": "SELL",
+   "ticker": "NTRA",
+   "shares": 23.5553,
+   "price": 395.655,
+   "fee": 9.32,
+   "pnl": -453.69,
+   "held_days": 14,
+   "reason": "dropped from ranking"
+  },
+  {
+   "date": "2026-10-13",
+   "side": "SELL",
+   "ticker": "LITE",
+   "shares": 6.2002,
+   "price": 987.99,
+   "fee": 6.13,
+   "pnl": 731.94,
+   "held_days": 42,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-10-13",
+   "side": "BUY",
+   "ticker": "LITE",
+   "shares": 5.0851,
+   "price": 987.99,
+   "fee": 5.03,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-10-13",
+   "side": "BUY",
+   "ticker": "USO",
+   "shares": 62.4621,
+   "price": 153.09,
+   "fee": 9.57,
+   "reason": "new position"
+  },
+  {
+   "date": "2026-10-13",
+   "side": "BUY",
+   "ticker": "MPC",
+   "shares": 27.6794,
+   "price": 476.98,
+   "fee": 13.22,
+   "reason": "new position"
+  },
+  {
+   "date": "2026-10-13",
+   "side": "SELL",
+   "ticker": "EWY",
+   "shares": 38.4194,
+   "price": 166.56,
+   "fee": 6.4,
+   "pnl": -361.39,
+   "held_days": 42,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-10-13",
+   "side": "BUY",
+   "ticker": "EWY",
+   "shares": 51.0079,
+   "price": 166.56,
+   "fee": 8.5,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-10-13",
+   "side": "BUY",
+   "ticker": "BNO",
+   "shares": 133.737,
+   "price": 65.1,
+   "fee": 8.71,
+   "reason": "new position"
   }
  ],
  "benchmarks": {
@@ -1113,7 +1224,7 @@
    "start_price": 717.510009765625
   }
  },
- "last_rebalance": "2026-09-29",
+ "last_rebalance": "2026-10-13",
  "log": [
   {
    "date": "2026-08-18",
@@ -1154,6 +1265,10 @@
   {
    "date": "2026-10-05",
    "msg": "backfilled 2 missed sessions (2026-10-02 to 2026-10-05)"
+  },
+  {
+   "date": "2026-10-13",
+   "msg": "rebalanced \u2014 264 qualified, 15 held"
   }
  ],
  "book": "biweekly",
