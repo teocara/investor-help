@@ -22,30 +22,24 @@
   "leverage": 2.0,
   "backtest": "research/growth.py, 1996-10 to 2026-09 on index funds: 10.69% CAGR vs 10.20% for the S&P 500 TR, -27.2% vs -55.3% max drawdown"
  },
- "cash": -1240.0739284397193,
+ "cash": 16035.08841531145,
  "positions": {
   "VTV": {
    "shares": 159.27171488148895,
    "avg_price": 219.88,
-   "last": 224.94000244140625,
+   "last": 226.5500030517578,
    "opened": "2026-09-24"
   },
   "SPY": {
    "shares": 33.58232957494006,
    "avg_price": 767.18,
-   "last": 773.0900268554688,
+   "last": 763.9600219726562,
    "opened": "2026-09-24"
   },
   "EFA": {
    "shares": 197.81041879325616,
    "avg_price": 104.5,
-   "last": 104.05999755859375,
-   "opened": "2026-09-24"
-  },
-  "VWO": {
-   "shares": 304.17984289852666,
-   "avg_price": 59.87,
-   "last": 58.18000030517578,
+   "last": 103.1500015258789,
    "opened": "2026-09-24"
   }
  },
@@ -289,6 +283,18 @@
     "SPY": 100770.36,
     "QQQ": 97854.54
    }
+  },
+  {
+   "date": "2026-10-22",
+   "value": 98177.8,
+   "invested": 82142.71,
+   "cash": 16035.09,
+   "n": 3,
+   "gross": 0.837,
+   "bench": {
+    "SPY": 99580.28,
+    "QQQ": 95057.34
+   }
   }
  ],
  "trades": [
@@ -366,6 +372,17 @@
    "fee": 18.92,
    "pnl": -736.47,
    "held_days": 20,
+   "reason": "trend break"
+  },
+  {
+   "date": "2026-10-22",
+   "side": "SELL",
+   "ticker": "VWO",
+   "shares": 304.1798,
+   "price": 56.85,
+   "fee": 17.29,
+   "pnl": -935.92,
+   "held_days": 28,
    "reason": "trend break"
   }
  ],
