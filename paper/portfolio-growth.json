@@ -22,25 +22,37 @@
   "leverage": 2.0,
   "backtest": "research/growth.py, 1996-10 to 2026-09 on index funds: 10.69% CAGR vs 10.20% for the S&P 500 TR, -27.2% vs -55.3% max drawdown"
  },
- "cash": 16036.82970471367,
+ "cash": -58992.94457309691,
  "positions": {
   "VTV": {
-   "shares": 159.27171488148895,
-   "avg_price": 219.88,
-   "last": 225.0500030517578,
+   "shares": 174.19506779290504,
+   "avg_price": 220.4248639143209,
+   "last": 226.24000549316406,
    "opened": "2026-09-24"
   },
   "SPY": {
-   "shares": 33.58232957494006,
-   "avg_price": 767.18,
-   "last": 759.969970703125,
+   "shares": 43.87930947216916,
+   "avg_price": 766.755253482418,
+   "last": 765.3699951171875,
    "opened": "2026-09-24"
   },
   "EFA": {
-   "shares": 197.81041879325616,
-   "avg_price": 104.5,
-   "last": 102.62999725341797,
+   "shares": 264.31925978210165,
+   "avg_price": 104.09992013560877,
+   "last": 102.91000366210938,
    "opened": "2026-09-24"
+  },
+  "VNQ": {
+   "shares": 345.5678091531563,
+   "avg_price": 93.16999816894531,
+   "last": 93.16999816894531,
+   "opened": "2026-10-26"
+  },
+  "IWM": {
+   "shares": 89.03472701813685,
+   "avg_price": 276.989990234375,
+   "last": 276.989990234375,
+   "opened": "2026-10-26"
   }
  },
  "equity": [
@@ -307,6 +319,18 @@
     "SPY": 99060.19,
     "QQQ": 95047.91
    }
+  },
+  {
+   "date": "2026-10-26",
+   "value": 98060.23,
+   "invested": 157053.18,
+   "cash": -58992.94,
+   "n": 5,
+   "gross": 1.602,
+   "bench": {
+    "SPY": 99764.07,
+    "QQQ": 96100.39
+   }
   }
  ],
  "trades": [
@@ -396,6 +420,51 @@
    "pnl": -935.92,
    "held_days": 28,
    "reason": "trend break"
+  },
+  {
+   "date": "2026-10-26",
+   "side": "BUY",
+   "ticker": "VTV",
+   "shares": 14.9234,
+   "price": 226.24,
+   "fee": 3.38,
+   "reason": "US large value \u2014 target 40.2%"
+  },
+  {
+   "date": "2026-10-26",
+   "side": "BUY",
+   "ticker": "SPY",
+   "shares": 10.297,
+   "price": 765.37,
+   "fee": 7.89,
+   "reason": "US large cap \u2014 target 34.2%"
+  },
+  {
+   "date": "2026-10-26",
+   "side": "BUY",
+   "ticker": "VNQ",
+   "shares": 345.5678,
+   "price": 93.17,
+   "fee": 32.23,
+   "reason": "US REITs \u2014 target 32.8%"
+  },
+  {
+   "date": "2026-10-26",
+   "side": "BUY",
+   "ticker": "EFA",
+   "shares": 66.5088,
+   "price": 102.91,
+   "fee": 6.85,
+   "reason": "Developed ex-US \u2014 target 27.7%"
+  },
+  {
+   "date": "2026-10-26",
+   "side": "BUY",
+   "ticker": "IWM",
+   "shares": 89.0347,
+   "price": 276.99,
+   "fee": 24.69,
+   "reason": "US small cap \u2014 target 25.2%"
   }
  ],
  "benchmarks": {
@@ -408,7 +477,7 @@
    "start_price": 741.1
   }
  },
- "last_rebalance": "2026-09-24",
+ "last_rebalance": "2026-10-26",
  "log": [
   {
    "date": "2026-09-24",
@@ -440,6 +509,18 @@
   {
    "date": "2026-10-15",
    "msg": "backfilled 2 missed sessions (2026-10-14 to 2026-10-15)"
+  },
+  {
+   "date": "2026-10-26",
+   "msg": "rebalanced \u2014 5 of 11 sleeves pass, gross 1.82x, T-bill 4.04%",
+   "rejected": {
+    "VGK": "below its 210-day average",
+    "VWO": "below its 210-day average",
+    "GLD": "below its 210-day average",
+    "TLT": "below its 210-day average",
+    "IEF": "below its 210-day average",
+    "LQD": "below its 210-day average"
+   }
   }
  ]
 }
