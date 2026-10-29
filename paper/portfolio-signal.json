@@ -21,127 +21,127 @@
   "leverage": null,
   "house_rules": "position count, equal weighting, sector cap and costs are house convention, not the table's \u2014 it supplies entries and exits only"
  },
- "cash": 640.8985375460752,
+ "cash": 301.198484745566,
  "positions": {
   "NVO": {
    "shares": 129.3371310201968,
    "avg_price": 38.62,
-   "last": 39.130001068115234,
+   "last": 38.290000915527344,
    "opened": "2026-09-24"
   },
   "AMZN": {
    "shares": 20.02967359050445,
    "avg_price": 249.38,
-   "last": 249.08999633789062,
+   "last": 254.60000610351562,
    "opened": "2026-09-24"
   },
   "BRK-B": {
    "shares": 9.789422283974496,
    "avg_price": 504.260009765625,
-   "last": 548.5599975585938,
+   "last": 540.3400268554688,
    "opened": "2026-10-05"
   },
   "HDB": {
    "shares": 226.44860822997157,
    "avg_price": 22.280000686645508,
-   "last": 21.709999084472656,
+   "last": 21.549999237060547,
    "opened": "2026-10-09"
   },
   "MU": {
    "shares": 5.103764596931459,
    "avg_price": 989.0399780273438,
-   "last": 903.7000122070312,
+   "last": 983.22998046875,
    "opened": "2026-10-12"
   },
   "SOXX": {
    "shares": 9.264618612448935,
    "avg_price": 544.8499755859375,
-   "last": 491.8299865722656,
+   "last": 521.9400024414062,
    "opened": "2026-10-12"
   },
   "ARM": {
    "shares": 19.703636910207628,
    "avg_price": 255.38999938964844,
-   "last": 223.35000610351562,
+   "last": 235.89999389648438,
    "opened": "2026-10-13"
   },
   "SMH": {
    "shares": 9.229408231441363,
    "avg_price": 539.7899780273438,
-   "last": 541.6199951171875,
+   "last": 567.6699829101562,
    "opened": "2026-10-16"
   },
   "AMD": {
    "shares": 9.422112655234267,
    "avg_price": 528.75,
-   "last": 531.280029296875,
+   "last": 578.4400024414062,
    "opened": "2026-10-16"
   },
   "AMAT": {
    "shares": 12.172156569779354,
    "avg_price": 409.2900085449219,
-   "last": 387.5899963378906,
+   "last": 416.0,
    "opened": "2026-10-16"
   },
   "TSM": {
    "shares": 12.074215950470219,
    "avg_price": 412.6099853515625,
-   "last": 424.3699951171875,
+   "last": 439.510009765625,
    "opened": "2026-10-16"
   },
   "ASML": {
    "shares": 3.035947164935778,
    "avg_price": 1647.1199951171875,
-   "last": 1590.9000244140625,
+   "last": 1662.8499755859375,
    "opened": "2026-10-19"
-  },
-  "GE": {
-   "shares": 16.687204185068513,
-   "avg_price": 299.8699951171875,
-   "last": 288.42999267578125,
-   "opened": "2026-10-20"
   },
   "GEV": {
    "shares": 5.620378670206118,
    "avg_price": 890.3300170898438,
-   "last": 855.1199951171875,
-   "opened": "2026-10-20"
-  },
-  "BAC": {
-   "shares": 98.8150058808827,
-   "avg_price": 50.63999938964844,
-   "last": 50.52000045776367,
+   "last": 878.030029296875,
    "opened": "2026-10-20"
   },
   "KLAC": {
    "shares": 30.977701093926377,
    "avg_price": 163.42999267578125,
-   "last": 149.2100067138672,
+   "last": 158.77000427246094,
    "opened": "2026-10-21"
   },
   "CAT": {
    "shares": 6.839525692182464,
    "avg_price": 740.2100219726562,
-   "last": 692.1300048828125,
-   "opened": "2026-10-21"
-  },
-  "RYCEY": {
-   "shares": 286.8377094794805,
-   "avg_price": 17.649999618530273,
-   "last": 16.420000076293945,
+   "last": 713.3800048828125,
    "opened": "2026-10-21"
   },
   "REMX": {
    "shares": 94.86013798415753,
    "avg_price": 53.369998931884766,
-   "last": 51.70000076293945,
+   "last": 54.349998474121094,
    "opened": "2026-10-21"
   },
   "CCJ": {
    "shares": 61.71211488845895,
    "avg_price": 79.06999969482422,
-   "last": 79.06999969482422,
+   "last": 83.83999633789062,
    "opened": "2026-10-26"
+  },
+  "CEG": {
+   "shares": 19.626457086256316,
+   "avg_price": 258.0799865722656,
+   "last": 258.0799865722656,
+   "opened": "2026-10-28"
+  },
+  "NFLX": {
+   "shares": 81.7098829510381,
+   "avg_price": 61.9900016784668,
+   "last": 61.9900016784668,
+   "opened": "2026-10-28"
+  },
+  "QQQ": {
+   "shares": 6.980603745175942,
+   "avg_price": 725.6099853515625,
+   "last": 725.6099853515625,
+   "opened": "2026-10-28"
   }
  },
  "equity": [
@@ -396,6 +396,28 @@
    "bench": {
     "SPY": 99764.07,
     "QQQ": 96100.39
+   }
+  },
+  {
+   "date": "2026-10-27",
+   "value": 99914.21,
+   "invested": 99273.25,
+   "cash": 640.97,
+   "n": 20,
+   "bench": {
+    "SPY": 100323.26,
+    "QQQ": 97321.55
+   }
+  },
+  {
+   "date": "2026-10-28",
+   "value": 101390.11,
+   "invested": 101088.91,
+   "cash": 301.2,
+   "n": 20,
+   "bench": {
+    "SPY": 100668.68,
+    "QQQ": 97909.86
    }
   }
  ],
@@ -1579,6 +1601,66 @@
    "price": 79.07,
    "fee": 4.88,
    "reason": "Buy \u2014 RSI 20.2, score 7.0"
+  },
+  {
+   "date": "2026-10-28",
+   "side": "SELL",
+   "ticker": "GE",
+   "shares": 16.6872,
+   "price": 301.13,
+   "fee": 5.03,
+   "pnl": 16.0,
+   "held_days": 8,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-10-28",
+   "side": "SELL",
+   "ticker": "BAC",
+   "shares": 98.815,
+   "price": 50.85,
+   "fee": 5.02,
+   "pnl": 15.73,
+   "held_days": 8,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-10-28",
+   "side": "SELL",
+   "ticker": "RYCEY",
+   "shares": 286.8377,
+   "price": 16.86,
+   "fee": 4.84,
+   "pnl": -231.44,
+   "held_days": 7,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-10-28",
+   "side": "BUY",
+   "ticker": "CEG",
+   "shares": 19.6265,
+   "price": 258.08,
+   "fee": 5.07,
+   "reason": "Entry \u2014 RSI 31.1, score 7.0"
+  },
+  {
+   "date": "2026-10-28",
+   "side": "BUY",
+   "ticker": "NFLX",
+   "shares": 81.7099,
+   "price": 61.99,
+   "fee": 5.07,
+   "reason": "Entry \u2014 RSI 31.9, score 7.0"
+  },
+  {
+   "date": "2026-10-28",
+   "side": "BUY",
+   "ticker": "QQQ",
+   "shares": 6.9806,
+   "price": 725.61,
+   "fee": 5.07,
+   "reason": "Entry \u2014 RSI 33.4, score 7.0"
   }
  ],
  "benchmarks": {
@@ -1723,6 +1805,19 @@
    "date": "2026-10-26",
    "msg": "142 long signals, 20 held",
    "snapshot": "2026-10-28T00:46:28Z"
+  },
+  {
+   "date": "2026-10-28",
+   "msg": "backfilled 2 missed sessions (2026-10-27 to 2026-10-28)"
+  },
+  {
+   "date": "2026-10-27",
+   "msg": "backfilled session \u2014 marked to market only, because the signal snapshot is today's and applying it to an older price would be look-ahead"
+  },
+  {
+   "date": "2026-10-28",
+   "msg": "87 long signals, 20 held",
+   "snapshot": "2026-10-29T01:18:46Z"
   }
  ]
 }

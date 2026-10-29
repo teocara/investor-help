@@ -22,36 +22,30 @@
   "leverage": 2.0,
   "backtest": "research/growth.py, 1996-10 to 2026-09 on index funds: 10.69% CAGR vs 10.20% for the S&P 500 TR, -27.2% vs -55.3% max drawdown"
  },
- "cash": -58992.94457309691,
+ "cash": -27109.570460106468,
  "positions": {
   "VTV": {
    "shares": 174.19506779290504,
    "avg_price": 220.4248639143209,
-   "last": 226.24000549316406,
+   "last": 226.94000244140625,
    "opened": "2026-09-24"
   },
   "SPY": {
    "shares": 43.87930947216916,
    "avg_price": 766.755253482418,
-   "last": 765.3699951171875,
+   "last": 772.3099975585938,
    "opened": "2026-09-24"
   },
   "EFA": {
    "shares": 264.31925978210165,
    "avg_price": 104.09992013560877,
-   "last": 102.91000366210938,
+   "last": 103.68000030517578,
    "opened": "2026-09-24"
-  },
-  "VNQ": {
-   "shares": 345.5678091531563,
-   "avg_price": 93.16999816894531,
-   "last": 93.16999816894531,
-   "opened": "2026-10-26"
   },
   "IWM": {
    "shares": 89.03472701813685,
    "avg_price": 276.989990234375,
-   "last": 276.989990234375,
+   "last": 281.2900085449219,
    "opened": "2026-10-26"
   }
  },
@@ -331,6 +325,30 @@
     "SPY": 99764.07,
     "QQQ": 96100.39
    }
+  },
+  {
+   "date": "2026-10-27",
+   "value": 98397.51,
+   "invested": 125503.4,
+   "cash": -27105.88,
+   "n": 4,
+   "gross": 1.275,
+   "bench": {
+    "SPY": 100323.26,
+    "QQQ": 97321.55
+   }
+  },
+  {
+   "date": "2026-10-28",
+   "value": 98759.89,
+   "invested": 125869.46,
+   "cash": -27109.57,
+   "n": 4,
+   "gross": 1.274,
+   "bench": {
+    "SPY": 100668.68,
+    "QQQ": 97909.86
+   }
   }
  ],
  "trades": [
@@ -465,6 +483,17 @@
    "price": 276.99,
    "fee": 24.69,
    "reason": "US small cap \u2014 target 25.2%"
+  },
+  {
+   "date": "2026-10-27",
+   "side": "SELL",
+   "ticker": "VNQ",
+   "shares": 345.5678,
+   "price": 92.39,
+   "fee": 31.93,
+   "pnl": -301.47,
+   "held_days": 1,
+   "reason": "trend break"
   }
  ],
  "benchmarks": {
@@ -521,6 +550,10 @@
     "IEF": "below its 210-day average",
     "LQD": "below its 210-day average"
    }
+  },
+  {
+   "date": "2026-10-28",
+   "msg": "backfilled 2 missed sessions (2026-10-27 to 2026-10-28)"
   }
  ]
 }
