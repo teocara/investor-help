@@ -22,31 +22,19 @@
   "leverage": 2.0,
   "backtest": "research/growth.py, 1996-10 to 2026-09 on index funds: 10.69% CAGR vs 10.20% for the S&P 500 TR, -27.2% vs -55.3% max drawdown"
  },
- "cash": -27135.30014985334,
+ "cash": 23867.707690837167,
  "positions": {
   "VTV": {
    "shares": 174.19506779290504,
    "avg_price": 220.4248639143209,
-   "last": 230.97999572753906,
+   "last": 223.00999450683594,
    "opened": "2026-09-24"
   },
   "SPY": {
    "shares": 43.87930947216916,
    "avg_price": 766.755253482418,
-   "last": 766.8099975585938,
+   "last": 735.2899780273438,
    "opened": "2026-09-24"
-  },
-  "EFA": {
-   "shares": 264.31925978210165,
-   "avg_price": 104.09992013560877,
-   "last": 105.72000122070312,
-   "opened": "2026-09-24"
-  },
-  "IWM": {
-   "shares": 89.03472701813685,
-   "avg_price": 276.989990234375,
-   "last": 284.0199890136719,
-   "opened": "2026-10-26"
   }
  },
  "equity": [
@@ -409,6 +397,30 @@
     "SPY": 99951.77,
     "QQQ": 93367.97
    }
+  },
+  {
+   "date": "2026-11-05",
+   "value": 95271.47,
+   "invested": 98307.91,
+   "cash": -3036.44,
+   "n": 3,
+   "gross": 1.032,
+   "bench": {
+    "SPY": 95544.72,
+    "QQQ": 87309.4
+   }
+  },
+  {
+   "date": "2026-11-06",
+   "value": 94978.97,
+   "invested": 71111.26,
+   "cash": 23867.71,
+   "n": 2,
+   "gross": 0.749,
+   "bench": {
+    "SPY": 95843.22,
+    "QQQ": 88530.56
+   }
   }
  ],
  "trades": [
@@ -554,6 +566,28 @@
    "pnl": -301.47,
    "held_days": 1,
    "reason": "trend break"
+  },
+  {
+   "date": "2026-11-05",
+   "side": "SELL",
+   "ticker": "IWM",
+   "shares": 89.0347,
+   "price": 270.98,
+   "fee": 24.13,
+   "pnl": -559.22,
+   "held_days": 10,
+   "reason": "trend break"
+  },
+  {
+   "date": "2026-11-06",
+   "side": "SELL",
+   "ticker": "EFA",
+   "shares": 264.3193,
+   "price": 101.89,
+   "fee": 26.93,
+   "pnl": -611.06,
+   "held_days": 43,
+   "reason": "trend break"
   }
  ],
  "benchmarks": {
@@ -614,6 +648,10 @@
   {
    "date": "2026-10-28",
    "msg": "backfilled 2 missed sessions (2026-10-27 to 2026-10-28)"
+  },
+  {
+   "date": "2026-11-06",
+   "msg": "backfilled 2 missed sessions (2026-11-05 to 2026-11-06)"
   }
  ]
 }
