@@ -21,127 +21,127 @@
   "leverage": null,
   "house_rules": "position count, equal weighting, sector cap and costs are house convention, not the table's \u2014 it supplies entries and exits only"
  },
- "cash": 352.49412917056145,
+ "cash": 396.5258480158973,
  "positions": {
   "NVO": {
    "shares": 129.3371310201968,
    "avg_price": 38.62,
-   "last": 40.310001373291016,
+   "last": 41.380001068115234,
    "opened": "2026-09-24"
   },
   "AMZN": {
    "shares": 20.02967359050445,
    "avg_price": 249.38,
-   "last": 259.29998779296875,
+   "last": 266.92999267578125,
    "opened": "2026-09-24"
   },
   "BRK-B": {
    "shares": 9.789422283974496,
    "avg_price": 504.260009765625,
-   "last": 570.8900146484375,
+   "last": 575.25,
    "opened": "2026-10-05"
   },
   "HDB": {
    "shares": 226.44860822997157,
    "avg_price": 22.280000686645508,
-   "last": 25.139999389648438,
+   "last": 25.809999465942383,
    "opened": "2026-10-09"
   },
   "SOXX": {
    "shares": 9.264618612448935,
    "avg_price": 544.8499755859375,
-   "last": 136.52999877929688,
+   "last": 146.75999450683594,
    "opened": "2026-10-12"
   },
   "SMH": {
    "shares": 9.229408231441363,
    "avg_price": 539.7899780273438,
-   "last": 463.9599914550781,
-   "opened": "2026-10-16"
-  },
-  "AMAT": {
-   "shares": 12.172156569779354,
-   "avg_price": 409.2900085449219,
-   "last": 332.7200012207031,
+   "last": 487.4100036621094,
    "opened": "2026-10-16"
   },
   "GEV": {
    "shares": 5.620378670206118,
    "avg_price": 890.3300170898438,
-   "last": 770.510009765625,
+   "last": 829.3400268554688,
    "opened": "2026-10-20"
-  },
-  "KLAC": {
-   "shares": 30.977701093926377,
-   "avg_price": 163.42999267578125,
-   "last": 138.49000549316406,
-   "opened": "2026-10-21"
-  },
-  "CAT": {
-   "shares": 6.839525692182464,
-   "avg_price": 740.2100219726562,
-   "last": 558.6300048828125,
-   "opened": "2026-10-21"
-  },
-  "CEG": {
-   "shares": 19.626457086256316,
-   "avg_price": 258.0799865722656,
-   "last": 239.64999389648438,
-   "opened": "2026-10-28"
   },
   "NFLX": {
    "shares": 81.7098829510381,
    "avg_price": 61.9900016784668,
-   "last": 63.40999984741211,
+   "last": 63.95000076293945,
    "opened": "2026-10-28"
   },
   "QQQ": {
    "shares": 6.980603745175942,
    "avg_price": 725.6099853515625,
-   "last": 656.0999755859375,
+   "last": 679.3499755859375,
    "opened": "2026-10-28"
   },
   "META": {
    "shares": 8.035410821681682,
    "avg_price": 624.52001953125,
-   "last": 605.0800170898438,
+   "last": 641.3699951171875,
    "opened": "2026-10-29"
   },
   "GOOG": {
    "shares": 17.77513032413332,
    "avg_price": 282.32000732421875,
-   "last": 281.739990234375,
+   "last": 286.010009765625,
    "opened": "2026-10-29"
   },
   "MELI": {
    "shares": 3.0228204469158415,
    "avg_price": 1660.1300048828125,
-   "last": 1510.0,
+   "last": 1532.6800537109375,
    "opened": "2026-10-29"
-  },
-  "CCJ": {
-   "shares": 66.44082974705667,
-   "avg_price": 73.37999725341797,
-   "last": 71.30000305175781,
-   "opened": "2026-11-02"
-  },
-  "BABA": {
-   "shares": 49.18224011162571,
-   "avg_price": 100.36000061035156,
-   "last": 108.06999969482422,
-   "opened": "2026-11-03"
   },
   "MRVL": {
    "shares": 28.70227139957121,
    "avg_price": 171.97000122070312,
-   "last": 141.1999969482422,
+   "last": 154.60000610351562,
    "opened": "2026-11-03"
   },
   "MPC": {
    "shares": 12.591321813863564,
    "avg_price": 392.67999267578125,
-   "last": 372.739990234375,
+   "last": 389.8800048828125,
    "opened": "2026-11-04"
+  },
+  "NVDA": {
+   "shares": 26.868281441473894,
+   "avg_price": 178.6699981689453,
+   "last": 178.6699981689453,
+   "opened": "2026-11-09"
+  },
+  "NOW": {
+   "shares": 46.71619011438594,
+   "avg_price": 102.76000213623047,
+   "last": 102.76000213623047,
+   "opened": "2026-11-09"
+  },
+  "UNH": {
+   "shares": 12.0732253279567,
+   "avg_price": 397.6199951171875,
+   "last": 397.6199951171875,
+   "opened": "2026-11-09"
+  },
+  "MU": {
+   "shares": 6.547849193331854,
+   "avg_price": 733.1500244140625,
+   "last": 733.1500244140625,
+   "opened": "2026-11-09"
+  },
+  "PBR": {
+   "shares": 261.61066464056125,
+   "avg_price": 18.350000381469727,
+   "last": 18.350000381469727,
+   "opened": "2026-11-09"
+  },
+  "WEAT": {
+   "shares": 221.7346827037375,
+   "avg_price": 21.649999618530273,
+   "last": 21.649999618530273,
+   "opened": "2026-11-09"
   }
  },
  "equity": [
@@ -495,6 +495,17 @@
    "bench": {
     "SPY": 95843.22,
     "QQQ": 88530.56
+   }
+  },
+  {
+   "date": "2026-11-09",
+   "value": 96078.39,
+   "invested": 95681.87,
+   "cash": 396.53,
+   "n": 20,
+   "bench": {
+    "SPY": 98111.26,
+    "QQQ": 91667.79
    }
   }
  ],
@@ -1918,6 +1929,126 @@
    "price": 392.68,
    "fee": 4.95,
    "reason": "Entry \u2014 RSI 21.9, score 6.0"
+  },
+  {
+   "date": "2026-11-09",
+   "side": "SELL",
+   "ticker": "AMAT",
+   "shares": 12.1722,
+   "price": 370.55,
+   "fee": 4.51,
+   "pnl": -476.06,
+   "held_days": 24,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-11-09",
+   "side": "SELL",
+   "ticker": "KLAC",
+   "shares": 30.9777,
+   "price": 151.38,
+   "fee": 4.69,
+   "pnl": -377.97,
+   "held_days": 19,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-11-09",
+   "side": "SELL",
+   "ticker": "CAT",
+   "shares": 6.8395,
+   "price": 598.88,
+   "fee": 4.1,
+   "pnl": -970.73,
+   "held_days": 19,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-11-09",
+   "side": "SELL",
+   "ticker": "CEG",
+   "shares": 19.6265,
+   "price": 276.09,
+   "fee": 5.42,
+   "pnl": 348.05,
+   "held_days": 12,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-11-09",
+   "side": "SELL",
+   "ticker": "CCJ",
+   "shares": 66.4408,
+   "price": 75.37,
+   "fee": 5.01,
+   "pnl": 127.21,
+   "held_days": 7,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-11-09",
+   "side": "SELL",
+   "ticker": "BABA",
+   "shares": 49.1822,
+   "price": 105.38,
+   "fee": 5.18,
+   "pnl": 241.71,
+   "held_days": 6,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-11-09",
+   "side": "BUY",
+   "ticker": "NVDA",
+   "shares": 26.8683,
+   "price": 178.67,
+   "fee": 4.81,
+   "reason": "Buy \u2014 RSI 27.0, score 9.0"
+  },
+  {
+   "date": "2026-11-09",
+   "side": "BUY",
+   "ticker": "NOW",
+   "shares": 46.7162,
+   "price": 102.76,
+   "fee": 4.81,
+   "reason": "Buy \u2014 RSI 18.9, score 7.0"
+  },
+  {
+   "date": "2026-11-09",
+   "side": "BUY",
+   "ticker": "UNH",
+   "shares": 12.0732,
+   "price": 397.62,
+   "fee": 4.81,
+   "reason": "Entry \u2014 RSI 34.6, score 7.0"
+  },
+  {
+   "date": "2026-11-09",
+   "side": "BUY",
+   "ticker": "MU",
+   "shares": 6.5478,
+   "price": 733.15,
+   "fee": 4.81,
+   "reason": "Entry \u2014 RSI 37.4, score 7.0"
+  },
+  {
+   "date": "2026-11-09",
+   "side": "BUY",
+   "ticker": "PBR",
+   "shares": 261.6107,
+   "price": 18.35,
+   "fee": 4.81,
+   "reason": "Entry \u2014 RSI 7.9, score 5.0"
+  },
+  {
+   "date": "2026-11-09",
+   "side": "BUY",
+   "ticker": "WEAT",
+   "shares": 221.7347,
+   "price": 21.65,
+   "fee": 4.81,
+   "reason": "Entry \u2014 RSI 9.4, score 5.0"
   }
  ],
  "benchmarks": {
@@ -2113,6 +2244,11 @@
    "date": "2026-11-06",
    "msg": "70 long signals, 20 held",
    "snapshot": "2026-11-07T01:13:51Z"
+  },
+  {
+   "date": "2026-11-09",
+   "msg": "60 long signals, 20 held",
+   "snapshot": "2026-11-10T03:52:32Z"
   }
  ]
 }
