@@ -13,36 +13,24 @@
   "long_only": true,
   "leverage": null
  },
- "cash": 29631.234989062556,
+ "cash": 0.0,
  "positions": {
-  "MRNA": {
-   "shares": 11.486568649717489,
-   "avg_price": 203.4600067138672,
-   "last": 269.0,
-   "opened": "2026-09-29"
-  },
   "USO": {
    "shares": 62.46209629188622,
    "avg_price": 153.08999633789062,
-   "last": 142.66000366210938,
+   "last": 141.4499969482422,
    "opened": "2026-10-13"
   },
   "BNO": {
    "shares": 133.7369846226329,
    "avg_price": 65.0999984741211,
-   "last": 58.93000030517578,
+   "last": 58.36000061035156,
    "opened": "2026-10-13"
   },
   "TXG": {
    "shares": 60.934377702992165,
    "avg_price": 78.0199966430664,
    "last": 65.05000305175781,
-   "opened": "2026-10-27"
-  },
-  "ILMN": {
-   "shares": 26.890428653211668,
-   "avg_price": 279.4700012207031,
-   "last": 220.77999877929688,
    "opened": "2026-10-27"
   },
   "TWLO": {
@@ -60,14 +48,62 @@
   "MPC": {
    "shares": 22.501838266473808,
    "avg_price": 435.9800109863281,
-   "last": 389.8800048828125,
+   "last": 389.54998779296875,
    "opened": "2026-10-27"
   },
   "APA": {
    "shares": 186.47426544234273,
    "avg_price": 50.790000915527344,
-   "last": 44.54999923706055,
+   "last": 45.119998931884766,
    "opened": "2026-10-27"
+  },
+  "MRNA": {
+   "shares": 6.391183300475635,
+   "avg_price": 269.0,
+   "last": 269.0,
+   "opened": "2026-11-10"
+  },
+  "AMD": {
+   "shares": 8.147373982322819,
+   "avg_price": 515.2100219726562,
+   "last": 515.2100219726562,
+   "opened": "2026-11-10"
+  },
+  "ILMN": {
+   "shares": 21.32831292925134,
+   "avg_price": 214.91000366210938,
+   "last": 214.91000366210938,
+   "opened": "2026-11-10"
+  },
+  "CRWD": {
+   "shares": 19.532587505568333,
+   "avg_price": 228.5800018310547,
+   "last": 228.5800018310547,
+   "opened": "2026-11-10"
+  },
+  "PANW": {
+   "shares": 15.267925745423948,
+   "avg_price": 330.8900146484375,
+   "last": 330.8900146484375,
+   "opened": "2026-11-10"
+  },
+  "ATI": {
+   "shares": 36.87515252625025,
+   "avg_price": 182.72000122070312,
+   "last": 182.72000122070312,
+   "opened": "2026-11-10"
+  },
+  "EQNR": {
+   "shares": 216.8232204818338,
+   "avg_price": 40.68000030517578,
+   "last": 40.68000030517578,
+   "opened": "2026-11-10"
+  },
+  "ARKG": {
+   "shares": 59.63356258207123,
+   "avg_price": 48.25,
+   "last": 48.25,
+   "opened": "2026-11-10"
   }
  },
  "equity": [
@@ -707,6 +743,17 @@
    "bench": {
     "SPY": 98088.25,
     "QQQ": 94681.6
+   }
+  },
+  {
+   "date": "2026-11-10",
+   "value": 86309.39,
+   "invested": 86309.39,
+   "cash": 0.0,
+   "n": 15,
+   "bench": {
+    "SPY": 97727.27,
+    "QQQ": 94041.89
    }
   }
  ],
@@ -1651,6 +1698,100 @@
    "pnl": -2151.95,
    "held_days": 9,
    "reason": "trend break"
+  },
+  {
+   "date": "2026-11-10",
+   "side": "SELL",
+   "ticker": "MRNA",
+   "shares": 11.4866,
+   "price": 269.0,
+   "fee": 3.09,
+   "pnl": 749.74,
+   "held_days": 42,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-11-10",
+   "side": "BUY",
+   "ticker": "MRNA",
+   "shares": 6.3912,
+   "price": 269.0,
+   "fee": 1.72,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-11-10",
+   "side": "BUY",
+   "ticker": "AMD",
+   "shares": 8.1474,
+   "price": 515.21,
+   "fee": 4.2,
+   "reason": "new position"
+  },
+  {
+   "date": "2026-11-10",
+   "side": "SELL",
+   "ticker": "ILMN",
+   "shares": 26.8904,
+   "price": 214.91,
+   "fee": 5.78,
+   "pnl": -1741.83,
+   "held_days": 14,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-11-10",
+   "side": "BUY",
+   "ticker": "ILMN",
+   "shares": 21.3283,
+   "price": 214.91,
+   "fee": 4.59,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-11-10",
+   "side": "BUY",
+   "ticker": "CRWD",
+   "shares": 19.5326,
+   "price": 228.58,
+   "fee": 4.47,
+   "reason": "new position"
+  },
+  {
+   "date": "2026-11-10",
+   "side": "BUY",
+   "ticker": "PANW",
+   "shares": 15.2679,
+   "price": 330.89,
+   "fee": 5.06,
+   "reason": "new position"
+  },
+  {
+   "date": "2026-11-10",
+   "side": "BUY",
+   "ticker": "ATI",
+   "shares": 36.8752,
+   "price": 182.72,
+   "fee": 6.74,
+   "reason": "new position"
+  },
+  {
+   "date": "2026-11-10",
+   "side": "BUY",
+   "ticker": "EQNR",
+   "shares": 216.8232,
+   "price": 40.68,
+   "fee": 8.83,
+   "reason": "new position"
+  },
+  {
+   "date": "2026-11-10",
+   "side": "BUY",
+   "ticker": "ARKG",
+   "shares": 59.6336,
+   "price": 48.25,
+   "fee": 2.88,
+   "reason": "new position"
   }
  ],
  "benchmarks": {
@@ -1663,7 +1804,7 @@
    "start_price": 717.510009765625
   }
  },
- "last_rebalance": "2026-10-27",
+ "last_rebalance": "2026-11-10",
  "log": [
   {
    "date": "2026-08-18",
@@ -1724,6 +1865,10 @@
   {
    "date": "2026-11-06",
    "msg": "backfilled 2 missed sessions (2026-11-05 to 2026-11-06)"
+  },
+  {
+   "date": "2026-11-10",
+   "msg": "rebalanced \u2014 238 qualified, 15 held"
   }
  ],
  "book": "biweekly",
