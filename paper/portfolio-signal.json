@@ -21,127 +21,127 @@
   "leverage": null,
   "house_rules": "position count, equal weighting, sector cap and costs are house convention, not the table's \u2014 it supplies entries and exits only"
  },
- "cash": 787.9455577474455,
+ "cash": 0.0,
  "positions": {
   "NVO": {
    "shares": 129.3371310201968,
    "avg_price": 38.62,
-   "last": 41.09000015258789,
+   "last": 40.650001525878906,
    "opened": "2026-09-24"
   },
   "AMZN": {
    "shares": 20.02967359050445,
    "avg_price": 249.38,
-   "last": 266.1700134277344,
+   "last": 267.44000244140625,
    "opened": "2026-09-24"
   },
   "BRK-B": {
    "shares": 9.789422283974496,
    "avg_price": 504.260009765625,
-   "last": 588.239990234375,
+   "last": 589.8300170898438,
    "opened": "2026-10-05"
   },
   "HDB": {
    "shares": 226.44860822997157,
    "avg_price": 22.280000686645508,
-   "last": 26.020000457763672,
+   "last": 25.709999084472656,
    "opened": "2026-10-09"
-  },
-  "SOXX": {
-   "shares": 9.264618612448935,
-   "avg_price": 544.8499755859375,
-   "last": 155.39999389648438,
-   "opened": "2026-10-12"
-  },
-  "SMH": {
-   "shares": 9.229408231441363,
-   "avg_price": 539.7899780273438,
-   "last": 506.9599914550781,
-   "opened": "2026-10-16"
   },
   "GEV": {
    "shares": 5.620378670206118,
    "avg_price": 890.3300170898438,
-   "last": 808.239990234375,
+   "last": 818.489990234375,
    "opened": "2026-10-20"
-  },
-  "QQQ": {
-   "shares": 6.980603745175942,
-   "avg_price": 725.6099853515625,
-   "last": 690.3800048828125,
-   "opened": "2026-10-28"
-  },
-  "META": {
-   "shares": 8.035410821681682,
-   "avg_price": 624.52001953125,
-   "last": 628.77001953125,
-   "opened": "2026-10-29"
   },
   "GOOG": {
    "shares": 17.77513032413332,
    "avg_price": 282.32000732421875,
-   "last": 290.6300048828125,
+   "last": 295.3500061035156,
    "opened": "2026-10-29"
   },
   "MELI": {
    "shares": 3.0228204469158415,
    "avg_price": 1660.1300048828125,
-   "last": 1512.02001953125,
+   "last": 1475.0899658203125,
    "opened": "2026-10-29"
   },
   "MRVL": {
    "shares": 28.70227139957121,
    "avg_price": 171.97000122070312,
-   "last": 168.8000030517578,
+   "last": 164.4499969482422,
    "opened": "2026-11-03"
-  },
-  "MPC": {
-   "shares": 12.591321813863564,
-   "avg_price": 392.67999267578125,
-   "last": 402.8399963378906,
-   "opened": "2026-11-04"
   },
   "NVDA": {
    "shares": 26.868281441473894,
    "avg_price": 178.6699981689453,
-   "last": 173.72999572753906,
+   "last": 166.19000244140625,
    "opened": "2026-11-09"
   },
   "NOW": {
    "shares": 46.71619011438594,
    "avg_price": 102.76000213623047,
-   "last": 102.76000213623047,
-   "opened": "2026-11-09"
-  },
-  "MU": {
-   "shares": 6.547849193331854,
-   "avg_price": 733.1500244140625,
-   "last": 811.2999877929688,
+   "last": 100.66000366210938,
    "opened": "2026-11-09"
   },
   "PBR": {
    "shares": 261.61066464056125,
    "avg_price": 18.350000381469727,
-   "last": 17.81999969482422,
+   "last": 18.100000381469727,
    "opened": "2026-11-09"
   },
-  "WEAT": {
-   "shares": 221.7346827037375,
-   "avg_price": 21.649999618530273,
-   "last": 22.18000030517578,
-   "opened": "2026-11-09"
+  "UNH": {
+   "shares": 11.906587811062634,
+   "avg_price": 405.1300048828125,
+   "last": 405.1300048828125,
+   "opened": "2026-11-12"
   },
-  "CCJ": {
-   "shares": 65.44087280577963,
-   "avg_price": 74.31999969482422,
-   "last": 74.31999969482422,
-   "opened": "2026-11-11"
+  "HUBS": {
+   "shares": 22.34857329446053,
+   "avg_price": 215.83999633789062,
+   "last": 215.83999633789062,
+   "opened": "2026-11-12"
   },
-  "CAT": {
-   "shares": 8.084250204245619,
-   "avg_price": 601.6099853515625,
-   "last": 601.6099853515625,
-   "opened": "2026-11-11"
+  "ADBE": {
+   "shares": 20.22183329336859,
+   "avg_price": 238.5399932861328,
+   "last": 238.5399932861328,
+   "opened": "2026-11-12"
+  },
+  "BBD": {
+   "shares": 1921.7992017375084,
+   "avg_price": 2.509999990463257,
+   "last": 2.509999990463257,
+   "opened": "2026-11-12"
+  },
+  "YPF": {
+   "shares": 129.66978169632387,
+   "avg_price": 37.20000076293945,
+   "last": 37.20000076293945,
+   "opened": "2026-11-12"
+  },
+  "ARGT": {
+   "shares": 66.42406768926314,
+   "avg_price": 72.62000274658203,
+   "last": 72.62000274658203,
+   "opened": "2026-11-12"
+  },
+  "ALNY": {
+   "shares": 30.792953501300435,
+   "avg_price": 156.64999389648438,
+   "last": 156.64999389648438,
+   "opened": "2026-11-12"
+  },
+  "HALO": {
+   "shares": 47.916122636043326,
+   "avg_price": 100.66999816894531,
+   "last": 100.66999816894531,
+   "opened": "2026-11-12"
+  },
+  "DBC": {
+   "shares": 90.50084471249095,
+   "avg_price": 30.90999984741211,
+   "last": 30.90999984741211,
+   "opened": "2026-11-12"
   }
  },
  "equity": [
@@ -528,6 +528,17 @@
    "bench": {
     "SPY": 99039.34,
     "QQQ": 93156.12
+   }
+  },
+  {
+   "date": "2026-11-12",
+   "value": 96529.46,
+   "invested": 96529.46,
+   "cash": 0.0,
+   "n": 20,
+   "bench": {
+    "SPY": 98688.7,
+    "QQQ": 92857.91
    }
   }
  ],
@@ -2111,6 +2122,186 @@
    "price": 601.61,
    "fee": 4.87,
    "reason": "Entry \u2014 RSI 26.0, score 6.0"
+  },
+  {
+   "date": "2026-11-12",
+   "side": "SELL",
+   "ticker": "SOXX",
+   "shares": 9.2646,
+   "price": 154.99,
+   "fee": 1.44,
+   "pnl": -3613.34,
+   "held_days": 31,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-11-12",
+   "side": "SELL",
+   "ticker": "SMH",
+   "shares": 9.2294,
+   "price": 501.73,
+   "fee": 4.63,
+   "pnl": -355.9,
+   "held_days": 27,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-11-12",
+   "side": "SELL",
+   "ticker": "QQQ",
+   "shares": 6.9806,
+   "price": 688.17,
+   "fee": 4.8,
+   "pnl": -266.16,
+   "held_days": 15,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-11-12",
+   "side": "SELL",
+   "ticker": "META",
+   "shares": 8.0354,
+   "price": 623.61,
+   "fee": 5.01,
+   "pnl": -12.32,
+   "held_days": 14,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-11-12",
+   "side": "SELL",
+   "ticker": "MPC",
+   "shares": 12.5913,
+   "price": 412.85,
+   "fee": 5.2,
+   "pnl": 248.77,
+   "held_days": 8,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-11-12",
+   "side": "SELL",
+   "ticker": "MU",
+   "shares": 6.5478,
+   "price": 798.44,
+   "fee": 5.23,
+   "pnl": 422.28,
+   "held_days": 3,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-11-12",
+   "side": "SELL",
+   "ticker": "WEAT",
+   "shares": 221.7347,
+   "price": 21.57,
+   "fee": 4.78,
+   "pnl": -22.52,
+   "held_days": 3,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-11-12",
+   "side": "SELL",
+   "ticker": "CCJ",
+   "shares": 65.4409,
+   "price": 71.78,
+   "fee": 4.7,
+   "pnl": -170.92,
+   "held_days": 1,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-11-12",
+   "side": "SELL",
+   "ticker": "CAT",
+   "shares": 8.0843,
+   "price": 605.28,
+   "fee": 4.89,
+   "pnl": 24.78,
+   "held_days": 1,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-11-12",
+   "side": "BUY",
+   "ticker": "UNH",
+   "shares": 11.9066,
+   "price": 405.13,
+   "fee": 4.83,
+   "reason": "Entry \u2014 RSI 34.1, score 7.0"
+  },
+  {
+   "date": "2026-11-12",
+   "side": "BUY",
+   "ticker": "HUBS",
+   "shares": 22.3486,
+   "price": 215.84,
+   "fee": 4.83,
+   "reason": "Entry \u2014 RSI 15.8, score 6.0"
+  },
+  {
+   "date": "2026-11-12",
+   "side": "BUY",
+   "ticker": "ADBE",
+   "shares": 20.2218,
+   "price": 238.54,
+   "fee": 4.83,
+   "reason": "Entry \u2014 RSI 16.3, score 6.0"
+  },
+  {
+   "date": "2026-11-12",
+   "side": "BUY",
+   "ticker": "BBD",
+   "shares": 1921.7992,
+   "price": 2.51,
+   "fee": 4.83,
+   "reason": "Entry \u2014 RSI 16.9, score 5.0"
+  },
+  {
+   "date": "2026-11-12",
+   "side": "BUY",
+   "ticker": "YPF",
+   "shares": 129.6698,
+   "price": 37.2,
+   "fee": 4.83,
+   "reason": "Entry \u2014 RSI 18.4, score 5.0"
+  },
+  {
+   "date": "2026-11-12",
+   "side": "BUY",
+   "ticker": "ARGT",
+   "shares": 66.4241,
+   "price": 72.62,
+   "fee": 4.83,
+   "reason": "Entry \u2014 RSI 18.8, score 5.0"
+  },
+  {
+   "date": "2026-11-12",
+   "side": "BUY",
+   "ticker": "ALNY",
+   "shares": 30.793,
+   "price": 156.65,
+   "fee": 4.83,
+   "reason": "Entry \u2014 RSI 19.3, score 5.0"
+  },
+  {
+   "date": "2026-11-12",
+   "side": "BUY",
+   "ticker": "HALO",
+   "shares": 47.9161,
+   "price": 100.67,
+   "fee": 4.83,
+   "reason": "Entry \u2014 RSI 21.2, score 5.0"
+  },
+  {
+   "date": "2026-11-12",
+   "side": "BUY",
+   "ticker": "DBC",
+   "shares": 90.5008,
+   "price": 30.91,
+   "fee": 2.8,
+   "reason": "Entry \u2014 RSI 21.7, score 5.0"
   }
  ],
  "benchmarks": {
@@ -2321,6 +2512,11 @@
    "date": "2026-11-11",
    "msg": "62 long signals, 20 held",
    "snapshot": "2026-11-12T02:30:26Z"
+  },
+  {
+   "date": "2026-11-12",
+   "msg": "41 long signals, 20 held",
+   "snapshot": "2026-11-13T02:15:21Z"
   }
  ]
 }
