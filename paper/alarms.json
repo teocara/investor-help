@@ -1,14 +1,6 @@
 {
  "version": 1,
  "active": {
-  "workflow_failing:alarms.yml": {
-   "key": "workflow_failing:alarms.yml",
-   "severity": "critical",
-   "title": "Alarms has failed twice in a row",
-   "first_seen": "2026-11-15",
-   "last_notified": "2026-11-15",
-   "issue": 3
-  },
   "drawdown:biweekly": {
    "key": "drawdown:biweekly",
    "severity": "warning",
@@ -43,11 +35,20 @@
    "last_notified": "2026-10-15",
    "issue": 2,
    "resolved": "2026-10-15"
+  },
+  {
+   "key": "workflow_failing:alarms.yml",
+   "severity": "critical",
+   "title": "Alarms has failed twice in a row",
+   "first_seen": "2026-11-15",
+   "last_notified": "2026-11-15",
+   "issue": 3,
+   "resolved": "2026-11-15"
   }
  ],
  "last_run": "2026-11-15",
  "last_result": {
-  "firing": 4,
-  "critical": 1
+  "firing": 3,
+  "critical": 0
  }
 }
