@@ -38,13 +38,16 @@ jobs:
         with:
           python-version: '3.12'
 
-      # The alarm rules are tested on every run. An alarm system whose
-      # own logic has silently broken is worse than no alarm system: it
-      # looks like coverage. This caught a real inverted-sensitivity bug
-      # where the staleness check went quiet for badly stale ledgers.
-      - name: Test the alarm rules
-        run: python tests/test_alarms.py
-
+      # The rule tests used to run HERE, as a gate in front of the
+      # evaluation. On 2026-11-03 they began failing and this step
+      # skipped the evaluation for twelve days, during which the momentum
+      # books fell 27% and nothing was reported. A test must never be
+      # able to silence the thing it is testing.
+      #
+      # alarms.py now runs the tests itself and raises a CRITICAL alarm
+      # when they fail, while still evaluating every real rule. The step
+      # below is kept only so a failing test also turns the run red, and
+      # it is non-blocking.
       - name: Evaluate alarms
         env:
           GITHUB_TOKEN: ${{ secrets.ALARM_TOKEN || github.token }}
@@ -59,6 +62,13 @@ jobs:
           else
             python scripts/alarms.py
           fi
+
+      # Reports a failing test by turning the run red. Deliberately AFTER
+      # the evaluation and continue-on-error, so it can never again stop
+      # alarms from being evaluated and delivered.
+      - name: Report rule-test status
+        continue-on-error: true
+        run: python tests/test_alarms.py
 
       - name: Commit the alarm state
         run: |

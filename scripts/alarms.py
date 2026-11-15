@@ -233,8 +233,16 @@ def check_books(today, sessions_index):
         # invested IS gross times equity.
         rules = d.get("rules") or {}
         cap = rules.get("max_weight") or rules.get("max_sleeve")
-        if total > 0 and cap:
-            limit = cap * CONCENTRATION_DRIFT
+        if total > 0 and cap and pos:
+            # A cap below 1/n is arithmetically unreachable: when only two
+            # sleeves pass the trend gate, each is ~50% of the book and no
+            # sizing rule can do anything about it. The live growth book
+            # hit exactly this on 2026-11-13 — down to VTV and SPY — and
+            # the rule fired twice on correct behaviour. Concentration is
+            # only meaningful against the tighter of the stated cap and
+            # what the position count actually permits.
+            floor = 1.0 / len(pos)
+            limit = max(cap, floor) * CONCENTRATION_DRIFT
             for tk, p in pos.items():
                 share = p["shares"] * p.get("last", p["avg_price"]) / total
                 if share >= limit:
@@ -247,7 +255,11 @@ def check_books(today, sessions_index):
                         f"of invested value against a stated cap of "
                         f"{cap*100:.0f}%. Caps bind at rebalance, so some "
                         f"drift is normal — this is {share/cap:.1f}x the "
-                        f"cap, which is past normal.",
+                        f"cap, which is past normal.\n\n"
+                        f"The book holds {len(pos)} positions, so the "
+                        f"smallest achievable maximum weight is "
+                        f"{floor*100:.0f}%; this alarm is measured against "
+                        f"whichever of that and the cap is larger.",
                         "Confirm this is a price move and not a sizing bug, "
                         "and that the next rebalance actually trims it."))
 
@@ -268,20 +280,35 @@ def check_books(today, sessions_index):
                         "Check the move is real before trusting any metric "
                         "computed from it."))
 
-        # 5. The growth book de-levering to nothing is a regime signal
+        # 5. The growth book losing breadth is a regime signal
+        #
+        # Measured on the SLEEVE COUNT, not on gross exposure. Watching
+        # gross missed the real event: on 2026-11-13 the book was down to
+        # two sleeves out of eleven — about as clear a breakdown in
+        # asset-class trends as this system can see — yet gross was still
+        # 0.75x, because the equity cap scales what is left rather than
+        # shrinking it to zero. The variable that moves is how many things
+        # are trending, so that is the variable to watch.
         if d.get("book") == "growth":
             gross = last.get("gross")
-            if gross is not None and gross < 0.25:
+            universe = (d.get("rules") or {}).get("sleeves") or 11
+            held = last.get("n") or 0
+            if held <= max(2, universe * 0.25):
                 out.append(Alarm(
                     "breadth_collapse:growth", WARNING,
-                    f"Growth book has de-levered to {gross:.2f}x gross",
-                    f"Only {last['n']} sleeves pass the trend gate, so the "
-                    f"book has moved to cash on its own. This is the "
-                    f"strategy working as designed — it is flagged because "
-                    f"it is also the clearest regime signal the system "
-                    f"produces, and it has never happened before.",
-                    "Nothing to fix. Worth knowing that broad asset-class "
-                    "trends have broken down."))
+                    f"Growth book is down to {held} of {universe} sleeves",
+                    f"Only {held} sleeves pass the trend gate"
+                    + (f", and gross exposure is {gross:.2f}x"
+                       if gross is not None else "")
+                    + ". The book has moved toward cash on its own.\n\n"
+                      "This is the strategy working as designed — it is "
+                      "flagged because it is also the clearest regime "
+                      "signal the system produces. Broad asset-class "
+                      "trends have broken down, which is the condition "
+                      "the 30-year study found this strategy earns its "
+                      "keep in.",
+                    "Nothing to fix. Worth knowing, and worth not "
+                    "overriding: the de-levering IS the strategy."))
     return out
 
 
@@ -346,6 +373,12 @@ def check_workflows(today, api):
         "paper-trade.yml": "Paper trading",
         "refresh-data.yml": "Refresh market data",
         "pages.yml": "Deploy to GitHub Pages",
+        # Who watches the watchman. Omitting this is how twelve days of
+        # consecutive alarm-workflow failures went unreported: every
+        # OTHER job was monitored, and the monitor itself was not. A run
+        # that gets far enough to evaluate can at least report that its
+        # previous runs failed.
+        "alarms.yml": "Alarms",
     }
     for wf, name in watched.items():
         info = api.workflow(wf)
@@ -433,6 +466,26 @@ class GitHub:
                           {"state": "closed", "state_reason": "completed"})
 
 
+def run_rule_tests():
+    """Run the rule tests in a subprocess. Returns (ok, tail of output).
+
+    A subprocess, not an import: the test module rewrites the alarm
+    module's ROOT to point at a scratch tree, which would corrupt this
+    process's view of the real ledgers if it ran in-process.
+    """
+    import subprocess
+    test = ROOT / "tests" / "test_alarms.py"
+    if not test.exists():
+        return False, "tests/test_alarms.py is missing"
+    try:
+        r = subprocess.run([sys.executable, str(test)], capture_output=True,
+                           text=True, timeout=180, cwd=str(ROOT))
+    except Exception as exc:                                    # noqa: BLE001
+        return False, f"could not run the tests: {exc}"
+    tail = "\n".join((r.stdout or r.stderr or "").strip().splitlines()[-12:])
+    return r.returncode == 0, tail
+
+
 def issue_body(a, today):
     return (
         f"<!-- alarm-key: {a.key} -->\n"
@@ -487,6 +540,34 @@ def main():
           f"{sessions[-1] if sessions else 'unknown'}\n")
 
     alarms = []
+
+    # The rule tests run HERE, inside the evaluation, and a failure becomes
+    # an alarm rather than a gate.
+    #
+    # They used to run as a workflow step in FRONT of this one. On
+    # 2026-11-03 the tests started failing — they asserted the live
+    # ledgers fired nothing, and the momentum books had entered a 27%
+    # drawdown — so the step failed, evaluation was skipped, and the alarm
+    # system went silent for twelve days. Silent because it had something
+    # to say. The books lost 27% against SPY's -2% and nothing reported it.
+    #
+    # Degraded is acceptable. Dead is not. A broken test is now loud and
+    # the real rules still run.
+    if not args.self_test:
+        ok, detail = run_rule_tests()
+        if not ok:
+            alarms.append(Alarm(
+                "selftest_failing", CRITICAL,
+                "Alarm rule tests are failing",
+                f"`tests/test_alarms.py` does not pass, so the rules below "
+                f"are running unverified.\n\n```\n{detail}\n```\n\n"
+                f"This alarm exists because a failing test once blocked the "
+                f"whole evaluation step and the system went quiet for twelve "
+                f"days. It no longer blocks anything — but an unverified "
+                f"alarm system is still a problem.",
+                "Run `python tests/test_alarms.py` and fix the rules or the "
+                "fixture. Alarms keep being evaluated meanwhile."))
+
     if args.self_test:
         # The smoke-alarm test button. Until something genuinely fires, the
         # delivery path has never run, and an unverified channel is the
