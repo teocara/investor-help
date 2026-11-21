@@ -22,12 +22,12 @@
   "leverage": 2.0,
   "backtest": "research/growth.py, 1996-10 to 2026-09 on index funds: 10.69% CAGR vs 10.20% for the S&P 500 TR, -27.2% vs -55.3% max drawdown"
  },
- "cash": 55281.39366878418,
+ "cash": 55287.30797670187,
  "positions": {
   "VTV": {
    "shares": 174.19506779290504,
    "avg_price": 220.4248639143209,
-   "last": 217.75,
+   "last": 214.22000122070312,
    "opened": "2026-09-24"
   }
  },
@@ -522,6 +522,18 @@
    "bench": {
     "SPY": 93311.87,
     "QQQ": 87038.18
+   }
+  },
+  {
+   "date": "2026-11-20",
+   "value": 92603.38,
+   "invested": 37316.07,
+   "cash": 55287.31,
+   "n": 1,
+   "gross": 0.403,
+   "bench": {
+    "SPY": 89915.01,
+    "QQQ": 82100.93
    }
   }
  ],
