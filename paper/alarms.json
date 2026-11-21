@@ -6,7 +6,7 @@
    "severity": "warning",
    "title": "Bi-weekly rebalance: -27.5% drawdown from peak",
    "first_seen": "2026-11-15",
-   "last_notified": "2026-11-18",
+   "last_notified": "2026-11-21",
    "issue": 4
   },
   "breadth_collapse:growth": {
@@ -14,7 +14,7 @@
    "severity": "warning",
    "title": "Growth book is down to 2 of 11 sleeves",
    "first_seen": "2026-11-15",
-   "last_notified": "2026-11-18",
+   "last_notified": "2026-11-21",
    "issue": 5
   },
   "drawdown:weekly": {
@@ -22,7 +22,7 @@
    "severity": "warning",
    "title": "Weekly rebalance: -26.6% drawdown from peak",
    "first_seen": "2026-11-15",
-   "last_notified": "2026-11-18",
+   "last_notified": "2026-11-21",
    "issue": 6
   }
  },
@@ -46,7 +46,7 @@
    "resolved": "2026-11-15"
   }
  ],
- "last_run": "2026-11-20",
+ "last_run": "2026-11-21",
  "last_result": {
   "firing": 3,
   "critical": 0
