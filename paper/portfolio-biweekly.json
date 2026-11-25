@@ -13,73 +13,97 @@
   "long_only": true,
   "leverage": null
  },
- "cash": 15644.998916725308,
+ "cash": 0.0,
  "positions": {
-  "USO": {
-   "shares": 62.46209629188622,
-   "avg_price": 153.08999633789062,
-   "last": 133.36000061035156,
-   "opened": "2026-10-13"
-  },
-  "BNO": {
-   "shares": 133.7369846226329,
-   "avg_price": 65.0999984741211,
-   "last": 56.65999984741211,
-   "opened": "2026-10-13"
-  },
-  "TXG": {
-   "shares": 60.934377702992165,
-   "avg_price": 78.0199966430664,
-   "last": 57.650001525878906,
-   "opened": "2026-10-27"
-  },
-  "NTRA": {
-   "shares": 18.147442166725074,
-   "avg_price": 410.82000732421875,
-   "last": 292.3900146484375,
-   "opened": "2026-10-27"
-  },
-  "MPC": {
-   "shares": 22.501838266473808,
-   "avg_price": 435.9800109863281,
-   "last": 357.69000244140625,
-   "opened": "2026-10-27"
-  },
-  "APA": {
-   "shares": 186.47426544234273,
-   "avg_price": 50.790000915527344,
-   "last": 44.060001373291016,
-   "opened": "2026-10-27"
-  },
-  "MRNA": {
-   "shares": 6.391183300475635,
-   "avg_price": 269.0,
-   "last": 212.0800018310547,
-   "opened": "2026-11-10"
-  },
   "ILMN": {
    "shares": 21.32831292925134,
    "avg_price": 214.91000366210938,
-   "last": 205.27999877929688,
+   "last": 204.52000427246094,
    "opened": "2026-11-10"
   },
   "CRWD": {
    "shares": 19.532587505568333,
    "avg_price": 228.5800018310547,
-   "last": 208.97000122070312,
+   "last": 210.86000061035156,
    "opened": "2026-11-10"
   },
-  "PANW": {
-   "shares": 15.267925745423948,
-   "avg_price": 330.8900146484375,
-   "last": 353.42999267578125,
-   "opened": "2026-11-10"
+  "MRNA": {
+   "shares": 12.631090084126589,
+   "avg_price": 227.3800048828125,
+   "last": 227.3800048828125,
+   "opened": "2026-11-24"
+  },
+  "TXG": {
+   "shares": 47.507186383813696,
+   "avg_price": 57.27000045776367,
+   "last": 57.27000045776367,
+   "opened": "2026-11-24"
+  },
+  "MPC": {
+   "shares": 16.838540365694893,
+   "avg_price": 355.1600036621094,
+   "last": 355.1600036621094,
+   "opened": "2026-11-24"
+  },
+  "BNO": {
+   "shares": 99.93231897281383,
+   "avg_price": 57.75,
+   "last": 57.75,
+   "opened": "2026-11-24"
+  },
+  "USO": {
+   "shares": 43.53428081705972,
+   "avg_price": 135.42999267578125,
+   "last": 135.42999267578125,
+   "opened": "2026-11-24"
+  },
+  "FTNT": {
+   "shares": 29.44663263206446,
+   "avg_price": 132.5,
+   "last": 132.5,
+   "opened": "2026-11-24"
   },
   "EQNR": {
-   "shares": 216.8232204818338,
-   "avg_price": 40.68000030517578,
-   "last": 38.63999938964844,
-   "opened": "2026-11-10"
+   "shares": 175.21790574618717,
+   "avg_price": 38.880001068115234,
+   "last": 38.880001068115234,
+   "opened": "2026-11-24"
+  },
+  "APA": {
+   "shares": 139.43985260047077,
+   "avg_price": 44.90999984741211,
+   "last": 44.90999984741211,
+   "opened": "2026-11-24"
+  },
+  "PANW": {
+   "shares": 11.44367488113155,
+   "avg_price": 352.989990234375,
+   "last": 352.989990234375,
+   "opened": "2026-11-24"
+  },
+  "PR": {
+   "shares": 329.1550431278646,
+   "avg_price": 21.0,
+   "last": 21.0,
+   "opened": "2026-11-24"
+  },
+  "TGT": {
+   "shares": 47.165179156829964,
+   "avg_price": 176.05999755859375,
+   "last": 176.05999755859375,
+   "opened": "2026-11-24"
+  },
+  "COP": {
+   "shares": 59.672866404556366,
+   "avg_price": 134.63999938964844,
+   "last": 134.63999938964844,
+   "opened": "2026-11-24"
+  },
+  "HALO": {
+   "shares": 49.93935338477542,
+   "avg_price": 94.98999786376953,
+   "last": 94.98999786376953,
+   "opened": "2026-11-24"
   }
  },
  "equity": [
@@ -829,6 +853,17 @@
    "bench": {
     "SPY": 94126.61,
     "QQQ": 90734.63
+   }
+  },
+  {
+   "date": "2026-11-24",
+   "value": 80730.97,
+   "invested": 80730.97,
+   "cash": 0.0,
+   "n": 15,
+   "bench": {
+    "SPY": 93669.21,
+    "QQQ": 88932.55
    }
   }
  ],
@@ -1911,6 +1946,222 @@
    "pnl": -613.51,
    "held_days": 10,
    "reason": "trend break"
+  },
+  {
+   "date": "2026-11-24",
+   "side": "SELL",
+   "ticker": "NTRA",
+   "shares": 18.1474,
+   "price": 298.83,
+   "fee": 5.42,
+   "pnl": -2037.76,
+   "held_days": 28,
+   "reason": "dropped from ranking"
+  },
+  {
+   "date": "2026-11-24",
+   "side": "SELL",
+   "ticker": "MRNA",
+   "shares": 6.3912,
+   "price": 227.38,
+   "fee": 1.45,
+   "pnl": -267.45,
+   "held_days": 14,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-11-24",
+   "side": "BUY",
+   "ticker": "MRNA",
+   "shares": 12.6311,
+   "price": 227.38,
+   "fee": 2.87,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-11-24",
+   "side": "SELL",
+   "ticker": "TXG",
+   "shares": 60.9344,
+   "price": 57.27,
+   "fee": 3.49,
+   "pnl": -1267.88,
+   "held_days": 28,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-11-24",
+   "side": "BUY",
+   "ticker": "TXG",
+   "shares": 47.5072,
+   "price": 57.27,
+   "fee": 2.72,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-11-24",
+   "side": "SELL",
+   "ticker": "MPC",
+   "shares": 22.5018,
+   "price": 355.16,
+   "fee": 7.99,
+   "pnl": -1826.59,
+   "held_days": 28,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-11-24",
+   "side": "BUY",
+   "ticker": "MPC",
+   "shares": 16.8385,
+   "price": 355.16,
+   "fee": 5.99,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-11-24",
+   "side": "SELL",
+   "ticker": "BNO",
+   "shares": 133.737,
+   "price": 57.75,
+   "fee": 7.72,
+   "pnl": -990.69,
+   "held_days": 42,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-11-24",
+   "side": "BUY",
+   "ticker": "BNO",
+   "shares": 99.9323,
+   "price": 57.75,
+   "fee": 5.78,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-11-24",
+   "side": "SELL",
+   "ticker": "USO",
+   "shares": 62.4621,
+   "price": 135.43,
+   "fee": 8.46,
+   "pnl": -1111.54,
+   "held_days": 42,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-11-24",
+   "side": "BUY",
+   "ticker": "USO",
+   "shares": 43.5343,
+   "price": 135.43,
+   "fee": 5.9,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-11-24",
+   "side": "BUY",
+   "ticker": "FTNT",
+   "shares": 29.4466,
+   "price": 132.5,
+   "fee": 3.91,
+   "reason": "new position"
+  },
+  {
+   "date": "2026-11-24",
+   "side": "SELL",
+   "ticker": "EQNR",
+   "shares": 216.8232,
+   "price": 38.88,
+   "fee": 8.43,
+   "pnl": -398.71,
+   "held_days": 14,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-11-24",
+   "side": "BUY",
+   "ticker": "EQNR",
+   "shares": 175.2179,
+   "price": 38.88,
+   "fee": 6.82,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-11-24",
+   "side": "SELL",
+   "ticker": "APA",
+   "shares": 186.4743,
+   "price": 44.91,
+   "fee": 8.37,
+   "pnl": -1104.84,
+   "held_days": 28,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-11-24",
+   "side": "BUY",
+   "ticker": "APA",
+   "shares": 139.4399,
+   "price": 44.91,
+   "fee": 6.27,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-11-24",
+   "side": "SELL",
+   "ticker": "PANW",
+   "shares": 15.2679,
+   "price": 352.99,
+   "fee": 5.39,
+   "pnl": 332.03,
+   "held_days": 14,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-11-24",
+   "side": "BUY",
+   "ticker": "PANW",
+   "shares": 11.4437,
+   "price": 352.99,
+   "fee": 4.04,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-11-24",
+   "side": "BUY",
+   "ticker": "PR",
+   "shares": 329.155,
+   "price": 21.0,
+   "fee": 6.92,
+   "reason": "new position"
+  },
+  {
+   "date": "2026-11-24",
+   "side": "BUY",
+   "ticker": "TGT",
+   "shares": 47.1652,
+   "price": 176.06,
+   "fee": 8.31,
+   "reason": "new position"
+  },
+  {
+   "date": "2026-11-24",
+   "side": "BUY",
+   "ticker": "COP",
+   "shares": 59.6729,
+   "price": 134.64,
+   "fee": 8.04,
+   "reason": "new position"
+  },
+  {
+   "date": "2026-11-24",
+   "side": "BUY",
+   "ticker": "HALO",
+   "shares": 49.9394,
+   "price": 94.99,
+   "fee": 4.75,
+   "reason": "new position"
   }
  ],
  "benchmarks": {
@@ -1923,7 +2174,7 @@
    "start_price": 717.510009765625
   }
  },
- "last_rebalance": "2026-11-10",
+ "last_rebalance": "2026-11-24",
  "log": [
   {
    "date": "2026-08-18",
@@ -1988,6 +2239,10 @@
   {
    "date": "2026-11-10",
    "msg": "rebalanced \u2014 238 qualified, 15 held"
+  },
+  {
+   "date": "2026-11-24",
+   "msg": "rebalanced \u2014 172 qualified, 15 held"
   }
  ],
  "book": "biweekly",
