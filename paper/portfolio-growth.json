@@ -22,13 +22,19 @@
   "leverage": 2.0,
   "backtest": "research/growth.py, 1996-10 to 2026-09 on index funds: 10.69% CAGR vs 10.20% for the S&P 500 TR, -27.2% vs -55.3% max drawdown"
  },
- "cash": 55310.97153650193,
+ "cash": 59682.80513256241,
  "positions": {
   "VTV": {
-   "shares": 174.19506779290504,
+   "shares": 77.17317184381382,
    "avg_price": 220.4248639143209,
-   "last": 220.10000610351562,
+   "last": 221.0399932861328,
    "opened": "2026-09-24"
+  },
+  "VNQ": {
+   "shares": 178.1444530258779,
+   "avg_price": 95.66000366210938,
+   "last": 95.66000366210938,
+   "opened": "2026-11-25"
   }
  },
  "equity": [
@@ -559,6 +565,18 @@
     "SPY": 93691.18,
     "QQQ": 86101.74
    }
+  },
+  {
+   "date": "2026-11-25",
+   "value": 93782.46,
+   "invested": 34099.66,
+   "cash": 59682.81,
+   "n": 2,
+   "gross": 0.364,
+   "bench": {
+    "SPY": 93420.06,
+    "QQQ": 85539.06
+   }
   }
  ],
  "trades": [
@@ -737,6 +755,26 @@
    "pnl": -2264.22,
    "held_days": 56,
    "reason": "trend break"
+  },
+  {
+   "date": "2026-11-25",
+   "side": "SELL",
+   "ticker": "VTV",
+   "shares": 97.0219,
+   "price": 221.04,
+   "fee": 21.45,
+   "pnl": 38.24,
+   "held_days": 62,
+   "reason": "trim to target 18.2%"
+  },
+  {
+   "date": "2026-11-25",
+   "side": "BUY",
+   "ticker": "VNQ",
+   "shares": 178.1445,
+   "price": 95.66,
+   "fee": 17.06,
+   "reason": "US REITs \u2014 target 18.2%"
   }
  ],
  "benchmarks": {
@@ -749,7 +787,7 @@
    "start_price": 741.1
   }
  },
- "last_rebalance": "2026-10-26",
+ "last_rebalance": "2026-11-25",
  "log": [
   {
    "date": "2026-09-24",
@@ -801,6 +839,21 @@
   {
    "date": "2026-11-06",
    "msg": "backfilled 2 missed sessions (2026-11-05 to 2026-11-06)"
+  },
+  {
+   "date": "2026-11-25",
+   "msg": "rebalanced \u2014 2 of 11 sleeves pass, gross 0.73x, T-bill 3.98%",
+   "rejected": {
+    "SPY": "below its 210-day average",
+    "IWM": "below its 210-day average",
+    "VGK": "below its 210-day average",
+    "EFA": "below its 210-day average",
+    "VWO": "below its 210-day average",
+    "GLD": "below its 210-day average",
+    "TLT": "below its 210-day average",
+    "IEF": "below its 210-day average",
+    "LQD": "below its 210-day average"
+   }
   }
  ]
 }

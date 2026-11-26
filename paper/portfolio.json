@@ -13,67 +13,97 @@
   "long_only": true,
   "leverage": null
  },
- "cash": 21450.335069861227,
+ "cash": 0.0,
  "positions": {
-  "USO": {
-   "shares": 59.73971994667411,
-   "avg_price": 153.55999755859375,
-   "last": 135.42999267578125,
-   "opened": "2026-10-14"
-  },
-  "NTRA": {
-   "shares": 19.967081560791186,
-   "avg_price": 413.3800048828125,
-   "last": 298.8299865722656,
-   "opened": "2026-10-21"
-  },
-  "BNO": {
-   "shares": 135.51904708710143,
-   "avg_price": 70.13999938964844,
-   "last": 57.75,
-   "opened": "2026-10-28"
-  },
   "TXG": {
    "shares": 58.721706546321116,
    "avg_price": 67.5199966430664,
-   "last": 57.27000045776367,
+   "last": 55.68000030517578,
    "opened": "2026-11-04"
   },
   "ILMN": {
    "shares": 22.016704144249342,
    "avg_price": 226.5399932861328,
-   "last": 204.52000427246094,
-   "opened": "2026-11-04"
-  },
-  "APA": {
-   "shares": 186.19473160006572,
-   "avg_price": 44.4900016784668,
-   "last": 44.90999984741211,
+   "last": 200.38999938964844,
    "opened": "2026-11-04"
   },
   "MPC": {
    "shares": 20.16241092478753,
    "avg_price": 402.8399963378906,
-   "last": 355.1600036621094,
+   "last": 346.2699890136719,
    "opened": "2026-11-11"
   },
   "EQNR": {
    "shares": 167.87937460918315,
    "avg_price": 41.33000183105469,
-   "last": 38.880001068115234,
+   "last": 38.709999084472656,
    "opened": "2026-11-11"
   },
   "MRNA": {
-   "shares": 17.094436653344953,
-   "avg_price": 196.7899932861328,
-   "last": 227.3800048828125,
-   "opened": "2026-11-18"
+   "shares": 13.692135760733875,
+   "avg_price": 220.83999633789062,
+   "last": 220.83999633789062,
+   "opened": "2026-11-25"
+  },
+  "BNO": {
+   "shares": 102.38953848800541,
+   "avg_price": 59.400001525878906,
+   "last": 59.400001525878906,
+   "opened": "2026-11-25"
+  },
+  "USO": {
+   "shares": 44.504429494736264,
+   "avg_price": 139.88999938964844,
+   "last": 139.88999938964844,
+   "opened": "2026-11-25"
+  },
+  "FTNT": {
+   "shares": 30.238449488281972,
+   "avg_price": 134.9600067138672,
+   "last": 134.9600067138672,
+   "opened": "2026-11-25"
+  },
+  "APA": {
+   "shares": 143.476095295828,
+   "avg_price": 45.47999954223633,
+   "last": 45.47999954223633,
+   "opened": "2026-11-25"
+  },
+  "PANW": {
+   "shares": 11.910486498495418,
+   "avg_price": 356.1400146484375,
+   "last": 356.1400146484375,
+   "opened": "2026-11-25"
+  },
+  "CRWD": {
+   "shares": 20.312929027947213,
+   "avg_price": 209.3000030517578,
+   "last": 209.3000030517578,
+   "opened": "2026-11-25"
+  },
+  "TXN": {
+   "shares": 18.4028124383999,
+   "avg_price": 270.19000244140625,
+   "last": 270.19000244140625,
+   "opened": "2026-11-25"
   },
   "PR": {
-   "shares": 176.08664946396453,
-   "avg_price": 21.360000610351562,
-   "last": 21.0,
-   "opened": "2026-11-18"
+   "shares": 336.91779538034166,
+   "avg_price": 21.31999969482422,
+   "last": 21.31999969482422,
+   "opened": "2026-11-25"
+  },
+  "HALO": {
+   "shares": 61.064413232213745,
+   "avg_price": 95.11000061035156,
+   "last": 95.11000061035156,
+   "opened": "2026-11-25"
+  },
+  "TGT": {
+   "shares": 42.84540913982507,
+   "avg_price": 172.22000122070312,
+   "last": 172.22000122070312,
+   "opened": "2026-11-25"
   }
  },
  "equity": [
@@ -834,6 +864,17 @@
    "bench": {
     "SPY": 93669.21,
     "QQQ": 88932.55
+   }
+  },
+  {
+   "date": "2026-11-25",
+   "value": 80934.82,
+   "invested": 80934.82,
+   "cash": 0.0,
+   "n": 15,
+   "bench": {
+    "SPY": 93398.15,
+    "QQQ": 88351.38
    }
   }
  ],
@@ -2507,6 +2548,171 @@
    "pnl": -993.08,
    "held_days": 9,
    "reason": "trend break"
+  },
+  {
+   "date": "2026-11-25",
+   "side": "SELL",
+   "ticker": "NTRA",
+   "shares": 19.9671,
+   "price": 301.33,
+   "fee": 6.02,
+   "pnl": -2243.33,
+   "held_days": 35,
+   "reason": "dropped from ranking"
+  },
+  {
+   "date": "2026-11-25",
+   "side": "SELL",
+   "ticker": "MRNA",
+   "shares": 17.0944,
+   "price": 220.84,
+   "fee": 3.78,
+   "pnl": 407.35,
+   "held_days": 7,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-11-25",
+   "side": "BUY",
+   "ticker": "MRNA",
+   "shares": 13.6921,
+   "price": 220.84,
+   "fee": 3.03,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-11-25",
+   "side": "SELL",
+   "ticker": "BNO",
+   "shares": 135.519,
+   "price": 59.4,
+   "fee": 8.05,
+   "pnl": -1463.52,
+   "held_days": 28,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-11-25",
+   "side": "BUY",
+   "ticker": "BNO",
+   "shares": 102.3895,
+   "price": 59.4,
+   "fee": 6.09,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-11-25",
+   "side": "SELL",
+   "ticker": "USO",
+   "shares": 59.7397,
+   "price": 139.89,
+   "fee": 8.36,
+   "pnl": -825.0,
+   "held_days": 42,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-11-25",
+   "side": "BUY",
+   "ticker": "USO",
+   "shares": 44.5044,
+   "price": 139.89,
+   "fee": 6.23,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-11-25",
+   "side": "BUY",
+   "ticker": "FTNT",
+   "shares": 30.2384,
+   "price": 134.96,
+   "fee": 4.09,
+   "reason": "new position"
+  },
+  {
+   "date": "2026-11-25",
+   "side": "SELL",
+   "ticker": "APA",
+   "shares": 186.1947,
+   "price": 45.48,
+   "fee": 8.47,
+   "pnl": 175.86,
+   "held_days": 21,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-11-25",
+   "side": "BUY",
+   "ticker": "APA",
+   "shares": 143.4761,
+   "price": 45.48,
+   "fee": 6.53,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-11-25",
+   "side": "BUY",
+   "ticker": "PANW",
+   "shares": 11.9105,
+   "price": 356.14,
+   "fee": 4.25,
+   "reason": "new position"
+  },
+  {
+   "date": "2026-11-25",
+   "side": "BUY",
+   "ticker": "CRWD",
+   "shares": 20.3129,
+   "price": 209.3,
+   "fee": 4.26,
+   "reason": "new position"
+  },
+  {
+   "date": "2026-11-25",
+   "side": "BUY",
+   "ticker": "TXN",
+   "shares": 18.4028,
+   "price": 270.19,
+   "fee": 4.98,
+   "reason": "new position"
+  },
+  {
+   "date": "2026-11-25",
+   "side": "SELL",
+   "ticker": "PR",
+   "shares": 176.0866,
+   "price": 21.32,
+   "fee": 3.75,
+   "pnl": -10.8,
+   "held_days": 7,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-11-25",
+   "side": "BUY",
+   "ticker": "PR",
+   "shares": 336.9178,
+   "price": 21.32,
+   "fee": 7.19,
+   "reason": "rebalance"
+  },
+  {
+   "date": "2026-11-25",
+   "side": "BUY",
+   "ticker": "HALO",
+   "shares": 61.0644,
+   "price": 95.11,
+   "fee": 5.81,
+   "reason": "new position"
+  },
+  {
+   "date": "2026-11-25",
+   "side": "BUY",
+   "ticker": "TGT",
+   "shares": 42.8454,
+   "price": 172.22,
+   "fee": 7.39,
+   "reason": "new position"
   }
  ],
  "benchmarks": {
@@ -2519,7 +2725,7 @@
    "start_price": 717.510009765625
   }
  },
- "last_rebalance": "2026-11-18",
+ "last_rebalance": "2026-11-25",
  "log": [
   {
    "date": "2026-08-18",
@@ -2612,6 +2818,10 @@
   {
    "date": "2026-11-18",
    "msg": "rebalanced \u2014 194 qualified, 15 held"
+  },
+  {
+   "date": "2026-11-25",
+   "msg": "rebalanced \u2014 175 qualified, 15 held"
   }
  ],
  "book": "weekly",
