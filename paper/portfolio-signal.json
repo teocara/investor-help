@@ -21,127 +21,127 @@
   "leverage": null,
   "house_rules": "position count, equal weighting, sector cap and costs are house convention, not the table's \u2014 it supplies entries and exits only"
  },
- "cash": 910.7062336855179,
+ "cash": 722.7700520507788,
  "positions": {
   "BRK-B": {
    "shares": 9.789422283974496,
    "avg_price": 504.260009765625,
-   "last": 579.3200073242188,
+   "last": 580.7899780273438,
    "opened": "2026-10-05"
   },
   "HDB": {
    "shares": 226.44860822997157,
    "avg_price": 22.280000686645508,
-   "last": 28.350000381469727,
+   "last": 28.530000686645508,
    "opened": "2026-10-09"
   },
   "NVDA": {
    "shares": 26.868281441473894,
    "avg_price": 178.6699981689453,
-   "last": 149.3000030517578,
+   "last": 150.49000549316406,
    "opened": "2026-11-09"
   },
   "NOW": {
    "shares": 46.71619011438594,
    "avg_price": 102.76000213623047,
-   "last": 92.16000366210938,
-   "opened": "2026-11-09"
-  },
-  "PBR": {
-   "shares": 261.61066464056125,
-   "avg_price": 18.350000381469727,
-   "last": 16.049999237060547,
+   "last": 92.80000305175781,
    "opened": "2026-11-09"
   },
   "YPF": {
    "shares": 129.66978169632387,
    "avg_price": 37.20000076293945,
-   "last": 31.450000762939453,
+   "last": 31.850000381469727,
    "opened": "2026-11-12"
   },
   "HALO": {
    "shares": 47.916122636043326,
    "avg_price": 100.66999816894531,
-   "last": 95.11000061035156,
+   "last": 94.80000305175781,
    "opened": "2026-11-12"
   },
   "DBC": {
    "shares": 90.50084471249095,
    "avg_price": 30.90999984741211,
-   "last": 29.270000457763672,
+   "last": 29.549999237060547,
    "opened": "2026-11-12"
   },
   "UNH": {
    "shares": 13.276797477141915,
    "avg_price": 349.9100036621094,
-   "last": 346.19000244140625,
+   "last": 351.4100036621094,
    "opened": "2026-11-18"
   },
   "BABA": {
    "shares": 53.858023551124745,
    "avg_price": 81.08000183105469,
-   "last": 86.26000213623047,
+   "last": 89.68000030517578,
    "opened": "2026-11-20"
   },
   "SAP": {
    "shares": 22.72022762505126,
    "avg_price": 203.39999389648438,
-   "last": 209.3699951171875,
+   "last": 213.64999389648438,
    "opened": "2026-11-23"
   },
   "TCEHY": {
    "shares": 104.45962895411715,
    "avg_price": 44.2400016784668,
-   "last": 43.560001373291016,
-   "opened": "2026-11-23"
-  },
-  "AXP": {
-   "shares": 15.057980619644123,
-   "avg_price": 306.8999938964844,
-   "last": 312.3900146484375,
+   "last": 45.18000030517578,
    "opened": "2026-11-23"
   },
   "MSFT": {
    "shares": 9.25285051396635,
    "avg_price": 496.1300048828125,
-   "last": 489.92999267578125,
+   "last": 492.8500061035156,
    "opened": "2026-11-24"
   },
   "BKNG": {
    "shares": 31.305351812474974,
    "avg_price": 146.63999938964844,
-   "last": 149.5,
+   "last": 150.38999938964844,
    "opened": "2026-11-24"
-  },
-  "NFLX": {
-   "shares": 77.65150218453972,
-   "avg_price": 59.40999984741211,
-   "last": 59.40999984741211,
-   "opened": "2026-11-25"
-  },
-  "JPM": {
-   "shares": 14.564866689303063,
-   "avg_price": 316.739990234375,
-   "last": 316.739990234375,
-   "opened": "2026-11-25"
-  },
-  "ISRG": {
-   "shares": 10.799372189783675,
-   "avg_price": 427.17999267578125,
-   "last": 427.17999267578125,
-   "opened": "2026-11-25"
-  },
-  "GS": {
-   "shares": 5.759179511639843,
-   "avg_price": 801.030029296875,
-   "last": 801.030029296875,
-   "opened": "2026-11-25"
   },
   "INTU": {
    "shares": 16.97804987564282,
    "avg_price": 271.7200012207031,
-   "last": 271.7200012207031,
+   "last": 271.94000244140625,
    "opened": "2026-11-25"
+  },
+  "CCJ": {
+   "shares": 73.1183573326722,
+   "avg_price": 63.970001220703125,
+   "last": 63.970001220703125,
+   "opened": "2026-11-27"
+  },
+  "FSLR": {
+   "shares": 31.230428486319436,
+   "avg_price": 149.77000427246094,
+   "last": 149.77000427246094,
+   "opened": "2026-11-27"
+  },
+  "NTES": {
+   "shares": 43.775212677796176,
+   "avg_price": 106.8499984741211,
+   "last": 106.8499984741211,
+   "opened": "2026-11-27"
+  },
+  "COF": {
+   "shares": 25.292713962451835,
+   "avg_price": 184.92999267578125,
+   "last": 184.92999267578125,
+   "opened": "2026-11-27"
+  },
+  "ONON": {
+   "shares": 147.13372988744558,
+   "avg_price": 31.790000915527344,
+   "last": 31.790000915527344,
+   "opened": "2026-11-27"
+  },
+  "NVS": {
+   "shares": 30.356836398246497,
+   "avg_price": 154.0800018310547,
+   "last": 154.0800018310547,
+   "opened": "2026-11-27"
   }
  },
  "equity": [
@@ -638,6 +638,17 @@
    "bench": {
     "SPY": 93420.06,
     "QQQ": 85539.06
+   }
+  },
+  {
+   "date": "2026-11-27",
+   "value": 93613.18,
+   "invested": 92890.41,
+   "cash": 722.77,
+   "n": 20,
+   "bench": {
+    "SPY": 94934.7,
+    "QQQ": 87841.05
    }
   }
  ],
@@ -2761,6 +2772,126 @@
    "price": 271.72,
    "fee": 4.62,
    "reason": "Entry \u2014 RSI 15.6, score 6.0"
+  },
+  {
+   "date": "2026-11-27",
+   "side": "SELL",
+   "ticker": "PBR",
+   "shares": 261.6107,
+   "price": 16.84,
+   "fee": 4.41,
+   "pnl": -399.44,
+   "held_days": 18,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-11-27",
+   "side": "SELL",
+   "ticker": "AXP",
+   "shares": 15.058,
+   "price": 316.4,
+   "fee": 4.76,
+   "pnl": 138.29,
+   "held_days": 4,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-11-27",
+   "side": "SELL",
+   "ticker": "NFLX",
+   "shares": 77.6515,
+   "price": 60.93,
+   "fee": 4.73,
+   "pnl": 113.3,
+   "held_days": 2,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-11-27",
+   "side": "SELL",
+   "ticker": "JPM",
+   "shares": 14.5649,
+   "price": 322.96,
+   "fee": 4.7,
+   "pnl": 85.89,
+   "held_days": 2,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-11-27",
+   "side": "SELL",
+   "ticker": "ISRG",
+   "shares": 10.7994,
+   "price": 430.18,
+   "fee": 4.65,
+   "pnl": 27.75,
+   "held_days": 2,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-11-27",
+   "side": "SELL",
+   "ticker": "GS",
+   "shares": 5.7592,
+   "price": 812.87,
+   "fee": 4.68,
+   "pnl": 63.51,
+   "held_days": 2,
+   "reason": "signal is now Neutral"
+  },
+  {
+   "date": "2026-11-27",
+   "side": "BUY",
+   "ticker": "CCJ",
+   "shares": 73.1184,
+   "price": 63.97,
+   "fee": 4.68,
+   "reason": "Entry \u2014 RSI 39.1, score 7.0"
+  },
+  {
+   "date": "2026-11-27",
+   "side": "BUY",
+   "ticker": "FSLR",
+   "shares": 31.2304,
+   "price": 149.77,
+   "fee": 4.68,
+   "reason": "Entry \u2014 RSI 17.0, score 6.0"
+  },
+  {
+   "date": "2026-11-27",
+   "side": "BUY",
+   "ticker": "NTES",
+   "shares": 43.7752,
+   "price": 106.85,
+   "fee": 4.68,
+   "reason": "Entry \u2014 RSI 24.0, score 6.0"
+  },
+  {
+   "date": "2026-11-27",
+   "side": "BUY",
+   "ticker": "COF",
+   "shares": 25.2927,
+   "price": 184.93,
+   "fee": 4.68,
+   "reason": "Entry \u2014 RSI 26.4, score 6.0"
+  },
+  {
+   "date": "2026-11-27",
+   "side": "BUY",
+   "ticker": "ONON",
+   "shares": 147.1337,
+   "price": 31.79,
+   "fee": 4.68,
+   "reason": "Entry \u2014 RSI 26.5, score 6.0"
+  },
+  {
+   "date": "2026-11-27",
+   "side": "BUY",
+   "ticker": "NVS",
+   "shares": 30.3568,
+   "price": 154.08,
+   "fee": 4.68,
+   "reason": "Entry \u2014 RSI 29.7, score 6.0"
   }
  ],
  "benchmarks": {
@@ -3021,6 +3152,11 @@
    "date": "2026-11-25",
    "msg": "79 long signals, 20 held",
    "snapshot": "2026-11-26T03:52:12Z"
+  },
+  {
+   "date": "2026-11-27",
+   "msg": "53 long signals, 20 held",
+   "snapshot": "2026-11-28T03:36:15Z"
   }
  ]
 }
